@@ -1,4 +1,4 @@
-# jotl
+# @jotl/cli
 
 [English](../README.md) · **简体中文**
 
@@ -44,7 +44,7 @@ home.json: 未通过
 1. 把命令行加进项目：
 
    ```sh
-   pnpm add -D jotl
+   pnpm add -D @jotl/cli
    ```
 
 2. 写一个只有一个字段的 schema：

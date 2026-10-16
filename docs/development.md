@@ -57,7 +57,7 @@ Package directories are named after the package without the `@jotl/` prefix.
 | `@jotl/antd` | `packages/antd` | Ant Design widgets for `@jotl/form` |
 | `@jotl/language-server` | `packages/language-server` | Language server (LSP) |
 | `vscode-jotl` (Marketplace ID `heavensky.vscode-jotl`) | `packages/vscode` | VS Code extension and its preview panel |
-| `jotl` | `packages/cli` | Command line |
+| `@jotl/cli` | `packages/cli` | Command line |
 | `@jotl/playground` | `apps/playground` | Browser playground |
 
 Other directories:

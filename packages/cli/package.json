@@ -1,5 +1,5 @@
 {
-  "name": "jotl",
+  "name": "@jotl/cli",
   "version": "0.0.1",
   "description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
   "repository": {

@@ -57,7 +57,7 @@
 | `@jotl/antd` | `packages/antd` | `@jotl/form` 的 Ant Design widget |
 | `@jotl/language-server` | `packages/language-server` | 语言服务（LSP） |
 | `vscode-jotl`（市场 ID `heavensky.vscode-jotl`） | `packages/vscode` | VS Code 插件及其预览面板 |
-| `jotl` | `packages/cli` | 命令行 |
+| `@jotl/cli` | `packages/cli` | 命令行 |
 | `@jotl/playground` | `apps/playground` | 浏览器 playground |
 
 其他目录：

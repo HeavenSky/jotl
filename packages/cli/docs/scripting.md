@@ -71,7 +71,7 @@ JOTL_LANG=en jotl validate form.schema.json data.json
 `run(argv, io, options?)` performs one invocation and returns the exit code; it never calls `process.exit`. `createNodeIo()` gives the implementation backed by the Node process and file system.
 
 ```ts
-import { createNodeIo, run } from "jotl";
+import { createNodeIo, run } from "@jotl/cli";
 
 process.exitCode = run(["check", "home.jotl"], createNodeIo(), { env: process.env });
 ```

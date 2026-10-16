@@ -74,7 +74,7 @@ The output is plain 2020-12. The only extension is the `x-ui` keyword, which car
 You need Node 22 or later.
 
 ```sh
-pnpm add -D jotl
+pnpm add -D @jotl/cli
 pnpm exec jotl compile home.jotl --out home.schema.json
 pnpm exec jotl compile home.jotl --to ts --out home.d.ts
 ```
@@ -102,7 +102,7 @@ Rendering a form in the browser needs only `@jotl/core`, `@jotl/data` and `@jotl
 | [`@jotl/antd`](packages/antd/README.md) | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+) |
 | [`@jotl/language-server`](packages/language-server/README.md) | Language server (LSP) for `.jotl` files |
 | [`vscode-jotl`](packages/vscode/README.md) | VS Code extension with live preview |
-| [`jotl`](packages/cli/README.md) | Command line: compile, convert, check, validate, defaults, migrate and format |
+| [`@jotl/cli`](packages/cli/README.md) | Command line: compile, convert, check, validate, defaults, migrate and format |
 | [`@jotl/playground`](apps/playground/README.md) | Browser app for editing Jotl and previewing the form, run locally from this repository |
 
 User-facing text is available in English (`en`, default) and Chinese (`zh-CN`). Code sets it with `setLocale` from `@jotl/core`, the CLI with `--lang`; each package README covers its own options.

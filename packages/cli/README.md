@@ -1,4 +1,4 @@
-# jotl
+# @jotl/cli
 
 **English** · [简体中文](./zh/README.md)
 
@@ -42,7 +42,7 @@ You need Node 22 or later.
 1. Add the command line to your project:
 
    ```sh
-   pnpm add -D jotl
+   pnpm add -D @jotl/cli
    ```
 
 2. Write a one-field schema:
