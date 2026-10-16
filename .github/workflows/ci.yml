@@ -32,6 +32,10 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      # vendor/ 不入库; convert 与 data 的测试缺它即失败.
+      - name: Fetch JSON-Schema-Test-Suite
+        run: bash scripts/fetch-json-schema-test-suite.sh
+
       - name: Check
         run: pnpm check
 
