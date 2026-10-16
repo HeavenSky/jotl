@@ -16,7 +16,7 @@ import {
   type Result,
 } from "@jotl/core";
 import { tsDiagnostic, type TsDiagnosticCode } from "./diagnostics.js";
-import { DEPRECATED_DEFAULT_TEXT, DEPRECATED_DEFAULT_TEXT_EN, EXTENSION_TEXT_TAGS, NUMERIC_KEYWORDS, TEXT_KEYWORDS, enumTitleKey } from "./tags.js";
+import { DEPRECATED_DEFAULT_TEXT, DEPRECATED_DEFAULT_TEXT_EN, EXTENSION_TEXT_TAGS, NUMERIC_KEYWORDS, TEXT_KEYWORDS, enumTitleKey, isDecimalRange } from "./tags.js";
 import { TYPIA_FORMATS, renderTypeLiteral } from "./typia.js";
 import { encodeExample, encodeJson, encodePattern, encodeText } from "./value-codec.js";
 
@@ -127,12 +127,32 @@ function isLabeledEnum(schema: JsonSchemaObject): boolean {
     && oneOf.every((b) => isSchemaObject(b) && "const" in b && Object.keys(b).every((k) => ["const", "title", "description"].includes(k)));
 }
 
-/** 编译器为 money/bigint 生成的封闭值对象; 其 additionalProperties 与小数扩展关键字不告警. */
+/** 编译器为 money/bigint 生成的封闭值对象; 能写注释时 additionalProperties 与 x-decimalRange 写成 `@closed` `@decimalRange`. */
 function isBuiltinValue(schema: JsonSchemaObject): boolean {
   const props = schema.properties;
   if (schema.additionalProperties !== false || !isSchemaObject(props) || !isSchemaObject(props.value)) return false;
   const kind = props.type;
   return isSchemaObject(kind) && (kind.const === "money" || kind.const === "bigint");
+}
+
+/**
+ * 可空包装 `anyOf: [联合, {type: "null"}]`(编译器给联合加 `nullable: true` 的结果)中的内层联合; 写成 `(A | B) | null`,
+ * 括号使 tsToSchema 能还原两层结构, 去掉括号会被拍平为 `anyOf [A, B, null]`.
+ */
+function nullableUnionInner(branches: JsonSchema[]): JsonSchemaObject | undefined {
+  const [inner, tail] = branches;
+  if (branches.length !== 2 || !isSchemaObject(inner) || !isSchemaObject(tail)) return undefined;
+  if (Object.keys(tail).length !== 1 || tail.type !== "null") return undefined;
+  if (["$ref", "const", "enum", "allOf"].some((k) => k in inner)) return undefined;
+  return Array.isArray(inner.anyOf) || (Array.isArray(inner.oneOf) && !isLabeledEnum(inner)) ? inner : undefined;
+}
+
+/** 可区分联合各分支的 title, 没有 title 的为 null; 不是可区分联合或全无 title 时为 undefined. */
+function discriminatedTitles(schema: JsonSchemaObject): (string | null)[] | undefined {
+  const branches = schema.oneOf;
+  if (!Array.isArray(branches) || !isDiscriminatedUnion(branches)) return undefined;
+  const titles = branches.map((b) => (isSchemaObject(b) && typeof b.title === "string" ? b.title : null));
+  return titles.some((t) => t !== null) ? titles : undefined;
 }
 
 /** 可区分联合: 各分支为对象, 有同一个必填字段取互不相同的常量. */
@@ -262,6 +282,16 @@ class Generator {
     if (branchesKey !== undefined) {
       consumed.add(branchesKey);
       const branches = schema[branchesKey] as JsonSchema[];
+      const inner = branchesKey === "anyOf" ? nullableUnionInner(branches) : undefined;
+      const innerType = inner === undefined ? undefined : this.renderNested(inner, appendPointer(pointer, "anyOf", 0), indent, "nested").type;
+      if (inner !== undefined && innerType?.kind === "union") {
+        const head = atom(`(${innerType.text})`);
+        const type: TypeText = { text: `${head.text} | null`, kind: "union", members: [head, atom("null")] };
+        return { ...result(type), branchTitles: position === "tag" ? discriminatedTitles(inner) : undefined };
+      }
+      if (innerType !== undefined) {
+        return result(union([innerType, this.renderNested(branches[1] as JsonSchema, appendPointer(pointer, "anyOf", 1), indent, "nested").type]));
+      }
       const discriminated = branchesKey === "oneOf" && isDiscriminatedUnion(branches);
       const silent = discriminated ? ["title"] : [];
       const type = union(branches.map((b, i) => this.renderNested(b, appendPointer(pointer, branchesKey, i), indent, "nested", silent).type));
@@ -365,9 +395,10 @@ class Generator {
 
   /** 对象的属性与索引签名, 每项一行或多行(含注释); 返回的行已带缩进. */
   renderMembers(schema: JsonSchemaObject, pointer: JsonPointer, indent: string, consumed: Set<string>): string[] {
-    consumed.add("properties").add("required").add("additionalProperties");
-    const builtin = isBuiltinValue(schema);
-    if (builtin) consumed.add("x-decimalRange").add("x-decimals");
+    consumed.add("properties").add("required");
+    // money/bigint 的 additionalProperties: false 留给 docTags 写成 @closed; 不能写注释的位置由 reportLeftovers 告警.
+    const builtinClosed = schema.additionalProperties === false && isBuiltinValue(schema);
+    if (!builtinClosed) consumed.add("additionalProperties");
     const lines: string[] = [];
     const propertyTypes: TypeText[] = [];
     const required = Array.isArray(schema.required) ? schema.required : [];
@@ -387,7 +418,7 @@ class Generator {
     const additional = schema.additionalProperties;
     if (additional !== undefined) {
       if (typeof additional === "boolean") {
-        if (!(additional === false && builtin)) this.dropped(pointer, `additionalProperties: ${String(additional)}`);
+        if (!builtinClosed) this.dropped(pointer, `additionalProperties: ${String(additional)}`);
       } else {
         const value = this.renderNested(additional, appendPointer(pointer, "additionalProperties"), indent, "nested").type;
         lines.push(`${indent}[key: string]: ${indexSignatureType(value, propertyTypes)};`);
@@ -488,6 +519,10 @@ class Generator {
       if (typeof schema.pattern === "string") add("pattern", [`@pattern ${encodePattern(schema.pattern)}`]);
       else this.dropped(pointer, "pattern");
     }
+    if (isBuiltinValue(schema) && !consumed.has("additionalProperties")) {
+      consumed.add("additionalProperties");
+      add("additionalProperties", ["@closed"]);
+    }
     flag("uniqueItems", "uniqueItems");
     if ("default" in schema && !consumed.has("default")) {
       consumed.add("default");
@@ -523,6 +558,11 @@ class Generator {
       else add("x-ui", [uiTag(xUi)]);
     }
     for (const ui of rendered.itemUis ?? []) add("x-ui", [uiTag(ui ?? {}, "item")]);
+    const range = schema["x-decimalRange"];
+    if (range !== undefined && !consumed.has("x-decimalRange") && isBuiltinValue(schema) && isDecimalRange(range)) {
+      consumed.add("x-decimalRange");
+      add("x-decimalRange", [`@decimalRange ${encodeJson(range)}`]);
+    }
     if (schema.errorMessage !== undefined) {
       consumed.add("errorMessage");
       add("errorMessage", [`@errorMessage ${encodeJson(schema.errorMessage)}`]);
@@ -575,7 +615,8 @@ function indexSignatureType(value: TypeText, propertyTypes: TypeText[]): string 
   const all = union(propertyTypes).members ?? [union(propertyTypes)];
   const extra = [...all.filter((m) => m.text !== "undefined"), ...all.filter((m) => m.text === "undefined")]
     .filter((m) => !own.has(m.text));
-  if (extra.length === 0) return value.text;
+  // 不加外层括号时, `(A | B) | null` 的头部会被当作 `(额外类型)` 读回而丢掉 null.
+  if (extra.length === 0) return value.kind === "union" && value.text.startsWith("(") ? `(${value.text})` : value.text;
   return [`(${value.text})`, ...extra.map((m) => (m.kind === "inter" ? `(${m.text})` : m.text))].join(" | ");
 }
 

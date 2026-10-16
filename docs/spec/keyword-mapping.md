@@ -20,7 +20,7 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | ᴾ | Jotl protocol tags | Declared in [`packages/convert/tsdoc.json`](../../packages/convert/tsdoc.json); constraint tags share the names of their JSON Schema keywords; without this preset, TSDoc tools report unknown tags |
 | ᵀ | The TS type itself | No tag; expressed by how the type is written |
 
-"—" means the form has no counterpart: when the Jotl column is "—", the keyword can only be written verbatim through the `schema: {...}` metadata; when the TS column is "—", `schemaToTs` does not emit it and reports a `JOTL2002` warning, except for the fixed-dialect `$schema` and the `additionalProperties: false` / `x-decimalRange` of `money` and `bigint` value objects, which are dropped silently.
+"—" means the form has no counterpart: when the Jotl column is "—", the keyword can only be written verbatim through the `schema: {...}` metadata; when the TS column is "—", `schemaToTs` does not emit it and reports a `JOTL2002` warning, except for the fixed-dialect `$schema`, which is dropped silently.
 
 ## Document structure
 
@@ -54,14 +54,14 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | `type: "number"` | Number | `number` | ᵀ `number` | |
 | `type: "integer"` | Integer | `integer` | ᵀ `number` + ᴾ `@asType integer` | `integer` at positions that cannot carry a comment (array elements, `Map` values, tuple positions, union branches) is dropped with `JOTL2002`, unless `typiaTags` is enabled |
 | `type: "boolean"` | Boolean | `boolean` | ᵀ `boolean` | |
-| `type: "null"` | null | `nullable: true` | ᵀ `null` | Merged into `type: [T, "null"]` for basic types, otherwise `anyOf: [T, {type: "null"}]` |
+| `type: "null"` | null | `nullable: true` | ᵀ `null`; a nullable union is written `(A \| B) \| null`, and the parentheses keep the inner `oneOf` / `anyOf` when read back | Merged into `type: [T, "null"]` for basic types, otherwise `anyOf: [T, {type: "null"}]` |
 | `type: "object"` | Object | `{ ... }` or `map` | ᵀ `interface` / `{ ... }` | |
 | `type: "array"` | Array | `array[...]` | ᵀ `T[]` / `[A, B]` | |
 | `{}` (unconstrained) | Any value | `any` | ᵀ `unknown` | |
 | `properties` | Object fields | The fields in `{ key: T }` | ᵀ Interface members | For key naming rules see the [Jotl syntax specification](jotl.md#names) |
 | `required` | Names of required fields | Required when written with `:` and without `?`; `key?: T` and a bare `key(label)` are optional | ᵀ Whether the member has `?` | In declaration order; omitted when empty |
 | `additionalProperties` (schema) | Value of extra keys | `map` | ᵀ Index signature `[key: string]: T` | |
-| `additionalProperties: false` | No extra keys allowed | `closed: true` | — | Only on the object type itself, not at a reference site |
+| `additionalProperties: false` | No extra keys allowed | `closed: true` | ᴾ `@closed` on `money` `bigint` value objects; otherwise — | Only on the object type itself, not at a reference site |
 | `items` | Array elements | `array_item` or a body; `false` for a tuple without `*` | ᵀ `T[]` | Metadata of the element itself goes in `item_meta` |
 | `prefixItems` | Positional elements | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ Tuple `[A, B]` | |
 | `const` | Fixed value | Single-member enum `enum{ a }`; the discriminator of a discriminated union | ᵀ Literal type | The outer schema carries `type` (normalization rule 4) |
@@ -109,4 +109,4 @@ The following keywords appear in generated schemas but are not part of the JSON 
 | `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl, maximum number of decimal places | `decimals: n` | — |
 | `x-valueFormat` | Jotl, storage format of dates and times | `value_format` | ᴾ `@valueFormat` |
-| `x-decimalRange` | Jotl, range for `money` and `bigint` `value`s compared as exact decimals | `minimum` `maximum` and the like (as strings) on `money` `bigint` | — |
+| `x-decimalRange` | Jotl, range for `money` and `bigint` `value`s compared as exact decimals | `minimum` `maximum` and the like (as strings) on `money` `bigint` | ᴾ `@decimalRange {"minimum":"0"}` on `money` `bigint` value objects |

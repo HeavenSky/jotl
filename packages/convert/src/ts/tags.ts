@@ -37,6 +37,8 @@ export const CUSTOM_TAGS: readonly CustomTagDefinition[] = [
   { name: "branchTitles", syntax: "block" },
   { name: "errorMessage", syntax: "block" },
   { name: "valueFormat", syntax: "block" },
+  { name: "decimalRange", syntax: "block" },
+  { name: "closed", syntax: "modifier" },
   { name: "id", syntax: "block" },
   { name: "rules", syntax: "block" },
   { name: "widgets", syntax: "block" },
@@ -88,4 +90,9 @@ export const DEPRECATED_DEFAULT_TEXTS: readonly string[] = [DEPRECATED_DEFAULT_T
 /** `@enumTitles` 的键: 字符串取其本身, 其余取 JSON 文本(docs/tag-protocol.md). */
 export function enumTitleKey(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
+}
+
+/** `@decimalRange` 的取值: 值为精确数字串的 JSON 对象(x-decimalRange). */
+export function isDecimalRange(value: unknown): value is Record<string, string> {
+  return typeof value === "object" && value !== null && !Array.isArray(value) && Object.values(value).every((v) => typeof v === "string");
 }

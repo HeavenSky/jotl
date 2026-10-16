@@ -71,6 +71,8 @@ describe("元数据", () => {
     expect(fieldCodes(": number[maxLength: 1]")).toEqual(["JOTL1007"]);
     expect(fieldCodes(": string[closed: true]")).toEqual(["JOTL1007"]);
     expect(fieldCodes(": B[minLength: 1]", "B: string")).toEqual(["JOTL1007"]);
+    expect(fieldCodes(": date[value_format: 'x', maxLength: 10, pattern: '^1']")).toEqual(["JOTL1007", "JOTL1007"]);
+    expect(fieldCodes(": datetime[value_format: 'X', minLength: 1, format: 'date-time']")).toEqual(["JOTL1007", "JOTL1007"]);
     expect(fieldCodes(": string[x_ui: 1]")).toEqual(["JOTL1012"]);
   });
 
@@ -104,6 +106,8 @@ describe("元数据", () => {
     expect(fieldCodes(": string[root_if: {left: 'a', op: 'like', right: 1}]")).toEqual(["JOTL1017"]);
     expect(fieldCodes(": string[root_if: {left: 'a..b', op: 'truthy'}]")).toEqual(["JOTL1017"]);
     expect(fieldCodes(": string[node_if: {left: 'a', op: 'in', right: 1}]")).toEqual(["JOTL1017"]);
+    expect(fieldCodes(": string[node_if: '$.a']")).toEqual(["JOTL1017"]);
+    expect(fieldCodes(": string[node_if: {left: '$.a', op: 'eq', right: 1}]")).toEqual(["JOTL1017"]);
     expect(fieldCodes(": string[variants: {view: {order: []}}]")).toEqual(["JOTL1017"]);
     expect(fieldCodes(": string[variants: {view: {widget: 1}}]")).toEqual(["JOTL1017"]);
     expect(fieldCodes(": string[widget: '']")).toEqual(["JOTL1017"]);
@@ -212,6 +216,8 @@ describe("体与类型串", () => {
     expect(fieldCodes(": union[discriminator: 'k'] { a: { k: string } }")).toEqual(["JOTL1046"]);
     expect(fieldCodes(": union[discriminator: 'k'] { a: string }")).toEqual(["JOTL1046"]);
     expect(fieldCodes(": union[discriminator: 'k'] { a: {} 'a': {} }")).toEqual(["JOTL1046"]);
+    expect(fieldCodes(": union[discriminator: 'k'] {}")).toEqual(["JOTL1047"]);
+    expect(fieldCodes(": union[discriminator: 'k']")).toEqual(["JOTL1047"]);
   });
 
   it("元组位置从 0 连续, `?` 只在末尾, `*` 只有一个", () => {

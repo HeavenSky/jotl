@@ -118,6 +118,7 @@ const checkWidgetBase: Check = (v, p) => (isPlainObject(v) ? undefined : nonEmpt
 const checkWidgetModules: Check = (v, p) => {
   if (!isPlainObject(v)) return issue(p, "type");
   for (const [name, decl] of Object.entries(v)) {
+    if (name === "") return issue(appendPointer(p, name), "empty");
     const found = objectOf({ base: checkWidgetBase, module: nonEmptyString, export: nonEmptyString }, ["module"])(decl, appendPointer(p, name));
     if (found) return found;
   }

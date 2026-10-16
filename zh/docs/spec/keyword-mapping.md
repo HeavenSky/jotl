@@ -20,7 +20,7 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | ᴾ | Jotl 协议标签 | 在 [`packages/convert/tsdoc.json`](../../../packages/convert/tsdoc.json) 中声明，约束类标签与 JSON Schema 关键字同名；不加载该预设时 TSDoc 工具会报未知标签 |
 | ᵀ | TS 类型本身 | 不用标签，由类型写法表达 |
 
-「—」表示该写法中没有对应：Jotl 列为「—」时只能用元数据 `schema: {...}` 原样写入；TS 列为「—」时 `schemaToTs` 不写出，除固定方言的 `$schema`，以及 `money` `bigint` 值对象上的 `additionalProperties: false` / `x-decimalRange` 静默丢弃外，都报 `JOTL2002` warning。
+「—」表示该写法中没有对应：Jotl 列为「—」时只能用元数据 `schema: {...}` 原样写入；TS 列为「—」时 `schemaToTs` 不写出，除固定方言的 `$schema` 静默丢弃外，都报 `JOTL2002` warning。
 
 ## 文档结构
 
@@ -54,14 +54,14 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | `type: "number"` | 数值 | `number` | ᵀ `number` | |
 | `type: "integer"` | 整数 | `integer` | ᵀ `number` + ᴾ `@asType integer` | 不能挂注释的位置（数组元素、`Map` 值、元组位置、联合分支）上的 `integer` 在 TS 中丢弃并报 `JOTL2002`，开启 `typiaTags` 时除外 |
 | `type: "boolean"` | 布尔 | `boolean` | ᵀ `boolean` | |
-| `type: "null"` | null | `nullable: true` | ᵀ `null` | 基础类型上合并为 `type: [T, "null"]`，其余为 `anyOf: [T, {type: "null"}]` |
+| `type: "null"` | null | `nullable: true` | ᵀ `null`；可空的联合写成 `(A \| B) \| null`，读回时靠括号保留内层 `oneOf` / `anyOf` | 基础类型上合并为 `type: [T, "null"]`，其余为 `anyOf: [T, {type: "null"}]` |
 | `type: "object"` | 对象 | `{ ... }` 或 `map` | ᵀ `interface` / `{ ... }` | |
 | `type: "array"` | 数组 | `array[...]` | ᵀ `T[]` / `[A, B]` | |
 | `{}`（无约束） | 任意值 | `any` | ᵀ `unknown` | |
 | `properties` | 对象字段 | `{ key: T }` 中的各字段 | ᵀ 接口成员 | 键名规则见 [Jotl 语法规范](jotl.md#名字) |
 | `required` | 必填字段名 | 写了 `:` 且没有 `?` 为必填；`key?: T` 与不带内容的 `key(标签)` 为选填 | ᵀ 成员是否带 `?` | 按声明顺序排列，为空时省略 |
 | `additionalProperties`（schema） | 额外键的取值 | `map` | ᵀ 索引签名 `[key: string]: T` | |
-| `additionalProperties: false` | 禁止额外键 | `closed: true` | — | 只能写在对象类型本身，不能写在引用处 |
+| `additionalProperties: false` | 禁止额外键 | `closed: true` | `money` `bigint` 值对象上为 ᴾ `@closed`，其余为 — | 只能写在对象类型本身，不能写在引用处 |
 | `items` | 数组元素 | `array_item` 或体；元组没有 `*` 时为 `false` | ᵀ `T[]` | 元素自身的元数据写在 `item_meta` |
 | `prefixItems` | 按位置的元素 | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ 元组 `[A, B]` | |
 | `const` | 固定值 | 单成员枚举 `enum{ a }`；可区分联合的区分字段 | ᵀ 字面量类型 | 外层带 `type`（规范化规则 4） |
@@ -109,4 +109,4 @@ TS 中都是与关键字同名的 ᴾ 协议标签。
 | `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl，小数位数上限 | `decimals: n` | — |
 | `x-valueFormat` | Jotl，日期时间的存储格式 | `value_format` | ᴾ `@valueFormat` |
-| `x-decimalRange` | Jotl，`money` `bigint` 的 `value` 按精确十进制比较的范围 | `money` `bigint` 上的 `minimum` `maximum` 等（字符串） | — |
+| `x-decimalRange` | Jotl，`money` `bigint` 的 `value` 按精确十进制比较的范围 | `money` `bigint` 上的 `minimum` `maximum` 等（字符串） | `money` `bigint` 值对象上为 ᴾ `@decimalRange {"minimum":"0"}` |

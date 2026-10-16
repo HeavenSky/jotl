@@ -366,4 +366,73 @@ describe("编译器固定形态与往返", () => {
     expect(text).toContain("export type C = A & unknown;");
     expect(typecheck({ "t.d.ts": text })).toEqual([]);
   });
+
+  it("可空的联合写成 (A | B) | null, 往返还原外层 anyOf 与内层 oneOf/anyOf 及分支 title", () => {
+    const branch = (kind: string, title?: string) => ({
+      ...(title === undefined ? {} : { title }),
+      type: "object",
+      properties: { kind: { type: "string", const: kind }, [kind]: { type: "number" } },
+      required: ["kind"],
+    });
+    const nullable = (inner: unknown) => ({ anyOf: [inner, { type: "null" }] });
+    const shape = { oneOf: [branch("a", "甲"), branch("b", "乙")] };
+    const schema = wrap({
+      T: {
+        type: "object",
+        properties: {
+          shape: { title: "形状", ...nullable(shape) },
+          size: nullable({ anyOf: [{ type: "number" }, { $ref: "#/$defs/R" }] }),
+          list: { type: "array", items: nullable({ oneOf: [branch("a"), branch("b")] }) },
+        },
+      },
+      R: { type: "object", properties: { from: { type: "number" } } },
+      U: { type: "object", properties: { s: nullable(shape) }, additionalProperties: { type: "number" } },
+      V: { type: "object", properties: { n: { type: "null" } }, additionalProperties: nullable({ anyOf: [{ type: "string" }, { $ref: "#/$defs/R" }] }) },
+    });
+    const result = schemaToTs(schema);
+    expect(result.diagnostics).toEqual([]);
+    const text = roundTrip(schema);
+    expect(text).toContain('   * @branchTitles ["甲","乙"]\n   */\n  shape?: ({\n');
+    expect(text).toContain("  size?: (number | R) | null;");
+    expect(text).toContain("  [key: string]: ((string | R) | null) | undefined;");
+    expect(typecheck({ "t.d.ts": text })).toEqual([]);
+  });
+
+  it("money bigint 值对象的 x-decimalRange 与 additionalProperties: false 写成 @decimalRange @closed 并往返还原", () => {
+    const money = {
+      title: "价格",
+      type: "object",
+      properties: { type: { type: "string", const: "money" }, value: { type: "string" }, currency: { type: "string", const: "CNY" } },
+      required: ["type", "value", "currency"],
+      additionalProperties: false,
+      "x-decimalRange": { minimum: "0", exclusiveMaximum: "100" },
+    };
+    const bigint = {
+      type: "object",
+      properties: { type: { type: "string", const: "bigint" }, value: { type: "string", pattern: "^-?\\d+$" } },
+      required: ["type", "value"],
+      additionalProperties: false,
+    };
+    const schema = wrap({ T: { type: "object", properties: { price: money, total: bigint } }, M: money });
+    const text = roundTrip(schema);
+    expect(text).toContain("   * @title 价格\n   * @closed\n   * @decimalRange `{\"minimum\":\"0\",\"exclusiveMaximum\":\"100\"}`\n   */\n  price?: {");
+    expect(text).toContain("   * @closed\n   */\n  total?: {");
+    expect(text).toContain("/**\n * @title 价格\n * @closed\n * @decimalRange");
+  });
+
+  it("不能写注释的位置上, money 值对象的 x-decimalRange 与 additionalProperties: false 告警", () => {
+    const money = {
+      type: "object",
+      properties: { type: { type: "string", const: "money" }, value: { type: "string" } },
+      required: ["type", "value"],
+      additionalProperties: false,
+      "x-decimalRange": { minimum: "0" },
+    };
+    const result = schemaToTs(wrap({ T: { type: "array", items: money } }));
+    expect(result.diagnostics.map((d) => [d.code, d.location])).toEqual([
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/items" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/items" }],
+    ]);
+    expect(result.diagnostics.map((d) => d.message).join("\n")).toMatch(/additionalProperties[\s\S]*x-decimalRange/);
+  });
 });

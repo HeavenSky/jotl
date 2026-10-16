@@ -231,6 +231,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 1. 可区分联合：`union[discriminator: 'kind'] { text(文本): {...}  image(图片): ImageBlock }`
    - 分支的键是区分字段的取值，标签为分支标题；分支内容是对象体或对象类型引用。
    - 区分字段由编译器补为 `const`，分支里不写；编译为 `oneOf`。
+   - 至少需要一个分支；没有体或体为空报 JOTL1047。
    - 数据：`{ "kind": "text", "content": "..." }`。
 2. 按 JSON 类型区分：`union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
    - 各分支的 JSON 类型（string number boolean array object）互不相同，每种至多一个；`money` `bigint` 按自身的 `type` 字段区分，不占 object 的名额；`any` 匹配所有类型，不能与其他名字并列。
@@ -347,7 +348,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 
 - 标准的 `format: time` 要求带时区，所以 `time` 默认不再编译为它；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。
 - 格式串含 `Z` 时接受任意偏移，读入后按本地时区显示，写回时用本地偏移。
-- `value_format` 用在其他组件上报 `JOTL1007`；`time` 用 `x` / `X` 报 `JOTL1020`；数据不符合存储格式报 `JOTL4025`。
+- `value_format` 用在其他组件上报 `JOTL1007`；`time` 用 `x` / `X` 报 `JOTL1020`；`x` / `X` 下写字符串约束 `minLength` `maxLength` `pattern` `format` 报 `JOTL1007`；数据不符合存储格式报 `JOTL4025`。
 - 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数，别名按 RFC 3339 检查，格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义，含其他记号时不检查。
 
 ## 条件
@@ -361,7 +362,7 @@ d?: string[node_if: 'href']
 
 - 叶子条件为 `{left: 路径, op, right?}`；`op` 取 `eq` `ne` `in` `not_in` `gt` `gte` `lt` `lte` `truthy` `falsy`，后两个不写 `right`。
 - 组合条件为 `{and: [...]}` `{or: [...]}` `{not: 条件}`；直接写路径字符串等价于 `{left: 路径, op: 'truthy'}`。
-- 路径为 lodash `get` 语法（`a.b[0].c` `a['x-y']`），`[*]` 取当前节点所在数组的对应下标；`root_if` 另接受 `$.` 前缀。
+- 路径为 lodash `get` 语法（`a.b[0].c` `a['x-y']`），`[*]` 取当前节点所在数组的对应下标；`root_if` 另接受 `$.` 前缀，`node_if` 的路径以 `$.` 开头报 JOTL1017。
 - 基准：`root_if` 从数据根算起，`node_if` 从字段所在的对象算起；不支持向上引用。
 - 编译为 `x-ui.visibleIf`（[x-ui 规范](x-ui.md)中的条件格式）：
 
@@ -392,9 +393,9 @@ d?: string[node_if: 'href']
 | error | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | 词法：非法字符与未知的 `<...>` 记号；字符串缺结束引号；块注释未闭合；未知转义或字符串中有控制字符；数字写法不合法（含 `Infinity` `NaN`）；标签为空 |
 | error | JOTL1002 JOTL1003 JOTL1040 | 语法：此处应为另一种记号；缺右括号；冒号后有内容却省略了冒号 |
 | error | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层：顶层名不是大驼峰；顶层写了 `?`；标识写在体内；标识重复；类型名重复；类型名与扩展组件（含根元数据 `widgets` 声明的）重名 |
-| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`） |
+| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`，可区分联合没有分支） |
 | error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等） |
-| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | 元数据：未知键；键不适用于该组件；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`） |
+| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`） |
 | error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限 |
 | warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 | `widget` 不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断） |
 | error | JOTL1030 JOTL1031 JOTL1035 | `print`：输入不是 JSON Schema；含非 JSON 值；`rootName` 不是大驼峰 |

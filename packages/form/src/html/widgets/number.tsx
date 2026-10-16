@@ -43,7 +43,7 @@ export function NumberWidget(props: HtmlFieldProps<number>) {
   const decimals = decimalsOf(props.schema);
   const format = (value: unknown): string => {
     const text = formatNumber(value);
-    return thousands && !focused ? formatThousands(text) : text;
+    return thousands && (!focused || props.mode !== "edit") ? formatThousands(text) : text;
   };
   const draft = useDraft(props.value, format);
   const draftErrorId = `${props.id}-draft-error`;

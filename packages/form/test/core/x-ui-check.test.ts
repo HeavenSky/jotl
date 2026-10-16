@@ -9,6 +9,7 @@ describe("checkXUi 与 xUiMetaSchema 规则一致", () => {
     expect(checkXUi({ widgets: { A: { base: "url", module: "a" }, B: { base: { type: "string" }, module: "b" } } })).toBeUndefined();
     expect(checkXUi({ widgets: { A: { base: "", module: "a" } } })).toEqual({ path: "/widgets/A/base", kind: "empty" });
     expect(checkXUi({ widgets: { A: { base: 1, module: "a" } } })).toEqual({ path: "/widgets/A/base", kind: "type" });
+    expect(checkXUi({ widgets: { "": { module: "a" } } })).toEqual({ path: "/widgets/", kind: "empty" });
   });
 
   it("合法的完整 x-ui", () => {

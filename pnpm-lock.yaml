@@ -231,10 +231,10 @@ importers:
   packages/antd:
     dependencies:
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       '@jotl/form':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../form
     devDependencies:
       '@testing-library/dom':
@@ -265,19 +265,19 @@ importers:
   packages/cli:
     dependencies:
       '@jotl/convert':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../convert
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       '@jotl/data':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../data
 
   packages/convert:
     dependencies:
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       typescript:
         specifier: 6.0.3
@@ -304,7 +304,7 @@ importers:
   packages/data:
     dependencies:
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       ajv:
         specifier: ^8.20.0
@@ -319,10 +319,10 @@ importers:
   packages/form:
     dependencies:
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       '@jotl/data':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../data
       '@types/big.js':
         specifier: ^7.0.0
@@ -389,13 +389,13 @@ importers:
   packages/language-server:
     dependencies:
       '@jotl/convert':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../convert
       '@jotl/core':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../core
       '@jotl/form':
-        specifier: workspace:*
+        specifier: workspace:~
         version: link:../form
       vscode-languageserver:
         specifier: ^10.1.2

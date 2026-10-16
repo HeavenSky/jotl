@@ -100,7 +100,7 @@ schema 根上带 `"x-ui": { version: 1 }`，因为 `@jotl/core` 的编译器会�
 `tsToSchema` 只按语法树转换，不做类型检查。根取注释带 `@root` 的声明，没有时取默认导出。
 
 - 支持：`interface`、`type`、`export default`（含 `export { X as default }`）、`Array<T>`、`Record<string, T>`、元组与 `readonly`。
-- 联合：可区分联合输出为 `oneOf`，含 `null` 的字面量联合输出为 `anyOf: [枚举, { type: "null" }]`，其余联合输出为 `anyOf`。
+- 联合：可区分联合输出为 `oneOf`，含 `null` 的字面量联合输出为 `anyOf: [枚举, { type: "null" }]`，`(A | B) | null` 输出为 `anyOf: [A 与 B 的联合, { type: "null" }]`，其余联合输出为 `anyOf`。
 - 交叉类型只接受引用，与至多一个其他类型及 typia 标签组合（见 [标签协议](./tag-protocol.md) 与 [输出 typia 类型标签](#输出-typia-类型标签)）。多个对象字面量（如 `{ a: 1 } & { b: 2 }`）只含属性签名且属性名互不相同时，合并为一个开放对象（合并 `properties` 与 `required`）。其余交叉（属性同名、含索引签名或方法等）报 `JOTL2106`。
 - 不支持的写法报错误级诊断：泛型、条件类型、映射类型、函数与方法、接口继承、`enum` 等其他声明、计算属性名。
 - 导入声明只报 `JOTL2108` warning，其他文件里的类型不会被转换。

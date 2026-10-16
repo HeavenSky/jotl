@@ -26,6 +26,9 @@ This page is the full mapping between JSON Schema keywords and their TS notation
 | `title` of discriminated union branches | `@branchTitles` JSON array in branch order, `null` for branches without `title`; output only when the union node can carry a comment |
 | Both `properties` and `additionalProperties` | Index signature written as `(extra type) \| property types...`, with `undefined` added for optional properties; only the extra type in parentheses is read back |
 | `x-valueFormat` (storage format of date components) | `@valueFormat format`, value is text |
+| `additionalProperties: false` on `money` / `bigint` value objects (`properties.type` is the `money` or `bigint` constant) | `@closed` (modifier tag, no value) |
+| `x-decimalRange` on `money` / `bigint` value objects | `@decimalRange`, value is a JSON object of exact decimal strings, e.g. `` @decimalRange `{"minimum":"0"}` `` |
+| Nullable union `anyOf: [{ oneOf or anyOf }, { type: "null" }]` (what `nullable: true` on a Jotl `union` compiles to) | `(A \| B) \| null`; the parentheses keep the two levels, while `A \| B \| null` reads back as one flat `anyOf`. `@branchTitles` on such a node applies to the inner `oneOf` |
 | The type pointed to by the root `$ref` differs from the default export | `@root` on the root type's comment (modifier tag, no value) |
 | Root `$id` (only on the root type) | `@id URI`, value is text |
 | Root `x-ui.rules` (only on the root type) | `@rules rule array`, value is JSON |
@@ -41,8 +44,9 @@ Tags follow the keyword order of normalization rule 7 in the [Jotl syntax spec](
 Keywords without a place in the table are dropped with a `JOTL2002` warning; the output is otherwise unaffected.
 
 - Element-level constraints and annotations (such as `maxLength` on array elements) have no place to attach a comment, except `x-ui` of array elements. They are dropped in non-typia mode; typia mode can express them.
-- The Jotl extension keywords `x-decimals` `x-decimalRange`, as well as `contentSchema`, `propertyNames` and `allOf` with non-reference members, have no notation.
-- Fixed shapes the compiler generates for built-in components are not reported: `additionalProperties: false`, `x-decimalRange` and `x-decimals` on `money` / `bigint` value objects (`properties.type` is the `money` or `bigint` constant), and `title` of discriminated union branches in places that cannot carry comments (such as array elements and union branches).
+- The Jotl extension keyword `x-decimals`, `x-decimalRange` outside `money` / `bigint` value objects, as well as `contentSchema`, `propertyNames` and `allOf` with non-reference members, have no notation.
+- `additionalProperties: false` and `x-decimalRange` of `money` / `bigint` value objects need a comment; where the value object cannot carry one (such as array elements and union branches, including the `anyOf` branch of a nullable `money`) they are dropped with `JOTL2002`.
+- `title` of discriminated union branches is dropped without a report in places that cannot carry comments (such as array elements and union branches), since the compiler generates it from branch labels.
 
 ## Write root-level tags
 
@@ -69,4 +73,5 @@ Document-level information goes on the root type's comment. The root type is the
 - Values that are not valid JSON are treated as strings with a `JOTL2113` warning.
 - TSDoc standard tags (such as `@remarks` `@see`) are silently ignored; unknown tags report a `JOTL2114` warning.
 - Tags used on inapplicable types report a `JOTL2115` warning.
+- `@closed` and `@decimalRange` apply to any object type, not only `money` / `bigint` value objects; `@closed` on an object with an index signature reports `JOTL2115`.
 - `@asType` only accepts `integer`; other values report a `JOTL2118` warning.

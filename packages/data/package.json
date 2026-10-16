@@ -1,6 +1,6 @@
 {
   "name": "@jotl/data",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Generate defaults, validate, migrate and mock data from a JSON Schema 2020-12, with errors that name the field and say what is wrong.",
   "repository": {
     "type": "git",
@@ -23,7 +23,7 @@
     "typecheck:test": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@jotl/core": "workspace:*",
+    "@jotl/core": "workspace:~",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
     "dayjs": "^1.11.23"

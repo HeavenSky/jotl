@@ -1,6 +1,6 @@
 {
   "name": "@jotl/form",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "type": "module",
   "description": "Render a validated React form straight from a JSON Schema, with widgets and layout chosen in the schema itself.",
@@ -44,8 +44,8 @@
     "test:react-compat": "for v in 16 17 18 19; do JOTL_REACT=$v vitest run --config vitest.compat.config.ts || exit 1; done"
   },
   "dependencies": {
-    "@jotl/core": "workspace:*",
-    "@jotl/data": "workspace:*",
+    "@jotl/core": "workspace:~",
+    "@jotl/data": "workspace:~",
     "@types/big.js": "^7.0.0",
     "big.js": "^7.0.1",
     "dayjs": "^1.11.23",

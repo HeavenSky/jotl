@@ -26,6 +26,9 @@
 | 可区分联合分支的 `title` | `@branchTitles` JSON 数组，按分支顺序，无 `title` 的分支为 `null`；只在联合节点可写注释时输出 |
 | 同时有 `properties` 与 `additionalProperties` | 索引签名写 `(额外类型) \| 属性类型...`，可选属性另加 `undefined`；读取时只取括号中的额外类型 |
 | `x-valueFormat`（日期组件的存储格式） | `@valueFormat 格式`，取值为文本 |
+| `money` / `bigint` 值对象（`properties.type` 为 `money` 或 `bigint` 常量）上的 `additionalProperties: false` | `@closed`（修饰标签，无取值） |
+| `money` / `bigint` 值对象上的 `x-decimalRange` | `@decimalRange`，取值为值是精确数字串的 JSON 对象，如 `` @decimalRange `{"minimum":"0"}` `` |
+| 可空的联合 `anyOf: [{ oneOf 或 anyOf }, { type: "null" }]`（Jotl `union` 加 `nullable: true` 的编译结果） | `(A \| B) \| null`；括号保留两层结构，不加括号的 `A \| B \| null` 读回为一层 `anyOf`。这种节点上的 `@branchTitles` 作用于内层 `oneOf` |
 | 根 `$ref` 指向的类型与默认导出不同 | 根类型注释加 `@root`（修饰标签，无取值） |
 | 根 `$id`（只在根类型上） | `@id URI`，取值为文本 |
 | 根 `x-ui.rules`（只在根类型上） | `@rules 规则数组`，取值为 JSON |
@@ -41,8 +44,9 @@
 表里没有位置的关键字丢弃并报 `JOTL2002` warning，其余输出不受影响。
 
 - 元素级约束与注解（如数组元素上的 `maxLength`）没有可挂注释的位置，数组元素的 `x-ui` 除外。非 typia 模式下丢弃；typia 模式可以表达。
-- Jotl 扩展关键字 `x-decimals` `x-decimalRange`，以及 `contentSchema`、`propertyNames` 与含非引用成员的 `allOf`，没有对应写法。
-- 编译器为内置组件生成的固定形态不报：`money` / `bigint` 值对象（`properties.type` 为 `money` 或 `bigint` 常量）上的 `additionalProperties: false`、`x-decimalRange` 与 `x-decimals`，以及不能写注释的位置（如数组元素、联合分支）上可区分联合分支的 `title`。
+- Jotl 扩展关键字 `x-decimals`、`money` / `bigint` 值对象以外的 `x-decimalRange`，以及 `contentSchema`、`propertyNames` 与含非引用成员的 `allOf`，没有对应写法。
+- `money` / `bigint` 值对象的 `additionalProperties: false` 与 `x-decimalRange` 要写在注释里；值对象所在位置不能写注释时（如数组元素、联合分支，包括可空 `money` 的 `anyOf` 分支）丢弃并报 `JOTL2002`。
+- 不能写注释的位置（如数组元素、联合分支）上，可区分联合分支的 `title` 丢弃且不报，因为它由编译器按分支标签生成。
 
 ## 写根级标签
 
@@ -69,4 +73,5 @@
 - 不是合法 JSON 的取值按字符串处理，报 `JOTL2113` warning。
 - TSDoc 标准标签（如 `@remarks` `@see`）静默忽略；未知标签报 `JOTL2114` warning。
 - 标签用在不适用的类型上报 `JOTL2115` warning。
+- `@closed` 与 `@decimalRange` 可用于任意对象类型，不限于 `money` / `bigint` 值对象；`@closed` 用在带索引签名的对象上报 `JOTL2115`。
 - `@asType` 只接受 `integer`，其余值报 `JOTL2118` warning。

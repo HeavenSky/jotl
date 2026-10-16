@@ -1,6 +1,6 @@
 {
   "name": "@jotl/antd",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "MIT",
   "type": "module",
   "description": "Render Jotl forms with Ant Design components: one registry swaps the native widgets of @jotl/form for antd.",
@@ -24,8 +24,8 @@
     "typecheck:test": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@jotl/core": "workspace:*",
-    "@jotl/form": "workspace:*"
+    "@jotl/core": "workspace:~",
+    "@jotl/form": "workspace:~"
   },
   "peerDependencies": {
     "antd": "^5.0.0 || ^6.0.0",

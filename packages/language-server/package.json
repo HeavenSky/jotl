@@ -1,6 +1,6 @@
 {
   "name": "@jotl/language-server",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
   "repository": {
     "type": "git",
@@ -23,9 +23,9 @@
     "typecheck:test": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@jotl/core": "workspace:*",
-    "@jotl/convert": "workspace:*",
-    "@jotl/form": "workspace:*",
+    "@jotl/core": "workspace:~",
+    "@jotl/convert": "workspace:~",
+    "@jotl/form": "workspace:~",
     "vscode-languageserver": "^10.1.2"
   }
 }

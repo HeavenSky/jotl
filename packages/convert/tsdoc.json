@@ -29,6 +29,8 @@
     { "tagName": "@branchTitles", "syntaxKind": "block" },
     { "tagName": "@errorMessage", "syntaxKind": "block" },
     { "tagName": "@valueFormat", "syntaxKind": "block" },
+    { "tagName": "@decimalRange", "syntaxKind": "block" },
+    { "tagName": "@closed", "syntaxKind": "modifier" },
     { "tagName": "@id", "syntaxKind": "block" },
     { "tagName": "@rules", "syntaxKind": "block" },
     { "tagName": "@widgets", "syntaxKind": "block" },

@@ -100,7 +100,7 @@ Keywords without a TS notation are dropped with `JOTL2002`; the [tag protocol](.
 `tsToSchema` converts by syntax tree only, without type checking. The root is the declaration whose comment has `@root`, or the default export when there is none.
 
 - Supported: `interface`, `type`, `export default` (including `export { X as default }`), `Array<T>`, `Record<string, T>`, tuples and `readonly`.
-- Unions: discriminated unions become `oneOf`, literal unions containing `null` become `anyOf: [enum, { type: "null" }]`, and other unions become `anyOf`.
+- Unions: discriminated unions become `oneOf`, literal unions containing `null` become `anyOf: [enum, { type: "null" }]`, `(A | B) | null` becomes `anyOf: [the union of A and B, { type: "null" }]`, and other unions become `anyOf`.
 - Intersections only accept references, combined with at most one other type and typia tags (see the [tag protocol](./tag-protocol.md) and [Write typia type tags](#write-typia-type-tags)). Several object literals (e.g. `{ a: 1 } & { b: 2 }`) containing only property signatures with pairwise distinct names merge into one open object (merging `properties` and `required`). Other intersections (clashing property names, index signatures, methods and so on) report `JOTL2106`.
 - Unsupported constructs report error-level diagnostics: generics, conditional types, mapped types, functions and methods, interface inheritance, other declarations such as `enum`, and computed property names.
 - Import declarations only report a `JOTL2108` warning; types from other files are not converted.

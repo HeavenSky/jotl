@@ -235,6 +235,7 @@ Only two forms are accepted:
 1. Discriminated union: `union[discriminator: 'kind'] { text(文本): {...}  image(图片): ImageBlock }`
    - A branch key is a value of the discriminator field and its label is the branch title; the branch content is an object body or a reference to an object type.
    - The compiler adds the discriminator field as `const`, so branches do not declare it; compiles to `oneOf`.
+   - At least one branch is required; a missing or empty body reports JOTL1047.
    - Data: `{ "kind": "text", "content": "..." }`.
 2. Distinguished by JSON type: `union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
    - Each branch has a different JSON type (string number boolean array object), at most one per type; `money` and `bigint` are told apart by their own `type` field and do not use up the object slot; `any` matches every type and cannot be combined with other names.
@@ -351,7 +352,7 @@ Compilation:
 
 - The standard `format: time` requires a time zone, so `time` no longer compiles to it by default; an existing `format: time` prints as a plain string, `string[format: 'time']`.
 - A format string containing `Z` accepts any offset, displays in the local time zone after reading, and writes back with the local offset.
-- `value_format` on other components reports `JOTL1007`; `x` / `X` on `time` reports `JOTL1020`; data not matching the storage format reports `JOTL4025`.
+- `value_format` on other components reports `JOTL1007`; `x` / `X` on `time` reports `JOTL1020`; under `x` / `X` the string constraints `minLength` `maxLength` `pattern` `format` report `JOTL1007`; data not matching the storage format reports `JOTL4025`.
 - At compile time `default` is checked against `value_format` and mismatches report `JOTL1008`: timestamps must be integers, aliases follow RFC 3339, and format strings must match position by position with a valid calendar date. Format strings are only checked for `YYYY MM DD HH mm ss SSS Z ZZ A a` and `[..]` escapes; those with other tokens are not checked.
 
 ## Conditions
@@ -365,7 +366,7 @@ d?: string[node_if: 'href']
 
 - Leaf: `{left: path, op, right?}`; `op` is one of `eq` `ne` `in` `not_in` `gt` `gte` `lt` `lte` `truthy` `falsy`, and the last two take no `right`.
 - Combinators: `{and: [...]}` `{or: [...]}` `{not: condition}`; a bare path string is equivalent to `{left: path, op: 'truthy'}`.
-- Paths use lodash `get` syntax (`a.b[0].c` `a['x-y']`), and `[*]` takes the index of the array containing the current node; `root_if` also accepts a `$.` prefix.
+- Paths use lodash `get` syntax (`a.b[0].c` `a['x-y']`), and `[*]` takes the index of the array containing the current node; `root_if` also accepts a `$.` prefix; a `node_if` path starting with `$.` reports JOTL1017.
 - Base: `root_if` starts from the data root, `node_if` from the object containing the field; references upward are not supported.
 - Compiles to `x-ui.visibleIf` (the condition format of the [x-ui specification](x-ui.md)):
 
@@ -396,9 +397,9 @@ Codes and message texts live in `SYNTAX_DIAGNOSTICS` in `packages/core/src/synta
 | error | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | Lexical: illegal characters and unknown `<...>` tokens; string missing its closing quote; unclosed block comment; unknown escape or control character in a string; invalid number (including `Infinity` `NaN`); empty label |
 | error | JOTL1002 JOTL1003 JOTL1040 | Syntax: a different token was expected here; missing closing bracket; colon omitted although content follows |
 | error | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | Top level: top-level name not PascalCase; `?` at the top level; marker inside a body; duplicate marker; duplicate type name; type name clashes with an extension component (including those declared in the root `widgets` metadata) |
-| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | Components: unknown component; undeclared type or unregistered extension component; reserved words `import` `export` `from`; body on a component that allows none; body on a type reference; incomplete form (e.g. `union` with neither `discriminator` nor `union_item`) |
+| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | Components: unknown component; undeclared type or unregistered extension component; reserved words `import` `export` `from`; body on a component that allows none; body on a type reference; incomplete form (e.g. `union` with neither `discriminator` nor `union_item`, or a discriminated union with no branches) |
 | error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | Bodies and keys: duplicate key in one body or one metadata block; duplicate enum value; enum with no members; invalid entry in a body (enum member with `?` `:` or bare `null`, tuple positions, union branch syntax, etc.) |
-| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | Metadata: unknown key; key not applicable to this component; key not allowed here (root only, requires `multiple`, reserved keyword written via `schema`, etc.); invalid value; invalid `x-ui`-related value (`order` `groups` `layout` `columns` `summary`, conditions, `variants` `rules`, empty `widget`) |
+| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | Metadata: unknown key; key not applicable to this component (including string constraints under timestamp `value_format`); key not allowed here (root only, requires `multiple`, reserved keyword written via `schema`, etc.); invalid value; invalid `x-ui`-related value (`order` `groups` `layout` `columns` `summary`, conditions, `variants` `rules`, empty `widget`) |
 | error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | Invalid type string (contains `null` or `enum`, duplicate or empty names); JSON-type union with branches of the same type; `default` violates constraints; nesting exceeds the limit |
 | warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 | `widget` does not accept this data shape (degraded to default); `schema` conflicts with generated output; `format` overrides the component's built-in format (e.g. `image[format: 'email']`; metadata wins); `summary` on an `array` / `map` whose elements are not objects; `x-ui` written via `schema` does not match the x-ui meta-schema or contains root-only fields `version` `rules` `widgets` (written as is, not blocking) |
 | error | JOTL1030 JOTL1031 JOTL1035 | `print`: input is not a JSON Schema; contains non-JSON values; `rootName` is not PascalCase |

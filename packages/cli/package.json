@@ -1,6 +1,6 @@
 {
   "name": "@jotl/cli",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
   "repository": {
     "type": "git",
@@ -26,8 +26,8 @@
     "typecheck:test": "tsc -p tsconfig.test.json"
   },
   "dependencies": {
-    "@jotl/core": "workspace:*",
-    "@jotl/convert": "workspace:*",
-    "@jotl/data": "workspace:*"
+    "@jotl/core": "workspace:~",
+    "@jotl/convert": "workspace:~",
+    "@jotl/data": "workspace:~"
   }
 }

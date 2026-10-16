@@ -155,6 +155,8 @@ const MERGEABLE: ReadonlySet<string> = new Set([...STRING_COMPONENTS, "number", 
 const OUTER_KEYWORDS = ["title", "description", "default", "examples", "deprecated", "x-deprecatedReason", "readOnly", "writeOnly", "$comment"];
 const OUTER_X_UI = ["hidden", "decorator", "visibleIf", "variants"] as const;
 const RANGE_KEYS = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"] as const;
+// 必须与 stringConstraints 读取的键一致, 漏掉的键在时间戳形态下会被静默丢弃.
+const STRING_CONSTRAINT_KEYS = ["minLength", "maxLength", "pattern", "format"] as const;
 
 interface PendingDefault {
   schema: JsonSchemaObject;
@@ -638,6 +640,7 @@ class Compiler {
         this.noBody(input, kind);
         const schema = this.valueFormat(kind, m);
         if (schema.type === "string") this.stringConstraints(schema, m);
+        else for (const key of STRING_CONSTRAINT_KEYS) if (m.has(key)) this.error("JOTL1007", { key, component: input.comp }, m.get(key)!.keyNode.span);
         return schema;
       }
       case "string":
@@ -1176,6 +1179,10 @@ class Compiler {
     if (item) this.error("JOTL1012", { name: "item_meta", reason: syntaxReason("itemMetaNeedsType") }, item.keyNode.span);
     const name = this.str(m, "discriminator", true);
     if (name === undefined) return {};
+    if (!input.body?.entries.length) {
+      this.error("JOTL1047", { component: "union", reason: syntaxReason("unionNoBranch") }, input.body?.span ?? input.compSpan);
+      return {};
+    }
     return { oneOf: this.branches(input, name, pointer) };
   }
 

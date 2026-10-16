@@ -83,6 +83,12 @@ describe("number", () => {
     expect(props.onChange).toHaveBeenCalledTimes(1);
     expect(screen.getByRole("alert")).not.toBeNull();
   });
+
+  it.each(["view", "disabled"] as const)("千分位在 mode=%s 下聚焦后仍显示千分位", (mode) => {
+    render(<NumberWidget {...fieldProps<number>({ mode, value: 1234567.5, schema: { type: "number" }, thousands: true })} />);
+    fireEvent.focus(control());
+    expect(control().value).toBe("1,234,567.5");
+  });
 });
 
 describe("range", () => {

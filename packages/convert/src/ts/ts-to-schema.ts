@@ -20,7 +20,7 @@ import {
 import ts from "typescript";
 import { tsDiagnostic, type TsDiagnosticCode } from "./diagnostics.js";
 import { parseJsDoc, type JsDocComment, type JsDocTag } from "./jsdoc.js";
-import { DEPRECATED_DEFAULT_TEXTS, EXTENSION_TEXT_TAGS, IGNORED_TSDOC_TAGS, NUMERIC_KEYWORDS, TAG_ALIASES, TEXT_KEYWORDS, enumTitleKey } from "./tags.js";
+import { DEPRECATED_DEFAULT_TEXTS, EXTENSION_TEXT_TAGS, IGNORED_TSDOC_TAGS, NUMERIC_KEYWORDS, TAG_ALIASES, TEXT_KEYWORDS, enumTitleKey, isDecimalRange } from "./tags.js";
 import { decodeExample, decodeJson, decodePattern, decodeText, decodeTextTag, type DecodedJson } from "./value-codec.js";
 
 export interface TsToSchemaOptions {
@@ -121,7 +121,9 @@ class Converter {
     const required: string[] = [];
     let additional: JsonSchemaObject | undefined;
     const propertyTypes = new Set(["undefined", ...members.flatMap((m) =>
-      ts.isPropertySignature(m) && m.type !== undefined ? flattenUnion(m.type).map((t) => this.bareText(t)) : [])]);
+      ts.isPropertySignature(m) && m.type !== undefined
+        ? [...flattenUnion(m.type), ...(ts.isUnionTypeNode(m.type) ? m.type.types : [])].map((t) => this.bareText(t))
+        : [])]);
     for (const member of members) {
       if (ts.isPropertySignature(member)) {
         const name = this.propertyName(member.name);
@@ -289,6 +291,12 @@ class Converter {
   }
 
   private convertUnion(node: ts.UnionTypeNode): JsonSchemaObject {
+    const isNull = (m: ts.TypeNode) => ts.isLiteralTypeNode(m) && m.literal.kind === ts.SyntaxKind.NullKeyword;
+    // schemaToTs 把可空包装 anyOf [联合, null] 写成 `(A | B) | null`; 括号内的联合单独转换, 保留两层结构.
+    const [head, tail] = node.types as unknown as [ts.TypeNode, ts.TypeNode | undefined];
+    if (node.types.length === 2 && ts.isParenthesizedTypeNode(head) && ts.isUnionTypeNode(head.type) && tail !== undefined && isNull(tail)) {
+      return { anyOf: [this.convertType(head.type), { type: "null" }] };
+    }
     const members = flattenUnion(node);
     const literals = members.map((m) => (ts.isLiteralTypeNode(m) ? this.literalValue(m) : undefined));
     if (literals.every((v) => v !== undefined)) {
@@ -303,7 +311,6 @@ class Converter {
       }
       return values.length === 1 ? { type: typeOfValues(values), const: values[0] } : { type: typeOfValues(values), enum: values };
     }
-    const isNull = (m: ts.TypeNode) => ts.isLiteralTypeNode(m) && m.literal.kind === ts.SyntaxKind.NullKeyword;
     const nonNull = members.filter((m) => !isNull(m));
     if (nonNull.length === 1 && nonNull.length < members.length) {
       const member = nonNull[0] as ts.TypeNode;
@@ -623,7 +630,8 @@ class Converter {
         return;
       case "branchTitles": {
         const value = decodeJson(tag.text);
-        const branches = Array.isArray(schema.oneOf) ? schema.oneOf : schema.anyOf;
+        const target = nullableUnionTarget(schema) ?? schema;
+        const branches = Array.isArray(target.oneOf) ? target.oneOf : target.anyOf;
         if (!value.ok || !Array.isArray(value.value) || !value.value.every((t) => typeof t === "string" || t === null)) {
           this.invalid(tag, l10n("元素为字符串或 null 的 JSON 数组", "a JSON array of strings or null"));
         } else if (!Array.isArray(branches) || branches.length !== value.value.length || !branches.every(isSchemaObject)) {
@@ -631,9 +639,21 @@ class Converter {
         } else {
           const titles = value.value as (string | null)[];
           const labeled = branches.map((b, i) => (titles[i] === null ? b : { ...(b as JsonSchemaObject), title: titles[i] as string }));
-          if (Array.isArray(schema.oneOf)) schema.oneOf = labeled;
-          else schema.anyOf = labeled;
+          const relabeled: JsonSchemaObject = Array.isArray(target.oneOf) ? { ...target, oneOf: labeled } : { ...target, anyOf: labeled };
+          if (target === schema) Object.assign(schema, relabeled);
+          else schema.anyOf = [relabeled, ...(schema.anyOf as JsonSchemaObject[]).slice(1)];
         }
+        return;
+      }
+      case "closed":
+        if (schema.type === "object" && schema.additionalProperties === undefined) schema.additionalProperties = false;
+        else this.report("JOTL2115", tag, { tag: tag.name });
+        return;
+      case "decimalRange": {
+        const value = decodeJson(tag.text);
+        if (!value.ok || !isDecimalRange(value.value)) this.invalid(tag, l10n("值为字符串的 JSON 对象", "a JSON object with string values"));
+        else if (schema.type !== "object") this.report("JOTL2115", tag, { tag: tag.name });
+        else schema["x-decimalRange"] = value.value;
         return;
       }
       case "root":
@@ -750,6 +770,14 @@ class Converter {
       return label === undefined ? branch : { ...branch, [field]: label };
     });
   }
+}
+
+/** 可空包装 `anyOf: [{oneOf | anyOf}, {type: "null"}]` 的内层联合; `@branchTitles` 作用于它. */
+function nullableUnionTarget(schema: JsonSchemaObject): JsonSchemaObject | undefined {
+  if (Array.isArray(schema.oneOf) || !Array.isArray(schema.anyOf) || schema.anyOf.length !== 2) return undefined;
+  const [inner, tail] = schema.anyOf;
+  const nullTail = isSchemaObject(tail) && Object.keys(tail).length === 1 && tail.type === "null";
+  return nullTail && isSchemaObject(inner) && (Array.isArray(inner.oneOf) || Array.isArray(inner.anyOf)) ? inner : undefined;
 }
 
 function flattenUnion(node: ts.TypeNode): ts.TypeNode[] {

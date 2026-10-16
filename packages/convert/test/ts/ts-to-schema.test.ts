@@ -129,6 +129,33 @@ export interface C { kind?: "c" }`);
     expect(result.value?.$defs?.U).toEqual({ anyOf: [{ $ref: "#/$defs/A" }, { $ref: "#/$defs/C" }] });
   });
 
+  it("(A | B) | null 还原为 anyOf [内层联合, null], 不加括号时仍拍平; @branchTitles 作用于内层 oneOf", () => {
+    const decls = `export interface A { kind: "a" }
+export interface B { kind: "b" }`;
+    const nested = tsToSchema(`/**\n * @branchTitles ["甲",null]\n */\nexport type T = (A | B) | null;\nexport type U = (string | A) | null;\n${decls}`);
+    expect(nested.diagnostics).toEqual([]);
+    expect(nested.value?.$defs?.T).toEqual({
+      anyOf: [{ oneOf: [{ $ref: "#/$defs/A", title: "甲" }, { $ref: "#/$defs/B" }] }, { type: "null" }],
+    });
+    expect(nested.value?.$defs?.U).toEqual({ anyOf: [{ anyOf: [{ type: "string" }, { $ref: "#/$defs/A" }] }, { type: "null" }] });
+    const flat = tsToSchema(`export type T = A | B | null;\n${decls}`);
+    expect(flat.value?.$defs?.T).toEqual({ anyOf: [{ $ref: "#/$defs/A" }, { $ref: "#/$defs/B" }, { type: "null" }] });
+  });
+
+  it("@closed 与 @decimalRange 作用于对象; 用于其他类型或取值不合法时告警", () => {
+    expect(defOf("/**\n * @closed\n * @decimalRange `{\"minimum\":\"0\"}`\n */\nexport type T = { type: \"money\"; value: string };")).toEqual({
+      type: "object",
+      properties: { type: { type: "string", const: "money" }, value: { type: "string" } },
+      required: ["type", "value"],
+      additionalProperties: false,
+      "x-decimalRange": { minimum: "0" },
+    });
+    const misplaced = tsToSchema("/**\n * @closed\n * @decimalRange `{\"minimum\":\"0\"}`\n */\nexport type T = string;");
+    expect(codes(misplaced.diagnostics)).toEqual(["JOTL2115", "JOTL2115"]);
+    const invalid = tsToSchema("/**\n * @decimalRange `{\"minimum\":0}`\n */\nexport type T = { value: string };");
+    expect(codes(invalid.diagnostics)).toEqual(["JOTL2116"]);
+  });
+
   it("Array, Record, 元组, readonly 修饰与带引号的属性名", () => {
     expect(defOf(`export interface T {
   readonly "a-b": Array<string>;

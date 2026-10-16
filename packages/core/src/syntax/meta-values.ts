@@ -194,6 +194,7 @@ export function compileCondition(value: unknown, base: "root" | "node"): Conditi
 }
 
 function leaf(path: string, op: string, right: unknown, hasRight: boolean, base: "root" | "node"): ConditionResult {
+  if (base === "node" && path.startsWith("$.")) return { issue: issue("nodePathRootPrefix") };
   const field = pathToPointer(path, base === "root");
   if (field === undefined) return { issue: issue("invalidPath", { path }) };
   const head = base === "node" ? { field, base: "node" as const } : { field };
