@@ -8,10 +8,10 @@ This page shows how to feed data into `JotlForm`, read it back, and decide when 
 
 ```tsx
 import { useRef } from "react";
-import { JotlForm, type JotlFormHandle } from "@jotl/form";
+import { JotlForm, type JotlFormHandle, type JotlFormProps } from "@jotl/form";
 import "@jotl/form/style.css";
 
-const schema = {
+const schema: JotlFormProps["schema"] = {
   type: "object",
   properties: { title: { type: "string", title: "标题", maxLength: 20 } },
   required: ["title"],

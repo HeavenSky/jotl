@@ -11,10 +11,10 @@
 ## 看看渲染结果
 
 ```tsx
-import { JotlForm } from "@jotl/form";
+import { JotlForm, type JotlFormProps } from "@jotl/form";
 import "@jotl/form/style.css";
 
-const schema = {
+const schema: JotlFormProps["schema"] = {
   type: "object",
   properties: {
     title: { type: "string", title: "Title", maxLength: 20 },
