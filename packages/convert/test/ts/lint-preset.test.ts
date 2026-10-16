@@ -47,7 +47,7 @@ const SAMPLE = `/**
  */`;
 
 describe("tsdoc.json", () => {
-  it("定义 README 标签协议中的全部自定义标签, 修饰标签为 modifier", () => {
+  it("定义 docs/tag-protocol.md 中的全部自定义标签, 修饰标签为 modifier", () => {
     expect(preset.tagDefinitions).toEqual(CUSTOM_TAGS.map((t) => ({ tagName: `@${t.name}`, syntaxKind: t.syntax })));
     const names = CUSTOM_TAGS.map((t) => t.name);
     for (const name of ["title", "asType", "ui", "widget", "enumTitles", "errorMessage", "writeOnly", "uniqueItems"]) {

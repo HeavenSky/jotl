@@ -1,96 +1,98 @@
-# 原生 HTML 默认 widget
+# Native HTML Default Widgets
 
-实现或替换默认 widget 时读本页; 对应 `packages/form`
+**English** · [简体中文](../../zh/docs/spec/html-widgets.md)
 
-`@jotl/form` 的默认 widget(`src/html/`)只用原生 HTML 标签实现 [内置 widget 名](x-ui.md#内置-widget-名), 不依赖 CSS 框架与渲染器(`src/react/`); 各层 props 见 [各层 widget props](x-ui.md#各层-widget-props).
-替换默认 widget: 在实例级注册表(`registry.extend()`)中登记同名 widget, 本级登记覆盖父级同名项.
+This page describes which HTML elements implement the default widgets shipped with `@jotl/form`, how each one behaves, and how to replace or reuse them.
 
-## widget 表
+The default widgets of `@jotl/form` (`src/html/`) implement every [built-in widget name](x-ui.md#built-in-widget-names) with native HTML elements only; they depend on neither a CSS framework nor the renderer (`src/react/`). For the props of each level see [Widget props by level](x-ui.md#widget-props-by-level).
+To replace a default widget, register a widget with the same name in an instance-level registry (`registry.extend()`); a registration at this level overrides the parent's registration of the same name.
 
-| widget 名 | 元素 | 要点 |
+## Widget table
+
+| Widget name | Element | Notes |
 |---|---|---|
-| `input` | `<input type="text">` | `maxLength` `pattern` 同步为原生属性 |
+| `input` | `<input type="text">` | `maxLength` and `pattern` are synced to native attributes |
 | `textarea` | `<textarea>` | - |
-| `password` | `<input type="password">` | 只改变显示 |
+| `password` | `<input type="password">` | Changes only how the value is displayed |
 | `url` / `email` | `<input type="url">` / `<input type="email">` | - |
-| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | 读写时用 dayjs 在原生值与存储格式(`x-valueFormat`, 没有时按 `format`)之间转换, 本地时区; 存量值不符合存储格式时显示原值文本框与提示, 不改写数据; 规则见 [Jotl 语法规范](jotl.md#日期与时间) |
-| `color` | `<input type="color">` + 文本框 | 原生取色器只支持 `#rrggbb`, 值不符合时只显示文本框 |
-| `number` | `<input type="number">`; 开了 `thousands` 时 `<input type="text" inputmode="decimal">` | 空串写回 `undefined`; 按 `x-decimals` 设 `step` 并在失焦时舍入, integer 为 `step=1`; `minimum` `maximum` 同步 |
+| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | Converts with dayjs between the native value and the storage format (`x-valueFormat`, or `format` when absent) on read and write, in the local time zone; an existing value that does not match the storage format is shown in a raw-value text box with a hint, and the data is not rewritten; for the rules see the [Jotl syntax specification](jotl.md#dates-and-times) |
+| `color` | `<input type="color">` + text box | The native color picker supports only `#rrggbb`; for other values only the text box is shown |
+| `number` | `<input type="number">`; `<input type="text" inputmode="decimal">` when `thousands` is on | An empty string writes back `undefined`; `step` is set from `x-decimals` and the value is rounded on blur, with `step=1` for integer; `minimum` and `maximum` are synced |
 | `range` | `<input type="range">` | - |
-| `money` | `<input type="text" inputmode="decimal">` + 币种, 单位选择 | 值为 `{type: "money", value, currency, unit?}`; 币种与单位按 schema 的 `const` / `enum` 显示为固定文字或下拉; 失焦补齐小数位 |
-| `bigint` | `<input type="text" inputmode="numeric">` | 值为 `{type: "bigint", value}` |
+| `money` | `<input type="text" inputmode="decimal">` + currency and unit selectors | The value is `{type: "money", value, currency, unit?}`; currency and unit are shown as fixed text or a dropdown according to the schema's `const` / `enum`; decimal places are padded on blur |
+| `bigint` | `<input type="text" inputmode="numeric">` | The value is `{type: "bigint", value}` |
 | `switch` | `<input type="checkbox" role="switch">` | - |
-| `checkbox` | boolean: 一个 `<input type="checkbox">`; 枚举数组: 一组 | - |
-| `radio` | 一组 `<input type="radio">` | 选项文字取 `title`, 无则取值 |
-| `select` | `<select>`; 枚举数组时 `multiple` | 可选字段带空选项; 必填字段只在没有值时带空选项 |
-| `output` | `<output>` | 只读显示 |
-| `image` | `<input type="url">` + `<img>` 预览 | 有 `adapters.upload` 时增加 "上传图片" 按钮(打开隐藏的 `<input type="file">`), 以 `upload(file, { dataPath, schema })` 返回的 URL 写回; 上传中显示状态并禁用按钮, 失败显示可读提示, 只写回最后一次选择的结果 |
-| `file` | `<input type="url">` | 同 `image`, 按钮文字为 "上传文件", 没有预览 |
-| `richtext` | `<textarea>` | 有 `adapters.richText` 时改用它; `richTextEditor` 是可传入的最小编辑器, 见 [富文本编辑器](#富文本编辑器) |
-| `page` / `inline` | `<fieldset>` + `<legend>` | 两者共用; 分组用嵌套 `<fieldset>`; 布局见 [对象布局](#对象布局); 钻取由 `@jotl/form` 处理; 有 `additional` 时字段之后是 "其他键" 分组, 见 [其他键](#其他键) |
-| `list` | `<ol>` + 增加, 删除, 上移, 下移按钮; 渲染器提供 `duplicate` 时另有复制 | 按 `canAdd` `canRemove` 禁用按钮(复制随 `canAdd`); 元素用 `renderChild(String(i))` |
-| `tuple` | `<ol>`, 每个位置一项 | 第 i 项用 `renderChild(String(i))`; 位置标签由外壳给出(`prefixItems` 该项的 `title`, 否则 `第 n 项`); 位置不增删; `items` 为 `true` 或 schema 时, 位置之后列出剩余元素(`rest`, 第 i 项同样用 `renderChild(String(i))`, i 为实际下标), 带新增与删除, 受 `minItems` / `maxItems` 与 `mode` 约束, 位置未填满时不能新增; `items` 为 `false` 或缺省时无剩余区 |
-| `nullable` `union` `kv` `tree` | 见 [复合 widget](#复合-widget) | - |
-| `json` | 编辑态 `<textarea>`(JSON), 查看态 `<pre>` | JSON 不合法时保留草稿并显示错误; schema 为 string 时值是 JSON 原文 |
-| `field` | `<div>` + `<label for>` + 必填标记 + 帮助文本 + 错误 | 错误元素的 `id` 供 `aria-describedby`; 有错误时字段带 `aria-invalid` |
-| `form` | `<form>` | 提交时调用 `submit()` 并阻止默认行为; 页顶列出 `errors`, 有 `goToError` 时每条为按钮(可访问名称为错误消息加 "跳到所在位置" / "go to field"), 点击调用 `goToError(error)` |
+| `checkbox` | boolean: one `<input type="checkbox">`; enum array: a group of them | - |
+| `radio` | A group of `<input type="radio">` | Option text is the `title`, or the value itself when there is none |
+| `select` | `<select>`; `multiple` for enum arrays | Optional fields have an empty option; required fields have one only while there is no value |
+| `output` | `<output>` | Read-only display |
+| `image` | `<input type="url">` + `<img>` preview | With `adapters.upload`, an "Upload image" button is added (it opens a hidden `<input type="file">`) and the URL returned by `upload(file, { dataPath, schema })` is written back; while uploading, the button shows the status and is disabled; a failure shows a readable message; only the result of the last selection is written back |
+| `file` | `<input type="url">` | Same as `image`, but the button reads "Upload file" and there is no preview |
+| `richtext` | `<textarea>` | Uses `adapters.richText` instead when provided; `richTextEditor` is a minimal editor you can pass in, see [Rich text editor](#rich-text-editor) |
+| `page` / `inline` | `<fieldset>` + `<legend>` | Both share one implementation; groups use nested `<fieldset>`s; for layouts see [Object layouts](#object-layouts); drilling is handled by `@jotl/form`; with `additional`, an "Other keys" group follows the fields, see [Other keys](#other-keys) |
+| `list` | `<ol>` + add, remove, move up and move down buttons; plus duplicate when the renderer provides `duplicate` | Buttons are disabled according to `canAdd` and `canRemove` (duplicate follows `canAdd`); elements are rendered with `renderChild(String(i))` |
+| `tuple` | `<ol>`, one item per position | Item i is rendered with `renderChild(String(i))`; position labels come from the wrapper (the `title` of that `prefixItems` entry, otherwise `Item n`); positions cannot be added or removed; when `items` is `true` or a schema, rest elements are listed after the positions (`rest`, item i is likewise rendered with `renderChild(String(i))`, where i is the actual index) with add and remove, subject to `minItems` / `maxItems` and `mode`, and nothing can be added until all positions are filled; when `items` is `false` or absent there is no rest area |
+| `nullable` `union` `kv` `tree` | See [Composite widgets](#composite-widgets) | - |
+| `json` | `<textarea>` (JSON) when editing, `<pre>` when viewing | Invalid JSON keeps the draft and shows an error; when the schema is a string, the value is the raw JSON text |
+| `field` | `<div>` + `<label for>` + required marker + help text + errors | The `id` of the error element is referenced by `aria-describedby`; a field with errors has `aria-invalid` |
+| `form` | `<form>` | Calls `submit()` on submit and prevents the default action; `errors` are listed at the top of the page, and with `goToError` each one is a button (its accessible name is the error message plus "go to field", or "跳到所在位置" in the Chinese UI) that calls `goToError(error)` when clicked |
 
-- 千分位: `number` `money` `bigint` 在聚焦时显示原值, 失焦与只读时按 `thousands` 显示千分位; 键入与粘贴时去掉 `,` `，` 空格 `_`; 格式化用 `@jotl/form/core` 的 `formatThousands` / `stripThousands`.
-- 选项读取用 `@jotl/form/core` 的 `enumOptions`; 字段标签由渲染器算好后经 `DecoratorProps.label` 传入(`title`, 否则键名).
+- Thousands separators: `number` `money` `bigint` show the raw value while focused, and show separators according to `thousands` when blurred or read-only; typing and pasting strip `,` `，`, spaces and `_`; formatting uses `formatThousands` / `stripThousands` from `@jotl/form/core`.
+- Options are read with `enumOptions` from `@jotl/form/core`; field labels are computed by the renderer and passed in through `DecoratorProps.label` (the `title`, otherwise the key).
 
-## 复合 widget
+## Composite widgets
 
-| widget 名 | 形态 | 行为 |
+| Widget name | Form | Behavior |
 |---|---|---|
-| `nullable` | 原 widget + 置空开关 | 开关调用 `setNull`; 非空时用 `renderContent()` 渲染非空分支 |
-| `union` | 左侧分支选择 + 右侧当前分支内容, 空间不足时换行 | 分支选择默认为下拉; `props.selector` 为 `"buttons"` 且分支不超过 4 个时为分段按钮(一组 `<input type="radio">`, `role="radiogroup"`), 分支更多时仍用下拉; 选项取 `branches[i].title`, 选择时调用 `selectBranch(i)`; 子表单用 `renderContent()` 渲染 |
-| `kv` | 键值对列表 | 键名可增, 删, 改名(`addEntry` `removeEntry` `renameEntry`), 按 `canAdd` `canRemove` 禁用; 值用 `renderChild` 渲染, 相对路径为经 `escapePointerToken` 转义的键名 |
-| `tree` | 可折叠的树, 按需展开 | 展开状态由 `expanded` 与 `setExpanded` 控制; 折叠时不调用 `renderContent()` |
+| `nullable` | The original widget + a null toggle | The toggle calls `setNull`; when not null, the non-null branch is rendered with `renderContent()` |
+| `union` | Branch selector on the left, current branch content on the right, wrapping when space runs out | The branch selector is a dropdown by default; when `props.selector` is `"buttons"` and there are at most 4 branches, it is segmented buttons (a group of `<input type="radio">` with `role="radiogroup"`), falling back to the dropdown for more branches; options are `branches[i].title` and selecting one calls `selectBranch(i)`; the subform is rendered with `renderContent()` |
+| `kv` | List of key-value pairs | Keys can be added, removed and renamed (`addEntry` `removeEntry` `renameEntry`), disabled according to `canAdd` and `canRemove`; values are rendered with `renderChild`, the relative path being the key escaped with `escapePointerToken` |
+| `tree` | Collapsible tree, expanded on demand | The expanded state is controlled by `expanded` and `setExpanded`; `renderContent()` is not called while collapsed |
 
-- `union` widget 不自行改写数据: 切换分支时由渲染器用新分支的默认数据替换当前值, 并在同一表单实例内缓存各分支最后一次的值, 切回时恢复.
-- 可区分联合的当前分支由渲染器按区分字段的值决定, widget 只读 `activeBranch`.
+- The `union` widget never rewrites data itself: on a branch switch, the renderer replaces the current value with the new branch's default data, caches each branch's last value within the same form instance, and restores it when you switch back.
+- The current branch of a discriminated union is decided by the renderer from the discriminator's value; the widget only reads `activeBranch`.
 
-## 富文本编辑器
+## Rich text editor
 
-`richTextEditor`(组件为 `RichTextEditor`)作为 `adapters.richText` 传入后, `richtext` 改为不依赖第三方库的 `contenteditable` 编辑器; 默认仍是 `<textarea>`.
+Pass `richTextEditor` (component `RichTextEditor`) as `adapters.richText` and `richtext` switches to a `contenteditable` editor with no third-party dependency; without it, `richtext` stays a `<textarea>`.
 
-- 值为 HTML 字符串, 内容为空时写回 `undefined`; 工具栏(`role="toolbar"`)有粗体, 斜体, 链接, 无序列表, 有序列表, 经 `document.execCommand` 执行; 链接地址经 `prompt` 输入, 只接受相对地址与 `http` `https` `mailto` `tel`.
-- 写回与显示都经 `sanitizeHtml` 白名单清洗: 只保留 `p` `br` `div` `span` `b` `strong` `i` `em` `u` `s` `a` `ul` `ol` `li` `blockquote` `code` `pre` `h1`-`h4`, `a` 只保留安全的 `href` 与 `title`, 其余属性(含事件属性与 `style`)一律去掉; `script` `style` `iframe` 等连同内容丢弃, 其他标签只保留文字.
-- 编辑区为 `role="textbox"` `aria-multiline`, 经 `aria-labelledby` 取外壳标签; `view` 只读且不显示工具栏, `disabled` 不可编辑且工具栏禁用.
+- The value is an HTML string, and empty content writes back `undefined`. The toolbar (`role="toolbar"`) offers bold, italic, link, bulleted list and numbered list, executed through `document.execCommand`; link URLs are entered through `prompt`, and only relative URLs and `http` `https` `mailto` `tel` are accepted.
+- Both write-back and display go through the `sanitizeHtml` allowlist: only `p` `br` `div` `span` `b` `strong` `i` `em` `u` `s` `a` `ul` `ol` `li` `blockquote` `code` `pre` `h1`-`h4` are kept; `a` keeps only a safe `href` and `title`, and every other attribute (including event attributes and `style`) is removed; `script` `style` `iframe` and the like are dropped together with their content, and other tags keep only their text.
+- The editing area has `role="textbox"` and `aria-multiline` and takes the wrapper's label through `aria-labelledby`; in `view` mode it is read-only with no toolbar, and in `disabled` mode it is not editable and the toolbar is disabled.
 
-## 对象布局
+## Object layouts
 
-`page` `inline` 按 `LayoutProps.layout` 排版; `fields` 中 `hidden` 为真的字段不显示.
+`page` and `inline` lay out fields according to `LayoutProps.layout`; fields in `fields` with `hidden` set to true are not shown.
 
-| `layout` | 行为 |
+| `layout` | Behavior |
 |---|---|
-| `stack` | 默认; 未分组字段在前, 各分组依次用嵌套 `<fieldset>` |
-| `tabs` | 每个 `groups` 项一个标签页, 未分组字段放第一个标签页 |
-| `grid` | 字段按 `columns` 列排布, 默认 2 列 |
+| `stack` | Default; ungrouped fields first, then each group in a nested `<fieldset>` |
+| `tabs` | One tab per `groups` entry; ungrouped fields go on the first tab |
+| `grid` | Fields are arranged in `columns` columns, default 2 |
 
-## 其他键
+## Other keys
 
-对象同时有 `properties` 与 schema 形式的 `additionalProperties` 时, 渲染器经 `LayoutProps.additional` 给出不属于 `properties` 的键; `page` `inline` 在字段之后渲染 "其他键" 分组, 复用 `kv` 的键值编辑列表(`EntryEditor`): 键名可增, 删, 改名, 不能取已声明的属性名; 值用 `renderChild` 渲染, 相对路径为经 `escapePointerToken` 转义的键名; 数据仍写回同一对象. `additionalProperties: true` 不显示该分组; `patternProperties` 仍按 F7 整体用 `json`.
+When an object has both `properties` and a schema-form `additionalProperties`, the renderer provides the keys outside `properties` through `LayoutProps.additional`, and `page` and `inline` render an "Other keys" group after the fields. The group reuses the key-value editing list of `kv` (`EntryEditor`): keys can be added, removed and renamed but cannot take a declared property name; values are rendered with `renderChild`, the relative path being the key escaped with `escapePointerToken`; data is still written back to the same object. `additionalProperties: true` shows no such group; `patternProperties` still makes the whole node use `json` as F7.
 
-## 受控 widget 约束
+## Controlled widget constraints
 
-- widget 一律无状态受控: 值只来自 `value`, 变更只通过 `onChange`.
-- 唯一允许的局部状态是输入中尚不合法的草稿文本(如数字框中的 `-`, `json` 中未闭合的括号), 合法后立即 `onChange`; 例外: `number` `money` `bigint` 用聚焦状态切换原值与千分位显示.
-- 三种 `mode`: `edit` 可编辑, `view` 只读显示, `disabled` 禁用.
-- 适配器缺省时按上表的退化形态工作, 不报错.
+- Every widget is stateless and controlled: the value comes only from `value`, and changes go only through `onChange`.
+- The only local state allowed is draft text that is not yet valid while typing (such as `-` in a number box or an unclosed bracket in `json`); call `onChange` as soon as it becomes valid. The exception: `number` `money` `bigint` use focus state to switch between the raw value and the thousands-separated display.
+- There are three `mode`s: `edit` editable, `view` read-only display, `disabled` disabled.
+- When an adapter is not provided, the widget works in the reduced form described in the table above without raising errors.
 
-## 样式
+## Styles
 
-- 元素同时带 `jotl-` 语义类名与 Tailwind CSS v4 工具类(前缀 `jt`, 如 `jt:flex`); 语义类名是对外的覆盖与定位入口, 工具类不作承诺.
-- 不带 preflight; 生成的规则都在 `theme` `components` `utilities` 三个 cascade layer 中, 宿主未分层的样式优先.
-- 主题: 设计变量经 `@theme inline` 接到 `--jotl-*` 变量(`--jotl-border` `--jotl-focus` `--jotl-error` `--jotl-muted` `--jotl-radius` `--jotl-gap` 等), 在任意子树上覆盖这些变量即可换肤; 默认值见 `packages/form/theme.css`.
-- 两种接入:
-  - 不用 Tailwind 的宿主引入预编译的 `@jotl/form/style.css`; 不引入时 widget 仍可用.
-  - Tailwind v4 宿主在一个独立的 CSS 入口中引入 `tailwindcss/theme.css`(`prefix(jt)`)与 `tailwindcss/utilities.css`(`source(none)`), 再引入 `@jotl/form/tailwind.css`; 写法见 `packages/form/README.md`. 前缀只对这个入口生效, 不能并入宿主自己的 `@import "tailwindcss"`.
-- `style.css` 由 `pnpm run build:css` 生成, 测试会重新生成并比对, 过期时失败.
-- widget 包另导出 `styles`(各 widget 的工具类)与 `cn`(合并类名), 供自定义 widget 复用同一外观.
+- Elements carry both `jotl-` semantic class names and Tailwind CSS v4 utility classes (prefix `jt`, such as `jt:flex`); the semantic class names are the public hooks for overriding and targeting, while the utility classes carry no guarantee.
+- No preflight is included; all generated rules sit in the three cascade layers `theme` `components` `utilities`, so the host's unlayered styles take precedence.
+- Theming: design tokens are wired to `--jotl-*` variables through `@theme inline` (`--jotl-border` `--jotl-focus` `--jotl-error` `--jotl-muted` `--jotl-radius` `--jotl-gap` and others); override these variables on any subtree to restyle it. For default values see [`packages/form/theme.css`](../../packages/form/theme.css).
+- Two ways to wire in styles:
+  - Hosts without Tailwind import the precompiled `@jotl/form/style.css`; widgets still work without it.
+  - Tailwind v4 hosts import `tailwindcss/theme.css` (`prefix(jt)`) and `tailwindcss/utilities.css` (`source(none)`) in a separate CSS entry, then import `@jotl/form/tailwind.css`; see the [`@jotl/form` README](../../packages/form/README.md) for the exact setup. The prefix applies only to that entry and cannot be merged into the host's own `@import "tailwindcss"`.
+- `style.css` is generated by `pnpm run build:css`; the tests regenerate and compare it, and fail when it is out of date.
+- The widget package also exports `styles` (the utility classes of each widget) and `cn` (class name merging) so custom widgets can reuse the same look.
 
-## 导出形态
+## Exports
 
-- `htmlWidgets: WidgetRegistration<ComponentType>[]`: 每个已实现 widget 一条登记, `name` 与 `BUILTIN_WIDGETS` 的键一一对应, 不带 `accepts`; 各内置名接受的数据形态由 `@jotl/form/core` 的 `plan()` 检查, 不接受时降级到该形态的默认 widget.
-- `registerHtmlWidgets(registry)`: 把 `htmlWidgets` 全部登记到给定注册表.
+- `htmlWidgets: WidgetRegistration<ComponentType>[]`: one registration per implemented widget, with `name` matching the keys of `BUILTIN_WIDGETS` one to one and no `accepts`; the data shapes each built-in name accepts are checked by `plan()` in `@jotl/form/core`, which degrades to the default widget for that shape when they are not accepted.
+- `registerHtmlWidgets(registry)`: registers all of `htmlWidgets` in the given registry.

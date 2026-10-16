@@ -1,75 +1,123 @@
 # Jotl
 
-**English** · [简体中文](./README.zh-CN.md)
+**English** · [简体中文](./zh/README.md)
 
-Read this page when installing, building or testing in this repository, or when looking for where a package or contract document lives. Jotl is a concise authoring language for JSON Schema 2020-12 together with its TS toolchain; the code lives in `packages/*` and `apps/*`.
+Jotl lets you write JSON Schema 2020-12 as compact, type-like source, and get the standard schema, TypeScript declarations and a working form from the same file. It is for teams that keep data contracts or configuration forms in JSON Schema and are tired of editing deeply nested JSON by hand. One line per field carries the type, title, constraints, default and UI hints; `required`, enum labels and `$defs` are generated for you. Unlike code-first libraries such as Zod or TypeBox, the source is a standalone file that people outside your TypeScript codebase can edit, and it converts both ways: existing JSON Schema prints back to Jotl.
 
-## Packages and directories
+## Five lines in, standard JSON Schema out
 
-Directory names match package names (without the `@jotl/` prefix). Rendering forms in the browser only needs `core` `data` `form`; the rest are for authoring and tooling.
+Save this as `home.jotl`:
 
-| Package | Directory | Responsibility | Notes |
-|---|---|---|---|
-| `@jotl/core` | `packages/core` | Language core: schema and `x-ui` types, `Result` and diagnostics, JSON Pointer, data capability interfaces (`src/schema/`); Jotl parsing, compilation to JSON Schema, reverse printing and formatting (`src/syntax/`) | [README](packages/core/README.md) |
-| `@jotl/convert` | `packages/convert` | Conversion to and from other formats: JSON Schema <-> TS declarations (JSDoc tags), TSDoc / ESLint presets (`src/ts/`); upgrading legacy JSON Schema and OpenAPI / Swagger Schema Objects to 2020-12, migrating Fengdie schemas to Jotl (`src/migrate/`). `tsToSchema`, which depends on typescript, is in the subpath `@jotl/convert/from-ts` | [README](packages/convert/README.md) |
-| `@jotl/data` | `packages/data` | Default data, validation, migration and Mock | [README](packages/data/README.md) |
-| `@jotl/form` | `packages/form` | React form renderer for React 16.8 to 19 (`src/react/`), native HTML default widgets and styles (`src/html/`); the subpath `@jotl/form/core` provides `x-ui` parsing, widget registration, render planning and fallback decisions, independent of any UI framework (`src/core/`) | [README](packages/form/README.md) |
-| `@jotl/antd` | `packages/antd` | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+): `createAntdRegistry({ dayjs })` passed to `JotlForm`; widgets without an antd implementation fall back to the HTML defaults | [README](packages/antd/README.md) |
-| `@jotl/language-server` | `packages/language-server` | Jotl language service (LSP) | [README](packages/language-server/README.md) |
-| `vscode-jotl` (Marketplace ID `jotl-lang.vscode-jotl`) | `packages/vscode` | VS Code extension, including the preview panel | [README](packages/vscode/README.md) |
-| `jotl` | `packages/cli` | Command line | [README](packages/cli/README.md) |
-| `@jotl/playground` | `apps/playground` | Online editing and preview in the browser | [README](apps/playground/README.md) |
+```jotl
+Home: {
+  title(Title): string[default: 'Welcome', maxLength: 20]
+  mode(Mode): enum[default: 'light']{ light(Light) dark(Dark) }
+  tags?: array[array_item: 'string', maxItems: 5]
+}
+```
 
-### Old package names
+`jotl compile home.jotl` prints:
 
-In 2026-10, 12 packages were merged into 8; none of the old packages was ever published. Old names to new entry points:
+```json
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Home",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Home": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "Title",
+          "type": "string",
+          "maxLength": 20,
+          "default": "Welcome"
+        },
+        "mode": {
+          "title": "Mode",
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "Light",
+              "const": "light"
+            },
+            {
+              "title": "Dark",
+              "const": "dark"
+            }
+          ],
+          "default": "light"
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "title",
+        "mode"
+      ]
+    }
+  }
+}
+```
 
-| Old package (old directory) | New entry point | New source location |
-|---|---|---|
-| `@jotl/schema` (`packages/schema`) | `@jotl/core` | `packages/core/src/schema/` |
-| `@jotl/syntax` (`packages/syntax`) | `@jotl/core` | `packages/core/src/syntax/` |
-| `@jotl/ts` (`packages/ts`) | `@jotl/convert`; `tsToSchema` moved to `@jotl/convert/from-ts` | `packages/convert/src/ts/` |
-| `@jotl/ts/eslint`, `@jotl/ts/tsdoc.json` | `@jotl/convert/eslint`, `@jotl/convert/tsdoc.json` | `packages/convert/src/ts/eslint.ts`, `packages/convert/tsdoc.json` |
-| `@jotl/migrate` (`packages/migrate`) | `@jotl/convert` | `packages/convert/src/migrate/` |
-| `@jotl/ui-core` (`packages/ui-core`) | `@jotl/form/core` | `packages/form/src/core/` |
-| `@jotl/html` (`packages/html`) | `@jotl/form` | `packages/form/src/html/` |
-| `@jotl/react` (`packages/react`) | `@jotl/form` | `packages/form/src/react/` |
-| `@jotl/html/style.css` + `@jotl/react/style.css` | `@jotl/form/style.css` (merged into one) | `packages/form/style.css` |
-| `@jotl/html/tailwind.css` + `@jotl/react/tailwind.css`, `@jotl/html/theme.css` | `@jotl/form/tailwind.css`, `@jotl/form/theme.css` | `packages/form/` |
-| `@jotl/lsp` (`packages/lsp`) | `@jotl/language-server` | `packages/language-server/` |
-| `@jotl/data`, `jotl`, `vscode-jotl`, `@jotl/playground` | Unchanged | Unchanged |
+The output is plain 2020-12. The only extension is the `x-ui` keyword, which carries form layout and widget hints.
 
-Diagnostic code ranges (`JOTL0xxx`-`JOTL8xxx`) and all export names are unchanged.
+## Compile your first schema
 
-Other directories:
+You need Node 22 or later.
 
-| Directory | Contents |
+```sh
+pnpm add -D jotl
+pnpm exec jotl compile home.jotl --out home.schema.json
+pnpm exec jotl compile home.jotl --to ts --out home.d.ts
+```
+
+The first command installs the CLI, the second writes the JSON Schema shown above, and the third writes the matching TypeScript declarations. All commands and options are in the [CLI README](packages/cli/README.md).
+
+## What you get from one source
+
+- **Schema, types and form stay in sync**: compile to JSON Schema 2020-12 or TS declarations, and render the schema as a React form with `@jotl/form`, optionally with Ant Design widgets.
+- **Existing schemas come along**: print 2020-12 JSON Schema back to Jotl, convert between JSON Schema and TS declarations, and upgrade legacy JSON Schema, OpenAPI 3.0 / Swagger 2.0 Schema Objects and Fengdie schemas.
+- **Data tools work on any 2020-12 schema**: default data, validation, migration of old data and Mock data, from code or from `jotl validate` and `jotl defaults`.
+- **Editor support while you type**: the VS Code extension adds diagnostics with quick fixes, completion, hover, go to definition and a live preview of the schema, TS and form.
+- **Errors you can act on**: every diagnostic carries a stable `JOTL` code and points to a line and column or a JSON Pointer, with messages in English or Chinese.
+
+## Pick the packages you need
+
+Rendering a form in the browser needs only `@jotl/core`, `@jotl/data` and `@jotl/form`; the rest are for authoring and tooling.
+
+| Package | What it does |
 |---|---|
-| `docs/spec/` | External contracts (Chinese): Jotl syntax (`jotl.md`), `x-ui` (`x-ui.md`), native widgets (`html-widgets.md`), keyword mapping across the three notations (`keyword-mapping.md`) |
-| `fixtures/` | Samples and expected values shared by all packages; conventions in [fixtures/README.md](fixtures/README.md) |
-| `test-utils/` | Utilities for tests to read samples |
-| `scripts/` | Repository scripts |
-| `vendor/` | Download location of the official JSON-Schema-Test-Suite, not committed |
+| [`@jotl/core`](packages/core/README.md) | Parse, compile, format and print Jotl; shared schema types, diagnostics and JSON Pointer utilities |
+| [`@jotl/convert`](packages/convert/README.md) | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate Fengdie schemas |
+| [`@jotl/data`](packages/data/README.md) | Default data, validation, migration and Mock for JSON Schema 2020-12 |
+| [`@jotl/form`](packages/form/README.md) | React form renderer (React 16.8 to 19) with native HTML widgets; framework-independent planning in `@jotl/form/core` |
+| [`@jotl/antd`](packages/antd/README.md) | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+) |
+| [`@jotl/language-server`](packages/language-server/README.md) | Language server (LSP) for `.jotl` files |
+| [`vscode-jotl`](packages/vscode/README.md) | VS Code extension with live preview |
+| [`jotl`](packages/cli/README.md) | Command line: compile, convert, check, validate, defaults, migrate and format |
+| [`@jotl/playground`](apps/playground/README.md) | Browser app for editing Jotl and previewing the form, run locally from this repository |
 
-Open issues, pending confirmations and deferred items are in [TODO.md](TODO.md).
+User-facing text is available in English (`en`, default) and Chinese (`zh-CN`). Code sets it with `setLocale` from `@jotl/core`, the CLI with `--lang`; each package README covers its own options.
 
-## Language
+## When Jotl is not the right fit
 
-User-facing text (diagnostic messages, generated text, form widget text, language service hover and completion, command-line output) is available in English (`en`, default) and Chinese (`zh-CN`). In code, set it with `setLocale` of `@jotl/core` (a global setting); `@jotl/data` functions and `JotlForm` also take a per-call / per-form `locale` option; the command line uses `--lang` or the environment variables `JOTL_LANG` `LC_ALL` `LC_MESSAGES` `LANG`; the language service reads `locale` from its initialization options. Details are in each package's README.
+Jotl emits only JSON Schema 2020-12; if your consumers need draft-07 or older output, Jotl does not produce it. If your types already live in TypeScript code and never leave it, a code-first library such as Zod or TypeBox keeps everything in one language. The form renderer targets React; other UI frameworks need their own renderer built on `@jotl/form/core`.
 
-## Commands
+## Read more
 
-Run at the repository root:
+- [Documentation index](docs/README.md): which page to read for each task
+- Specifications: [Jotl syntax](docs/spec/jotl.md), [`x-ui`](docs/spec/x-ui.md), [native HTML widgets](docs/spec/html-widgets.md), [keyword mapping](docs/spec/keyword-mapping.md)
+- [Development guide](docs/development.md): build, test and repository layout
+- Package READMEs: see the table above; the editor extension is [vscode-jotl](packages/vscode/README.md)
 
-| Command | Purpose |
-|---|---|
-| `pnpm install --frozen-lockfile` | Install dependencies per the lockfile |
-| `bash scripts/fetch-json-schema-test-suite.sh` | Download a pinned version of the official JSON-Schema-Test-Suite to `vendor/`; the tests of `@jotl/convert` and `@jotl/data` depend on it and fail when it is missing |
-| `pnpm build` | `tsc -b` builds all packages into their own `dist/` |
-| `pnpm test` | Run all test cases under `packages/*/test/` and `apps/*/test/` |
-| `pnpm check` | Build, type-check each package's test code (`typecheck:test`), run all tests, then production-build the playground |
-| `pnpm clean` | Remove build artifacts |
-| `pnpm --filter ./packages/vscode run package` | Package the VS Code extension as a vsix; requires `pnpm build` first; see `packages/vscode/DEVELOPMENT.md` |
-| `pnpm --filter @jotl/playground dev` | Start the playground dev server; requires `pnpm build` first |
+## License
 
-Requires Node 22 or later; for the pnpm version see `packageManager` in the root `package.json`.
+[MIT](LICENSE)

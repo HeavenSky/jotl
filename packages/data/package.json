@@ -1,7 +1,12 @@
 {
   "name": "@jotl/data",
   "version": "0.0.0",
-  "description": "按 JSON Schema 生成默认数据, 校验, 迁移与 Mock",
+  "description": "Generate defaults, validate, migrate and mock data from a JSON Schema 2020-12, with errors that name the field and say what is wrong.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/data"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -11,8 +16,7 @@
     }
   },
   "files": [
-    "dist",
-    "README.zh-CN.md"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -b",

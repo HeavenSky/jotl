@@ -1,4 +1,4 @@
-// TS + JSDoc → JSON Schema: 用 typescript@6.0.3 经典 API 解析语法树, 按 README "标签协议" 还原关键字.
+// TS + JSDoc → JSON Schema: 用 typescript@6.0.3 经典 API 解析语法树, 按 docs/tag-protocol.md 还原关键字.
 import {
   JSON_SCHEMA_DIALECT,
   escapePointerToken,
@@ -394,7 +394,7 @@ class Converter {
     return ts.isIdentifier(left) && this.typiaNames.has(left.text) ? right.text : undefined;
   }
 
-  /** 按 schemaToTs 的 typiaTags 写法还原关键字(README "typia 类型标签"). */
+  /** 按 schemaToTs 的 typiaTags 写法还原关键字(docs/ts-conversion.md "Write typia type tags"). */
   private applyTypiaTag(schema: JsonSchemaObject, node: ts.TypeReferenceNode): void {
     const name = this.typiaTagName(node) as string;
     const args = node.typeArguments ?? [];

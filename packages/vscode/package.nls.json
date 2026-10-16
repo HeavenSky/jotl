@@ -1,5 +1,5 @@
 {
-  "extension.description": "Jotl language support: syntax highlighting, diagnostics, completion, hover, navigation and a live preview of the compiled JSON Schema, TypeScript and form.",
+  "extension.description": "Write JSON Schema in Jotl with checks as you type, and see the compiled schema, TypeScript declarations and form update live.",
   "category": "Jotl",
   "command.showPreview": "Open Preview",
   "config.registeredWidgets": "Widget names registered by your project in addition to the built-in ones. The language server offers them in completions and does not report them as unregistered widgets. PascalCase names are also extension widgets compiled as string; declare widgets in jotl.config.json to give them another underlying type (the file takes precedence).",

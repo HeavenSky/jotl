@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "description": "Ant Design widgets for @jotl/form: registers antd components by the widget contract",
+  "description": "Render Jotl forms with Ant Design components: one registry swaps the native widgets of @jotl/form for antd.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/antd"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,8 +17,7 @@
   },
   "files": [
     "dist",
-    "src",
-    "README.zh-CN.md"
+    "src"
   ],
   "scripts": {
     "build": "tsc -b",

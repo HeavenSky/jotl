@@ -2,7 +2,16 @@
 
 ## 方案待定
 
+- 文档规范化后 core, data, form 的 README 仍以 "Known limitations" 链到根 `TODO.md` 的「确定不修」; 推荐改为各包 guide 内的已知限制页, 发布后 npm 页上不再指向内部待办
+- 合并历史前的旧提交保留在本地分支 `backup/pre-squash`(author 为旧身份); 推荐确认新历史无误后删除该分支, 推送远端前必须删除
+
 ## 方案确定
+
+### 文档发布前核对
+
+- npm 包与插件尚未发布, 各 README 快速开始的 `pnpm add` 与市场安装命令在仓库外跑不通; 首次发布后按各 README 快速开始实测一遍
+- `vscode-jotl` README 首屏只有代码示例, 缺预览面板截图; 补一张截图放 `packages/vscode/docs/images/` 并在 README 结果证据处引用
+- vsce 打包时对 README 中跨出包目录的 `../` 链接(`../cli/README.md`, `../../docs/spec/*.md`)的改写未实测; 打包后解开 VSIX 检查 `extension/readme.md` 中的链接指向 `github.com/jotl-lang/jotl/blob/HEAD/...`
 
 ### 用户验证与发布
 
@@ -20,7 +29,7 @@
 - 凤蝶 v1 扩展元数据(`source`/`sourceType`, `rule`, `reuseable`, `Component` 等语义类型, 条件必填/只读)本轮不纳入语法, 继续记 `x-fengdie`(`showKey` 已转为 `x-ui.summary`, `if` 中可精确映射的表达式已转为 `x-ui.visibleIf`); 用户决定, 按实际使用再逐项加, 背景见 `.ai-ctx/plans/20261008_Jotl语法对齐凤蝶与扩展设计.md`
 - `@jotl/form` 原生 `maxLength` 与 `@jotl/antd` 的 `Input`/`TextArea`/`Password` `maxLength` 都按 UTF-16 计数, 含代理对字符时比 schema 更早拦截; 用户决定维持, 保留输入时拦截; antd 可改用 `count.strategy` 但需 antd ≥5.10, 现 peer 为 `^5.0.0 || ^6.0.0`
 
-- Ajv 2020 与官方测试集 draft2020-12 不一致; Jotl 语法不提供这些写法, 只能经 `schema` 元数据透传; 规范中只有 `docs/spec/keyword-mapping.md:33` 一句提到 `$dynamicRef`/`$vocabulary`
+- Ajv 2020 与官方测试集 draft2020-12 不一致; Jotl 语法不提供这些写法, 只能经 `schema` 元数据透传; 规范中只有 `docs/spec/keyword-mapping.md:35`(中文版 `zh/docs/spec/keyword-mapping.md:35`)一句提到 `$dynamicRef`/`$vocabulary`
   - `$dynamicRef`, `unevaluated*` 与 `contains`/`if` 组合, 相对 URI 加嵌套 `$id` 的 `$ref`, 空 `enum`, `$vocabulary`, `__proto__` 属性名; ajv-formats 不支持 `idn-*` `iri*` 及 email, hostname, date-time, time, duration, uri, uri-reference, uri-template, uuid 的部分官方用例; `core/format.json` 因开启 format 断言而有意排除; 条数以排除清单为准(20261014 核对为 224 条)
   - 根无 `$id` 而子资源在同一节点同时写相对 `$id` 与 `$ref` 时 Ajv 编译栈溢出(报 JOTL4017); `@jotl/data` 默认数据与 Mock 的引用解析不受影响
   - 复现: `pnpm exec vitest run packages/data/test/ajv-test-suite.test.ts`, 排除清单 `packages/data/test/ajv-test-suite-exclusions.json`

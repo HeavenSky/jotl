@@ -1,0 +1,37 @@
+# Which widgets use antd
+
+**English** · [简体中文](../zh/docs/coverage.md)
+
+This page lists the antd component behind each built-in widget name and the options that change the set. It assumes you have set up the registry as in the [README](../README.md#switch-an-existing-form-to-antd).
+
+## Choose how to register
+
+- `createAntdRegistry(options?)` returns a new registry whose parent is `createDefaultRegistry()` of `@jotl/form`, with the antd widgets registered. Names without an antd implementation resolve to the native widget in the parent. Each call returns a new registry, so create it once.
+- `antdWidgets(options?)` returns the registrations (`WidgetRegistration[]`). They carry no `accepts`; shape checks are done by `plan()` of `@jotl/form/core`.
+- `registerAntdWidgets(registry, options?)` registers them into any registry, overriding same-named widgets.
+- `options.dayjs` is the same `dayjs` that antd uses (antd loads the `customParseFormat` and `advancedFormat` plugins on it). Without it `date`, `time` and `datetime` are not registered and fall back to the native date inputs.
+- Each widget component is also exported (`AntdInputWidget`, `AntdFieldDecorator` and the others) for registering under other names.
+
+## Coverage
+
+| Widget name | antd component | Notes |
+|---|---|---|
+| `form` | Native `<form>` + `Form` (`component={false}`, vertical layout) + `Button` + `Alert` | Submit and reset buttons; errors that belong to no visible field appear in an `Alert`; `mode="disabled"` disables the antd controls through `Form`'s `disabled` |
+| `field` | `Form.Item` | Label, required mark, `description` as `extra`, errors as `help` with `validateStatus="error"` |
+| `page` `inline` | `Card` for groups, `Tabs` for `layout: "tabs"`, CSS grid for `layout: "grid"` | Other keys (`additional`) reuse `EntryEditor` from `@jotl/form` |
+| `list` | One `Card` per item, `Button` | Move up, move down, duplicate (when the renderer provides it), remove, add |
+| `input` `password` `textarea` | `Input`, `Input.Password`, `Input.TextArea` | `maxLength` is passed through |
+| `url` `email` | `Input` with `type` | Clearing writes `undefined` |
+| `number` | `InputNumber` | Empty writes `undefined`; `minimum` / `maximum`; integers and `x-decimals` through `precision`; `thousands` through a formatter |
+| `range` | `Slider` | |
+| `switch` | `Switch` | |
+| `checkbox` | `Checkbox`; `Checkbox.Group` for enum arrays | |
+| `radio` | `Radio.Group` | |
+| `select` | `Select`; `mode="multiple"` for enum arrays | Clearable when not required; existing values outside the options are kept at the end |
+| `date` `time` `datetime` | `DatePicker`, `TimePicker`, `DatePicker showTime` | Only with `options.dayjs`. Values are read and written in the storage format (`x-valueFormat`, otherwise by `format`) in the local time zone; a stored value that does not parse is handed to the native widget, shown as is and not rewritten |
+| `color` | `ColorPicker` | Writes `#rrggbb`; clearing writes `undefined` |
+| Others: `richtext` `money` `bigint` `output` `image` `file` `json` `kv` `union` `nullable` `tree` `tuple` | Native widgets of `@jotl/form` | Through the parent registry; see [Default HTML widgets](../../form/docs/default-widgets.md) |
+
+## Known differences from the schema
+
+`maxLength` on `Input`, `Input.Password` and `Input.TextArea` counts UTF-16 code units, the same as the native inputs, so text with surrogate-pair characters (such as many emoji) is stopped earlier than the schema's character count. The project keeps this behavior; it is listed under "确定不修" (Won't fix) in the repository's [TODO.md](../../../TODO.md).

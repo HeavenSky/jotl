@@ -1,4 +1,4 @@
-// umo JSON → JSON Schema 2020-12(映射见 README 与方案 20261012_232718); 没有对应写法的信息写入 `x-fengdie` 并报警告.
+// umo JSON → JSON Schema 2020-12(映射见 docs/fengdie-migration.md 与方案 20261012_232718); 没有对应写法的信息写入 `x-fengdie` 并报警告.
 import {
   type Diagnostic,
   type DiagnosticLocation,

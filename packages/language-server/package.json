@@ -1,7 +1,12 @@
 {
   "name": "@jotl/language-server",
   "version": "0.0.0",
-  "description": "Jotl 语言服务",
+  "description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/language-server"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -11,8 +16,7 @@
     }
   },
   "files": [
-    "dist",
-    "README.zh-CN.md"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -b",

@@ -1,7 +1,12 @@
 {
   "name": "jotl",
   "version": "0.0.0",
-  "description": "Jotl 命令行工具",
+  "description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/cli"
+  },
   "license": "MIT",
   "type": "module",
   "exports": {
@@ -14,8 +19,7 @@
     "jotl": "./dist/bin.js"
   },
   "files": [
-    "dist",
-    "README.zh-CN.md"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -b",

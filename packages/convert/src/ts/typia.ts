@@ -1,4 +1,4 @@
-// typia 类型标签输出(README "typia 类型标签")用到的取值表与 JSON 值到 TS 字面量类型的转换.
+// typia 类型标签输出(docs/ts-conversion.md "Write typia type tags")用到的取值表与 JSON 值到 TS 字面量类型的转换.
 
 /** `tags.Format` 接受的格式; 必须与 typia@15.1.0 的 `Format.Value` 一致, 多写会产生类型错误. */
 export const TYPIA_FORMATS: ReadonlySet<string> = new Set([

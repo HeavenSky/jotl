@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "description": "按 JSON Schema 与 x-ui 渲染 React 表单, 含原生 HTML 默认组件与样式; 子路径 ./core 为不依赖 UI 框架的 x-ui 解析, 组件注册与渲染计划",
+  "description": "Render a validated React form straight from a JSON Schema, with widgets and layout chosen in the schema itself.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/form"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,8 +35,7 @@
     "src",
     "style.css",
     "tailwind.css",
-    "theme.css",
-    "README.zh-CN.md"
+    "theme.css"
   ],
   "scripts": {
     "build": "tsc -b",

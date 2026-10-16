@@ -1,10 +1,12 @@
-# Jotl 语法规范 v1
+# Jotl Syntax Specification v1
 
-编写, 解析或生成 Jotl 源码时读本页; 对应 `packages/core`
+**English** · [简体中文](../../zh/docs/spec/jotl.md)
 
-Jotl 源码编译为 JSON Schema 2020-12 文档; `x-ui` 的取值语义与渲染约定见 [x-ui 规范](x-ui.md), 关键字在 JSON Schema 与 TS 中的对应见 [关键字对照](keyword-mapping.md).
+This page is the complete Jotl v1 syntax: after reading it you can write valid Jotl source by hand and know which JSON Schema each construct compiles to.
 
-## 示例
+Jotl source compiles to a JSON Schema 2020-12 document. For the value semantics and rendering conventions of `x-ui`, see the [x-ui specification](x-ui.md); for how keywords map between JSON Schema and TS, see the [keyword mapping](keyword-mapping.md).
+
+## Example
 
 ```jotl
 // 普通注释, 编译时丢弃
@@ -41,37 +43,39 @@ Home(首页): [layout: 'tabs', groups: [{title: '外观', fields: ['theme', 'mod
 }
 ```
 
-## 词法
+The comments and labels in the examples are in Chinese because they are sample content; any Unicode text works the same way.
 
-| 项 | 规则 |
+## Lexical structure
+
+| Item | Rule |
 |---|---|
-| 编码 | UTF-8; 文件开头 BOM 忽略 |
-| 空白 | JS `WhiteSpace`(TAB VT FF SP NBSP ZWNBSP 与 Zs 类) |
-| 换行 | LF, CR, CRLF; U+2028 U+2029 按空白, 不计行; 行列从 1, 偏移从 0, 按 UTF-16 代码单元(与 LSP 一致) |
-| 注释 | `//` 行注释, `/* */` 块注释(不嵌套); 编译时丢弃. 没有文档注释: `///` 就是普通行注释; 说明写元数据 `description` |
-| 标识符 | JS `IdentifierName`(Unicode `ID_Start` `ID_Continue`, `$` `_`), 不支持 `\u` 转义 |
-| 字符串 | JSON5: `'...'` 与 `"..."`, JSON5 转义, 允许 `\` 续行; 未知转义报错并保留反斜杠, 快速修复为 `\\` |
-| 数字 | JSON5 数字(含 `+1` `.5` `0x10`); `Infinity` `NaN` 报错 |
-| 标签 | `(` 到配对的 `)`, 允许成对嵌套(`价格(元)`); 转义 `\(` `\)` `\\`; 不跨行; 去首尾空白后不能为空 |
-| 标点 | `{ } [ ] ( ) , ; : ?` |
-| 标识记号 | `<root/>` `<default/>` 各为一个整体记号; 其他以 `<` 开头的写法报错 |
-| 非法字符 | `\|` `<` `>` `.` `@` `=` `#` 在字符串外出现即报错(`\|` 只出现在类型串字符串里) |
-| 关键字 | 没有保留关键字: 内置组件名只在组件位置有含义; `true` `false` `null` 只作为元数据中的 JSON 值, `true` `false` 另可作枚举成员值; 枚举体中裸 `null` 报错, 见 [枚举](#枚举) |
-| 保留 | `import` `export` `from` 保留给多文件, 当前在组件位置写出即报错 |
-| 空白敏感 | 不敏感: 键, 标签, `?`, `:`, 组件, 元数据, 体之间可有任意空白与换行(标签内部除外); `print` 输出紧贴形式 |
+| Encoding | UTF-8; a BOM at the start of the file is ignored |
+| Whitespace | JS `WhiteSpace` (TAB VT FF SP NBSP ZWNBSP and the Zs category) |
+| Line breaks | LF, CR, CRLF; U+2028 and U+2029 count as whitespace, not as line breaks; lines and columns start at 1, offsets at 0, all counted in UTF-16 code units (same as LSP) |
+| Comments | `//` line comments and `/* */` block comments (not nested); dropped during compilation. There are no doc comments: `///` is just a line comment; put descriptions in the `description` metadata |
+| Identifiers | JS `IdentifierName` (Unicode `ID_Start` `ID_Continue`, plus `$` `_`); `\u` escapes are not supported |
+| Strings | JSON5: `'...'` and `"..."`, JSON5 escapes, `\` line continuation allowed; an unknown escape is an error and keeps the backslash, with a quick fix to `\\` |
+| Numbers | JSON5 numbers (including `+1` `.5` `0x10`); `Infinity` and `NaN` are errors |
+| Labels | From `(` to its matching `)`, balanced nesting allowed (`价格(元)`); escapes `\(` `\)` `\\`; cannot span lines; must not be empty after trimming |
+| Punctuation | `{ } [ ] ( ) , ; : ?` |
+| Markers | `<root/>` and `<default/>` are each a single token; anything else starting with `<` is an error |
+| Illegal characters | `\|` `<` `>` `.` `@` `=` `#` are errors outside strings (`\|` only appears inside type-string strings) |
+| Keywords | There are no reserved keywords: built-in component names only mean something in component position; `true` `false` `null` are only JSON values inside metadata, and `true` `false` can also be enum member values; a bare `null` in an enum body is an error, see [Enums](#enums) |
+| Reserved | `import` `export` `from` are reserved for multi-file support and are currently errors in component position |
+| Whitespace sensitivity | Insensitive: any whitespace and line breaks may appear between key, label, `?`, `:`, component, metadata and body (but not inside a label); `print` emits the compact form |
 
-## 名字
+## Names
 
-| 位置 | 规则 |
+| Position | Rule |
 |---|---|
-| 顶层类型名 | 大驼峰 `[A-Z][A-Za-z0-9]*`; 进入 `$defs`, 是引用目标, 也是 TS 类型名 |
-| 内置组件名 | 小写纯字母 `[a-z]+`, 区分大小写, 清单见 [内置组件](#内置组件) |
-| 扩展组件名 | 大驼峰, 与顶层类型名共用一个命名空间, 重名报错; 组件位置看到大驼峰名时先查本文件类型, 再查扩展组件清单 |
-| 字段键 | 标识符(含中文等 Unicode), 另允许中间带 `-`(`a-b`)与非负整数(`0` `12`); 其余加引号(`'x.y'` `"x y"` `'<root/>'`); 引号字符串永远是键 |
-| 枚举成员 | 同字段键; 另可直接写数字, 布尔, 引号字符串作为值 |
-| 元数据键 | JSON5 对象键; 命名: JSON Schema 与 ajv-errors 原有关键字用原名(驼峰), Jotl 自有键用 snake, 自定义键以 `x_` 开头; 未知键报错 |
+| Top-level type name | PascalCase `[A-Z][A-Za-z0-9]*`; goes into `$defs`, is the reference target and also the TS type name |
+| Built-in component name | Lowercase letters only `[a-z]+`, case-sensitive; see [Built-in components](#built-in-components) for the list |
+| Extension component name | PascalCase, shares one namespace with top-level type names, and clashes are errors; a PascalCase name in component position is looked up first among this file's types, then among the extension components |
+| Field key | Identifier (including Chinese and other Unicode), plus names with inner `-` (`a-b`) and non-negative integers (`0` `12`); quote anything else (`'x.y'` `"x y"` `'<root/>'`); a quoted string is always a key |
+| Enum member | Same as field keys; numbers, booleans and quoted strings can also be written directly as values |
+| Metadata key | JSON5 object key. Naming: keywords from JSON Schema and ajv-errors keep their original names (camelCase), Jotl's own keys use snake_case, custom keys start with `x_`; unknown keys are errors |
 
-## 文件结构
+## File structure
 
 ```ebnf
 File     = { TopEntry } ;
@@ -79,19 +83,19 @@ TopEntry = { Marker } Entry ;
 Marker   = "<root/>" | "<default/>" ;
 ```
 
-- 顶层条目一律是类型定义, 名字必须是大驼峰; 小写, 中文或引号名在顶层报错: "顶层只能声明类型, 根的属性写进根类型的体里", 快速修复为把连续的这类条目包进 `Root(根): {...}` 并标 `<root/>`.
-- 顶层条目不能写 `?`.
-- 标识写在顶层条目之前(同一行或上一行), 只标记紧随其后的条目; 同一条可同时带两个; 写在体内报错; 每个标识全文件至多一个.
-- 根与默认导出:
-  - 两个标识都不写: 第一条既是根也是默认导出.
-  - 只写一个: 另一个跟随它.
-  - 两个都写在不同条目上: 各自生效.
-- 根编译为根 schema 的 `$ref: "#/$defs/<名>"`, 根的元数据(含 `rules` `id` `widgets`)写在根条目自己的 `[...]` 上.
-- 默认导出只影响 TS 输出的 `export default` 与以后的多文件 `import`, 不写进 JSON Schema: `compile` 的结果另给出 `defaultExport`(类型名), 生成 TS 时传给 `schemaToTs` 的同名选项, 打印 Jotl 时传给 `print` 的同名选项(与根不同时写出 `<default/>` 并给根条目补 `<root/>`), `tsToSchema` 的结果同样带出 `defaultExport`; 与根不同时根类型的注释写 `@root`, 见 [关键字对照](keyword-mapping.md).
-- 没有条目的文件只编译出 `$schema`. 纯类型库(无根)随多文件 `import` 一起设计.
-- `root` `default` 在任何位置都只是普通名字, 不需要引号.
+- Every top-level entry is a type definition and its name must be PascalCase. A lowercase, Chinese or quoted name at the top level is an error ("only types can be declared at the top level; put root properties in the root type's body"); the quick fix wraps consecutive entries of that kind in `Root(根): {...}` and marks it `<root/>`.
+- Top-level entries cannot use `?`.
+- A marker goes before a top-level entry (on the same line or the line above) and marks only the entry right after it; one entry can carry both markers; a marker inside a body is an error; each marker appears at most once per file.
+- Root and default export:
+  - Neither marker: the first entry is both root and default export.
+  - Only one marker: the other follows it.
+  - Both markers on different entries: each applies independently.
+- The root compiles to `$ref: "#/$defs/<name>"` in the root schema; root metadata (including `rules` `id` `widgets`) goes in the root entry's own `[...]`.
+- The default export only affects `export default` in TS output and future multi-file `import`; it is not written into JSON Schema. The result of `compile` also reports `defaultExport` (a type name): pass it to the option of the same name of `schemaToTs` when generating TS, and of `print` when printing Jotl (when it differs from the root, `print` writes `<default/>` and adds `<root/>` to the root entry); the result of `tsToSchema` reports `defaultExport` as well. When the default export differs from the root, the root type's comment carries `@root`; see the [keyword mapping](keyword-mapping.md).
+- A file with no entries compiles to just `$schema`. Pure type libraries (no root) will be designed together with multi-file `import`.
+- `root` and `default` are ordinary names everywhere and need no quotes.
 
-## 条目
+## Entries
 
 ```ebnf
 Entry   = Key [ Label ] [ "?" ] [ ":" Content ] [ "," | ";" ] ;
@@ -108,247 +112,249 @@ Meta    = "[" [ Member { "," Member } [ "," ] ] "]" ;   (* JSON5 对象成员 *)
 Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件决定, [体与内部类型](#体与内部类型) *)
 ```
 
-- 元数据只在组件与体之间.
-- 冒号: 只有光秃的 `key(标签)`(冒号后没有内容)可以不写冒号, 此时为选填 `string`; 冒号后有内容时必须写冒号.
-- 省略组件只限 `string` 与 `object`: `key: [maxLength: 10]` 为 `string`, `key: {...}` 或 `key: [...] {...}` 为 `object`.
-- 必填: 写了 `:` 且没有 `?` 为必填; 光秃的 `key(标签)` 与写了 `?` 的为选填.
-- 标签编译为 `title`; 说明只写元数据 `description`.
-- 条目间用换行, `,` 或 `;` 分隔, 都可省.
-- 引用类型: 组件位置写大驼峰类型名; 可带 [元数据键](#元数据键) 表中适用于 "任意" 的键, 指向枚举时另可带 `multiple` 与项数约束, 指向对象时另可带 `summary`; 编译为 `$ref` 旁的同级关键字; 不能带体, 要改结构就另声明类型. 适用性以 `packages/core/src/syntax/builtins.ts` 的 `META_KEYS` 为准.
-- 扩展组件: 组件位置可写已登记的扩展组件, 底层类型取自登记项(`{ ImagePicker: { type: "string", format: "uri" } }`); 未登记报错; 不想登记时写 `string[widget: 'ImagePicker']`. 登记项的值(配置文件与根元数据 `widgets` 写法相同):
-  - 底层类型: JSON Schema 基本类型名(`string` `number` `integer` `boolean` `array` `object`, 编译为 `{ type }`), 其余无体的内置组件名(取该组件编译出的 schema, 去掉 `x-ui`; `enum` `union` 不可用), 或 schema 对象(原样使用).
-  - 模块声明: 带 `module` 键的对象 `{ base?, module, export? }`, 同时给出实现该 widget 的 ES 模块; `base` 为上一条的底层类型, 缺省 `object`; `module` 为非空的模块地址, 原样保留, 相对路径由使用方按声明所在文件的目录解析; `export` 为导出名, 缺省 `default`; 只能有这三个键. 不带 `module` 的对象一律当作 schema.
-  - 大驼峰名是扩展组件, 其余名字只登记为 widget 名(模块声明仍有效).
-- 扩展组件可带的元数据: [元数据键](#元数据键) 表中适用于 "任意" 的键, 以及按底层 schema 放行的约束键, 规则与同类内置组件一致: 底层 `type`(去掉 `"null"` 后唯一)为 `string` 时放行 `minLength` `maxLength` `pattern` `format`; `number` 时放行 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`; `integer` 时放行上下界四键; `array` 时放行 `minItems` `maxItems` `uniqueItems`; `object` 时放行 `minProperties` `maxProperties`; 底层为 `money` `bigint` 形态时放行上下界四键(写成字符串, 编译到 `x-decimalRange`). 底层没有 `type`(如只有 `anyOf` `$ref`)或有多个类型时不放行任何约束键. 其余键报 JOTL1007. 例: 登记 `Rating: {base: 'integer', module: '...'}` 后可写 `score: Rating[minimum: 0, maximum: 5]`.
-  - 约束合并进底层 schema, 同名关键字以元数据为准(如 `integer` 底层的安全整数上下界被覆盖); `format` 与底层不同时与内置组件一样报 JOTL1048 warning; 一端来自元数据, 另一端来自底层的上下界冲突报 JOTL1020. `default` 按合并后的 schema 校验. 放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准.
-- 登记入口:
-  - 项目配置 `jotl.config.json`: 形如 `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`; 只有 `widgets` 与 `$schema` 两个键; 不合法的项跳过并报配置问题. `readJotlConfig` 的结果中 `config.widgets` 为名字 → 底层 schema, `config.modules` 为模块声明项的名字 → `{ module, export? }`; 配置中的模块声明不写进编译产物, 由使用方按 `config.modules` 加载. 每个源文件使用从所在目录向上找到的最近一个, 到 git 顶层(含 `.git` 的目录)或文件系统根为止. 配置文件自身的 JSON Schema 由 `@jotl/core` 的 `createJotlConfigJsonSchema()` 生成.
-  - 根条目元数据 `widgets`: 形如 `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`, 只能写在根条目; 由编译器处理, 任何调用 `compile` 的入口(含 Playground)都生效; 本文件内即可使用这些扩展组件, 与其他入口合并, 同名时以文件内为准; 其中的模块声明编译进根 `x-ui.widgets`(名字 → `{ base?, module, export? }`, 声明了 `object` 以外的 `base` 时原样带上, 见 [x-ui 规范](x-ui.md)); 类型名与文件内声明的扩展组件重名报 JOTL1028, 取值不合法报 JOTL1020.
-  - 命令行: 编译 Jotl 的命令自动查找, `--config` 指定, `--no-config` 关闭, 见 `packages/cli/README.md`.
-  - VS Code(语言服务): 按文档路径查找, 与设置 `jotl.registeredWidgets`(只有名字)合并, 同名时以配置文件为准, 只在设置中的大驼峰名按 `string` 编译; 配置文件变更后重新诊断, 见 `packages/language-server/README.md`.
-  - `@jotl/core` `compile` 的 `options.widgets`(组件名 → 底层 schema): 该包不读文件, 由调用方传入; `readJotlConfig` 与 `configCompileOptions` 把配置内容换算为该选项.
+The grammar is shared with the Chinese edition and keeps its Chinese comments: `标签文本` is label text, `内置组件名` a built-in component name, `大驼峰名` a PascalCase name; the comments refer to the Names, Lexical structure and Bodies and inner types sections of this page. The `Content` comments say: without a component, no body means `string` and a body means `object`; with neither component nor metadata, it is `object`.
 
-各类条目能写的部分:
+- Metadata goes only between the component and the body.
+- Colon: only a bare `key(label)` (nothing after the colon) may omit the colon, and it is then an optional `string`; whenever content follows, the colon is required.
+- Only `string` and `object` may omit the component: `key: [maxLength: 10]` is a `string`, `key: {...}` or `key: [...] {...}` is an `object`.
+- Required: an entry with `:` and no `?` is required; a bare `key(label)` and an entry with `?` are optional.
+- The label compiles to `title`; descriptions go only in the `description` metadata.
+- Separate entries with line breaks, `,` or `;`; all separators are optional.
+- Type references: write a PascalCase type name in component position. A reference may carry the keys marked "any" in the [Metadata keys](#metadata-keys) table; a reference to an enum may also carry `multiple` and item-count constraints, and a reference to an object may also carry `summary`. These keys compile to sibling keywords next to `$ref`. A reference cannot have a body; to change the structure, declare another type. `META_KEYS` in `packages/core/src/syntax/builtins.ts` is authoritative for applicability.
+- Extension components: component position may name a registered extension component, whose underlying type comes from its registration (`{ ImagePicker: { type: "string", format: "uri" } }`); unregistered names are errors; to avoid registering, write `string[widget: 'ImagePicker']`. A registration value (same syntax in the config file and in the root `widgets` metadata) is one of:
+  - Underlying type: a JSON Schema primitive type name (`string` `number` `integer` `boolean` `array` `object`, compiled to `{ type }`); any other body-less built-in component name (uses the schema that component compiles to, minus `x-ui`; `enum` and `union` are not allowed); or a schema object (used as is).
+  - Module declaration: an object with a `module` key, `{ base?, module, export? }`, which also names the ES module implementing the widget. `base` is the underlying type described above and defaults to `object`; `module` is a non-empty module specifier, kept verbatim, and relative paths are resolved by the consumer against the directory of the file containing the declaration; `export` is the export name and defaults to `default`; no other keys are allowed. An object without `module` is always treated as a schema.
+  - PascalCase names are extension components; other names are registered only as widget names (module declarations still apply).
+- Metadata allowed on extension components: the keys marked "any" in the [Metadata keys](#metadata-keys) table, plus constraint keys permitted by the underlying schema, following the same rules as the matching built-in components. When the underlying `type` (unique after removing `"null"`) is `string`, `minLength` `maxLength` `pattern` `format` are allowed; for `number`, `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`; for `integer`, the four bound keys; for `array`, `minItems` `maxItems` `uniqueItems`; for `object`, `minProperties` `maxProperties`; for a `money` or `bigint` shaped base, the four bound keys (written as strings and compiled to `x-decimalRange`). When the base has no `type` (for example only `anyOf` or `$ref`) or several types, no constraint keys are allowed. Any other key reports JOTL1007. Example: after registering `Rating: {base: 'integer', module: '...'}` you can write `score: Rating[minimum: 0, maximum: 5]`.
+  - Constraints are merged into the underlying schema, and metadata wins for keywords of the same name (for example, the safe-integer bounds of an `integer` base get overridden). A `format` that differs from the base reports JOTL1048 (warning), as with built-in components; conflicting bounds where one side comes from metadata and the other from the base report JOTL1020. `default` is validated against the merged schema. `EXTENSION_CONSTRAINT_KEYS` in `packages/core/src/syntax/shapes.ts` is authoritative for the allowed keys.
+- Where to register:
+  - Project config `jotl.config.json`: shaped like `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`; only the `widgets` and `$schema` keys exist; invalid items are skipped and reported as config issues. In the result of `readJotlConfig`, `config.widgets` maps name → underlying schema and `config.modules` maps the names of module-declaration items → `{ module, export? }`; module declarations from the config are not written into compile output, and the consumer loads them from `config.modules`. Each source file uses the nearest config found by walking up from its directory, stopping at the git top level (the directory containing `.git`) or the filesystem root. The JSON Schema of the config file itself is generated by `createJotlConfigJsonSchema()` in `@jotl/core`.
+  - Root entry metadata `widgets`: shaped like `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`, allowed only on the root entry. The compiler handles it, so it works in every entry point that calls `compile` (including the Playground); the extension components are usable within this file, merged with other sources, and the in-file declaration wins on name clashes. Module declarations in it compile into the root `x-ui.widgets` (name → `{ base?, module, export? }`, carrying `base` verbatim when it is declared as anything other than `object`; see the [x-ui specification](x-ui.md)). A type name that clashes with an extension component declared in the file reports JOTL1028; invalid values report JOTL1020.
+  - Command line: commands that compile Jotl find the config automatically; `--config` specifies one and `--no-config` disables it; see the [`jotl` CLI README](../../packages/cli/README.md).
+  - VS Code (language server): finds the config by document path and merges it with the `jotl.registeredWidgets` setting (names only); the config file wins on name clashes, and PascalCase names that appear only in the setting compile as `string`; config file changes trigger re-diagnosis; see the [language server README](../../packages/language-server/README.md).
+  - `options.widgets` of `compile` in `@jotl/core` (component name → underlying schema): that package reads no files, so the caller passes it in; `readJotlConfig` and `configCompileOptions` convert config contents into this option.
 
-| 条目 | 键 | 标签 | `?` | `:` 与内容 |
+What each kind of entry can contain:
+
+| Entry | Key | Label | `?` | `:` and content |
 |---|---|---|---|---|
-| 顶层类型 | 大驼峰 | 可 | 否 | 可 |
-| 对象字段 | 字段键 | 可 | 可 | 可 |
-| 元组位置 | `0` `1` ... 或 `*` | 可 | 只在末尾连续位置; `*` 上不可 | 可 |
-| union 分支 | 区分字段的取值 | 可 | 否 | 必须, 内容为对象体或对象类型引用 |
-| 枚举成员 | 成员值 | 可 | 否 | 否; 可带只含 `description` 的元数据 |
+| Top-level type | PascalCase | Yes | No | Yes |
+| Object field | Field key | Yes | Yes | Yes |
+| Tuple position | `0` `1` ... or `*` | Yes | Only on trailing consecutive positions; not on `*` | Yes |
+| union branch | Discriminator value | Yes | No | Required; content is an object body or a reference to an object type |
+| Enum member | Member value | Yes | No | No; may carry metadata containing only `description` |
 
-## 内置组件
+## Built-in components
 
-术语: "组件" 指写在组件位置上的名字(内置组件与扩展组件), 只决定数据形态(编译出的 JSON Schema); "widget" 指渲染用的控件名(`input` `select` ...), 由元数据 `widget` 选择, 首项为默认. `widget` 只在不等于默认时写入 `x-ui.widget`.
+Terms: a "component" is the name written in component position (built-in or extension component) and only determines the data shape, that is, the compiled JSON Schema; a "widget" is the name of the rendering control (`input` `select` ...), chosen by the `widget` metadata, with the first one listed below as the default. `widget` is written to `x-ui.widget` only when it differs from the default.
 
-| 组件 | JSON Schema | 默认与常用 `widget`(首个默认) | 体 |
+| Component | JSON Schema | Default and common `widget` (first is default) | Body |
 |---|---|---|---|
-| `string` | `type: string` | `input` `textarea` `password` | 无 |
-| `text` | 同 `string` | 同 `string`, 默认 `textarea` | 无 |
-| `richtext` | `string` + `contentMediaType: text/html` | `richtext`(无适配器时退化为 textarea) | 无 |
-| `number` | `type: number` | `number` `range` | 无 |
-| `integer` | `type: integer`, 默认 `±MAX_SAFE_INTEGER` | `number` `range` | 无 |
-| `money` | 对象, 见 [数值, 金额与大整数](#数值-金额与大整数) | `money` | 无 |
-| `bigint` | 对象, 见 [数值, 金额与大整数](#数值-金额与大整数) | `bigint` | 无 |
-| `boolean` | `type: boolean` | `switch` `checkbox` | 无 |
-| `enum` 单选 | `enum` / `oneOf` / 单成员为 `const` | `select` `radio`; 单成员默认 `output`(只读) | 成员 |
-| `enum` 多选(`multiple: true`) | `array` + `uniqueItems` | `select`(多选下拉) `checkbox` | 成员 |
-| `date` `time` `datetime` | 由 `value_format` 决定, 见 [日期与时间](#日期与时间) | 与组件同名 | 无 |
-| `url` `email` | `string` + `format` `uri` / `email` | 与组件同名 | 无 |
-| `color` | `string` + `format: color` | `color` | 无 |
-| `image` | `string` + `format: uri` | `image`(上传 + 预览) `input` | 无 |
-| `file` | `string` + `format: uri` | `file`(上传) `input` | 无 |
-| `object` | `type: object` | `page`(钻取) `inline` `json`; 根总是 `page` | 字段 |
-| `array` | `type: array` | `list` `json`; `array_item: 'tuple'` 时为 `tuple` `json` | [体与内部类型](#体与内部类型) |
-| `map` | `object` + `additionalProperties` | `kv` `json` | [体与内部类型](#体与内部类型) |
-| `union` | `oneOf` / `anyOf` | `union`(分支下拉; `props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮) | [体与内部类型](#体与内部类型) |
-| `any` | `{}` | `json` | 无 |
-| `jsontext` | `string` + `contentMediaType: application/json` | `json` | 字段, 或无 |
+| `string` | `type: string` | `input` `textarea` `password` | None |
+| `text` | Same as `string` | Same as `string`, default `textarea` | None |
+| `richtext` | `string` + `contentMediaType: text/html` | `richtext` (falls back to textarea without an adapter) | None |
+| `number` | `type: number` | `number` `range` | None |
+| `integer` | `type: integer`, default `±MAX_SAFE_INTEGER` | `number` `range` | None |
+| `money` | Object, see [Numbers, money and big integers](#numbers-money-and-big-integers) | `money` | None |
+| `bigint` | Object, see [Numbers, money and big integers](#numbers-money-and-big-integers) | `bigint` | None |
+| `boolean` | `type: boolean` | `switch` `checkbox` | None |
+| `enum` single choice | `enum` / `oneOf` / `const` for a single member | `select` `radio`; a single member defaults to `output` (read-only) | Members |
+| `enum` multiple choice (`multiple: true`) | `array` + `uniqueItems` | `select` (multi-select dropdown) `checkbox` | Members |
+| `date` `time` `datetime` | Determined by `value_format`, see [Dates and times](#dates-and-times) | Same name as the component | None |
+| `url` `email` | `string` + `format` `uri` / `email` | Same name as the component | None |
+| `color` | `string` + `format: color` | `color` | None |
+| `image` | `string` + `format: uri` | `image` (upload + preview) `input` | None |
+| `file` | `string` + `format: uri` | `file` (upload) `input` | None |
+| `object` | `type: object` | `page` (drill-down) `inline` `json`; the root is always `page` | Fields |
+| `array` | `type: array` | `list` `json`; with `array_item: 'tuple'`, `tuple` `json` | [Bodies and inner types](#bodies-and-inner-types) |
+| `map` | `object` + `additionalProperties` | `kv` `json` | [Bodies and inner types](#bodies-and-inner-types) |
+| `union` | `oneOf` / `anyOf` | `union` (branch dropdown; segmented buttons with `props: {selector: 'buttons'}` and at most 4 branches) | [Bodies and inner types](#bodies-and-inner-types) |
+| `any` | `{}` | `json` | None |
+| `jsontext` | `string` + `contentMediaType: application/json` | `json` | Fields, or none |
 
-- 候选按数据形态判定, 比上表宽: 任意组件可选 `json` 与 `output`; 底层为字符串的组件之间 widget 互通, 都可选 `input` `textarea` `password` `richtext`, 带 `format: uri` 的另可选 `url` `image` `file`(如 `url[widget: 'input']` `jsontext[widget: 'textarea']`); 按 `value_format` 编译出 `x-valueFormat` 的日期组件可在 `date` `time` `datetime` 间互换(时间戳格式不能用 `time`). 判定以 `packages/core/src/syntax/shapes.ts` 的 `acceptsWidget` 为准, 语言服务补全的候选与它一致.
-- 非法组合降级: 先定改变数据形态的键(`multiple` `array_item` `map_item` `union_item` `nullable` ...), 再按该形态判定 `widget`; 不接受时取默认, 编译器报 warning(JOTL1045). 未登记的扩展 widget 由语言服务报 warning, 运行时按降级链降级. 例: `enum[multiple: true, widget: 'radio']` 保留多选, `widget` 降为 `select`.
-- 注册表按 (组件, `widget`) 解析: `checkbox` 在 `boolean` 与多选 `enum` 下是不同实现.
-- `nullable` 是包在任意组件外的置空开关, 不是 `widget` 候选.
-- 已移除: `textarea` `select{}` `radio{}` `checkbox{}` `json` 作为组件; 字面量类型与 `const` 写法; `T[]` 后缀数组; `A | B` 联合; `map<T>`; `x-ui.semantic`; `///` 文档注释; 文件开头 `[...]`.
+- Allowed widgets are decided by data shape and are broader than the table: every component accepts `json` and `output`; components whose base is a string share widgets, all accepting `input` `textarea` `password` `richtext`, and those with `format: uri` also accept `url` `image` `file` (e.g. `url[widget: 'input']`, `jsontext[widget: 'textarea']`); date components that compile to `x-valueFormat` through `value_format` can switch among `date` `time` `datetime` (timestamp formats cannot use `time`). `acceptsWidget` in `packages/core/src/syntax/shapes.ts` is authoritative, and the language server's completion candidates match it.
+- Invalid combinations degrade: keys that change the data shape (`multiple` `array_item` `map_item` `union_item` `nullable` ...) are settled first, then `widget` is checked against that shape; if the shape does not accept it, the default is used and the compiler reports a warning (JOTL1045). Unregistered extension widgets get a warning from the language server and degrade along the fallback chain at runtime. Example: `enum[multiple: true, widget: 'radio']` stays multiple choice and `widget` drops to `select`.
+- The registry resolves by (component, `widget`): `checkbox` under `boolean` and under multiple-choice `enum` are different implementations.
+- `nullable` is a null toggle wrapped around any component, not a `widget` candidate.
+- Removed: `textarea` `select{}` `radio{}` `checkbox{}` `json` as components; literal types and `const` syntax; `T[]` array suffix; `A | B` unions; `map<T>`; `x-ui.semantic`; `///` doc comments; `[...]` at the start of a file.
 
-## 体与内部类型
+## Bodies and inner types
 
-内部类型的键:
+Inner type keys:
 
-| 键 | 用于 | 取值 |
+| Key | Used on | Value |
 |---|---|---|
-| `array_item` | `array` | 类型串; 或 `'tuple'` |
-| `map_item` | `map` | 类型串 |
-| `union_item` | `union` | 类型串, 至少两个名字 |
-| `json_item` | `jsontext` | 类型串 |
-| `item_meta` | 以上四种 | 内部类型的元数据; 类型串含多个名字时按名字分键: `{string: {...}, Link: {...}}` |
-| `key_meta` | `map` | 键的约束, 只接受 `pattern` `minLength` `maxLength`, 编译为 `propertyNames` |
-| `discriminator` | `union` | 区分字段名 |
+| `array_item` | `array` | Type string; or `'tuple'` |
+| `map_item` | `map` | Type string |
+| `union_item` | `union` | Type string with at least two names |
+| `json_item` | `jsontext` | Type string |
+| `item_meta` | The four above | Metadata of the inner type; when the type string has several names, key it by name: `{string: {...}, Link: {...}}` |
+| `key_meta` | `map` | Key constraints, only `pattern` `minLength` `maxLength`, compiled to `propertyNames` |
+| `discriminator` | `union` | Name of the discriminator field |
 
-类型串: `名字 { "|" 名字 }`, 名字为内置组件名或大驼峰类型名; 不含 `null`(可空写 `nullable`); 选择族 `enum` 不能出现在类型串中(多选写 `multiple`); 名字重复报错; 多于一个名字时按 [union](#union) 的 JSON 类型区分规则校验.
+A type string has the form `name { "|" name }`, where each name is a built-in component name or a PascalCase type name. It never contains `null` (use `nullable` for that); the choice component `enum` cannot appear in it (use `multiple` for multiple choice); duplicate names are errors; with more than one name it is checked by the JSON-type rules of [union](#union).
 
-各组件的体:
+Bodies by component:
 
-| 组件 | 条件 | 体 |
+| Component | Condition | Body |
 |---|---|---|
-| `object` | - | 字段 |
-| `array` | 无 `array_item` | 元素对象的字段(字段名任意, 含 `*` `0`); 元素对象自身的元数据写 `item_meta` |
-| `array` | `array_item: 'tuple'` | 位置条目 `0` `1` ...(从 0 连续), 可另有一个 `*` 表示其余元素; 编译为 `prefixItems` + `items`, 没有 `*` 时 `items: false`; `minItems` 取必填位置数 |
-| `array` | `array_item: 类型串` | 无 |
-| `map` | 无 `map_item` | 值对象的字段 |
-| `map` | `map_item: 类型串` | 无 |
-| `union` | 有 `discriminator` | 分支, [union](#union) |
-| `union` | `union_item` | 无 |
-| `enum` | - | 成员, [枚举](#枚举) |
-| `jsontext` | 无 `json_item` | 解析后对象的字段(可为空体或省略体, 省略时内容为任意 JSON) |
-| `jsontext` | `json_item: 类型串` | 无 |
-| 其他 | - | 写体报错 |
+| `object` | - | Fields |
+| `array` | No `array_item` | Fields of the element object (any field names, including `*` `0`); metadata of the element object itself goes in `item_meta` |
+| `array` | `array_item: 'tuple'` | Position entries `0` `1` ... (consecutive from 0), plus an optional `*` for the remaining elements; compiles to `prefixItems` + `items`, with `items: false` when there is no `*`; `minItems` is the number of required positions |
+| `array` | `array_item: type string` | None |
+| `map` | No `map_item` | Fields of the value object |
+| `map` | `map_item: type string` | None |
+| `union` | Has `discriminator` | Branches, see [union](#union) |
+| `union` | `union_item` | None |
+| `enum` | - | Members, see [Enums](#enums) |
+| `jsontext` | No `json_item` | Fields of the parsed object (the body may be empty or omitted; when omitted the content is any JSON) |
+| `jsontext` | `json_item: type string` | None |
+| Others | - | A body is an error |
 
-- 嵌套数组: `array[array_item: 'array', item_meta: {array_item: 'number'}]`.
-- 只有 `array_item: 'tuple'` 下 `*` 与数字键有特殊含义; 其余体中它们是普通字段键.
+- Nested arrays: `array[array_item: 'array', item_meta: {array_item: 'number'}]`.
+- `*` and numeric keys are special only under `array_item: 'tuple'`; in every other body they are ordinary field keys.
 
-## 枚举
+## Enums
 
 ```ebnf
 EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [ "," | ";" ] ;
 ```
 
-- 写法 `enum[元数据]{ a(甲) b(乙) }`; 成员间空白, 换行, `,` 或 `;` 分隔.
-- 成员值: 标识符成员的值为同名字符串; 数字, 布尔, 引号字符串按字面量取值: `enum{ 1(一级) 2(二级) }`; 成员值重复报错.
-- 裸 `null` 不能作成员, 报错(JOTL1046): 可空写 `nullable: true`; 要字符串 `"null"` 时写 `'null'`.
-- 有任一标签或 `description` 时编译为 `oneOf: [{const, title, description}]`, 否则 `enum`; 单成员编译为 `const`.
-- 全局选项: 先声明 `Cities(城市): enum{...}`, 字段写 `city: Cities`; 多选写 `cities: Cities[multiple: true]`.
-- 多选: `multiple: true`, 值为成员值数组, 自动 `uniqueItems`, 默认可以一项都不选; `minItems` `maxItems` 作用于所选个数.
-- 语法层不支持运行时选项源, 成员只能写在源码中; 渲染层契约中的 `Adapters.loadOptions` 只是预留给自定义 widget 的外部能力, 内置 widget 不调用它, 见 [x-ui 规范](x-ui.md).
+- Syntax: `enum[metadata]{ a(A) b(B) }`; separate members with whitespace, line breaks, `,` or `;`.
+- Member values: an identifier member's value is the string of the same name; numbers, booleans and quoted strings are taken literally: `enum{ 1(Level 1) 2(Level 2) }`; duplicate member values are errors.
+- A bare `null` cannot be a member and is an error (JOTL1046): use `nullable: true` for nullability, and write `'null'` for the string `"null"`.
+- If any member has a label or `description`, the enum compiles to `oneOf: [{const, title, description}]`, otherwise to `enum`; a single member compiles to `const`.
+- Shared options: declare `Cities(城市): enum{...}` first, then write `city: Cities` on the field; for multiple choice write `cities: Cities[multiple: true]`.
+- Multiple choice: `multiple: true`; the value is an array of member values, `uniqueItems` is added automatically, and selecting nothing is allowed by default; `minItems` `maxItems` apply to the number selected.
+- The syntax has no runtime option sources: members can only be written in source. `Adapters.loadOptions` in the rendering contract is only an external capability reserved for custom widgets; built-in widgets never call it; see the [x-ui specification](x-ui.md).
 
 ## union
 
-只接受两种:
+Only two forms are accepted:
 
-1. 可区分联合: `union[discriminator: 'kind'] { text(文本): {...}  image(图片): ImageBlock }`
-   - 分支的键是区分字段的取值, 标签为分支标题; 分支内容是对象体或对象类型引用.
-   - 区分字段由编译器补为 `const`, 分支里不写; 编译为 `oneOf`.
-   - 数据: `{ "kind": "text", "content": "..." }`.
-2. 按 JSON 类型区分: `union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
-   - 各分支的 JSON 类型(string number boolean array object)互不相同, 各至多一个; `money` `bigint` 按自身 `type` 字段区分, 不占 object 名额.
-   - 同为一种 JSON 类型的分支(`email|url`)编译报错, 提示改用可区分联合.
-   - 编译为 `anyOf`.
+1. Discriminated union: `union[discriminator: 'kind'] { text(文本): {...}  image(图片): ImageBlock }`
+   - A branch key is a value of the discriminator field and its label is the branch title; the branch content is an object body or a reference to an object type.
+   - The compiler adds the discriminator field as `const`, so branches do not declare it; compiles to `oneOf`.
+   - Data: `{ "kind": "text", "content": "..." }`.
+2. Distinguished by JSON type: `union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
+   - Each branch has a different JSON type (string number boolean array object), at most one per type; `money` and `bigint` are told apart by their own `type` field and do not use up the object slot.
+   - Branches of the same JSON type (`email|url`) are a compile error suggesting a discriminated union instead.
+   - Compiles to `anyOf`.
 
-- `null` 不进联合, 可空一律写 `nullable: true`.
-- 渲染: 左侧用下拉选分支(`props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮), 右侧是当前分支内容, 空间不足时换行(见 [HTML 组件约定](html-widgets.md)); 切换时用新分支默认值替换, 各分支最后一次的值在本次编辑中缓存, 切回恢复.
+- `null` never goes into a union; always use `nullable: true` for nullability.
+- Rendering: a dropdown on the left picks the branch (segmented buttons with `props: {selector: 'buttons'}` and at most 4 branches), the current branch's content is on the right, and it wraps when space runs out (see [HTML widget conventions](html-widgets.md)). Switching replaces the value with the new branch's default; the last value of each branch is cached for the current editing session and restored when you switch back.
 
-## 可空, 必填与空值
+## Optional, required and empty values
 
-| 含义 | 写法 |
+| Meaning | Syntax |
 |---|---|
-| 可以不存在(`undefined`) | `key?:` 或光秃 `key(标签)` |
-| 可以为 `null` | `nullable: true` |
-| 字符串不能为空串 | `minLength: 1`(默认允许空串) |
-| 数组, 多选不能为空 | `minItems: 1`(默认允许空数组) |
+| May be absent (`undefined`) | `key?:` or a bare `key(label)` |
+| May be `null` | `nullable: true` |
+| String must not be empty | `minLength: 1` (empty strings are allowed by default) |
+| Array or multiple choice must not be empty | `minItems: 1` (empty arrays are allowed by default) |
 
-- 默认允许空: 字符串类不加 `minLength`, 数组与多选不加 `minItems`; 要禁止空串或空数组时写 `minLength: 1` / `minItems: 1`. 带 `format` 的字符串组件由格式本身拒绝空串.
-- 渲染器: 选填字段被清空时删除该键, 不写空串或空数组; `nullable` 字段另有置空开关.
+- Empty is allowed by default: string components get no `minLength`, arrays and multiple choice get no `minItems`; write `minLength: 1` / `minItems: 1` to forbid empty strings or arrays. String components with a `format` reject empty strings through the format itself.
+- Renderer: when an optional field is cleared, its key is deleted instead of storing an empty string or array; `nullable` fields have a separate null toggle.
 
-## 元数据键
+## Metadata keys
 
-| 键 | 取值 | 编译到 | 适用 |
+| Key | Value | Compiles to | Applies to |
 |---|---|---|---|
-| `description` | 字符串 | `description` | 任意条目, 枚举成员 |
-| `default` | JSON 值 | `default`; 编译期按约束校验, 含 `schema` 写入的约束与常用 `format`(`email` `uri` `date` `date-time` `time` `uuid` `color` `ipv4` `ipv6` `hostname`) | 任意 |
-| `minLength` `maxLength` `pattern` `format` | 同 JSON Schema | 同名 | 字符串类, 底层为字符串的扩展组件 |
-| `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` | 数字; `money` `bigint` 上为字符串 | 同名; `money` `bigint` 上为 `x-decimalRange` | 数值, 底层为数值的扩展组件 |
-| `decimals` | 非负整数 | `x-decimals` | `number`, `money`, 底层为 `number` 的扩展组件 |
-| `minItems` `maxItems` `uniqueItems` | 整数 / 布尔 | 同名 | `array`, 多选(含指向枚举的引用加 `multiple`), 底层为 `array` 的扩展组件 |
-| `minProperties` `maxProperties` | 整数 | 同名 | `object` `map`, 底层为 `object` 的扩展组件 |
-| `examples` | 数组 | `examples` | 除引用类型 |
-| `deprecated` | `true` 或原因字符串 | `deprecated: true` + `x-deprecatedReason` | 任意 |
-| `readOnly` | 布尔 | 同名 | 任意 |
-| `writeOnly` | 布尔 | 同名 | 除引用类型 |
-| `errorMessage` | 字符串, 或 关键字 → 文案 | `errorMessage` | 除引用类型 |
-| `comment` | 字符串 | `$comment` | 除引用类型 |
-| `closed` | 布尔 | `additionalProperties: false` | `object` |
-| `nullable` | 布尔 | 类型加 `null` | 任意 |
-| `multiple` | 布尔 | [枚举](#枚举) | `enum`, 指向枚举的引用 |
-| `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | [体与内部类型](#体与内部类型), [union](#union) | - | [体与内部类型](#体与内部类型) |
-| `currency` `unit` | [数值, 金额与大整数](#数值-金额与大整数) | `money` 的属性 schema | `money` |
-| `value_format` | [日期与时间](#日期与时间) | `format` 或 `x-valueFormat` | `date` `time` `datetime` |
-| `thousands` | 布尔 | `x-ui.thousands` | `number` `integer` `money` `bigint` |
-| `widget` | widget 名, [内置组件](#内置组件) 中的候选或已登记的扩展 widget | `x-ui.widget` | 任意 |
-| `props` | 对象 | `x-ui.props` | 任意 |
-| `decorator` | 外壳 widget 名或 `false` | `x-ui.decorator` | 任意 |
-| `hidden` | 布尔 | `x-ui.hidden` | 任意 |
-| `order` | 字段名数组 | `x-ui.order` | `object` |
-| `groups` | `[{title, fields}]`, 每个字段最多出现在一个分组中一次 | `x-ui.groups` | `object` |
-| `layout` `columns` | `'stack' \| 'tabs' \| 'grid'`, 不小于 1 的整数 | `x-ui.layout` `x-ui.columns` | `object`, 只在 `widget: 'page'` / `'inline'` 下生效; `columns` 必须与 `layout: 'grid'` 一起写, 否则报 JOTL1017 |
-| `summary` | 字段名 | `x-ui.summary` | `object`, 指向对象的引用, 元素为对象的 `array` / `map`; 元素确定不是对象时报 warning(JOTL1049) |
-| `root_if` `node_if` | 条件, [条件](#条件) | `x-ui.visibleIf` | 任意 |
-| `variants` | 场景名 → 覆盖对象 | `x-ui.variants` | 任意 |
-| `rules` | 规则数组 `[{match, ui}]` | 根 `x-ui.rules` | 只在根条目 |
-| `id` | URI 字符串 | 根 `$id` | 只在根条目 |
-| `widgets` | 名字 → 底层类型或模块声明, 见 [条目](#条目) 的扩展组件 | 本文件登记扩展组件; 模块声明写入根 `x-ui.widgets` | 只在根条目 |
-| `schema` | JSON 对象 | 原样合并, 冲突时以它为准并报 warning | 任意 |
-| `x_*` | JSON 值 | `x-` 加驼峰(`x_biz_code` → `x-bizCode`) | 任意 |
+| `description` | String | `description` | Any entry, enum members |
+| `default` | JSON value | `default`; validated against constraints at compile time, including constraints written via `schema` and common `format`s (`email` `uri` `date` `date-time` `time` `uuid` `color` `ipv4` `ipv6` `hostname`) | Any |
+| `minLength` `maxLength` `pattern` `format` | Same as JSON Schema | Same name | String components, extension components with a string base |
+| `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` | Number; string on `money` `bigint` | Same name; `x-decimalRange` on `money` `bigint` | Numeric components, extension components with a numeric base |
+| `decimals` | Non-negative integer | `x-decimals` | `number`, `money`, extension components with a `number` base |
+| `minItems` `maxItems` `uniqueItems` | Integer / boolean | Same name | `array`, multiple choice (including enum references with `multiple`), extension components with an `array` base |
+| `minProperties` `maxProperties` | Integer | Same name | `object` `map`, extension components with an `object` base |
+| `examples` | Array | `examples` | All but type references |
+| `deprecated` | `true` or a reason string | `deprecated: true` + `x-deprecatedReason` | Any |
+| `readOnly` | Boolean | Same name | Any |
+| `writeOnly` | Boolean | Same name | All but type references |
+| `errorMessage` | String, or keyword → message | `errorMessage` | All but type references |
+| `comment` | String | `$comment` | All but type references |
+| `closed` | Boolean | `additionalProperties: false` | `object` |
+| `nullable` | Boolean | Adds `null` to the type | Any |
+| `multiple` | Boolean | See [Enums](#enums) | `enum`, references to enums |
+| `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | See [Bodies and inner types](#bodies-and-inner-types), [union](#union) | - | See [Bodies and inner types](#bodies-and-inner-types) |
+| `currency` `unit` | See [Numbers, money and big integers](#numbers-money-and-big-integers) | Property schemas of `money` | `money` |
+| `value_format` | See [Dates and times](#dates-and-times) | `format` or `x-valueFormat` | `date` `time` `datetime` |
+| `thousands` | Boolean | `x-ui.thousands` | `number` `integer` `money` `bigint` |
+| `widget` | Widget name: a candidate from [Built-in components](#built-in-components) or a registered extension widget | `x-ui.widget` | Any |
+| `props` | Object | `x-ui.props` | Any |
+| `decorator` | Wrapper widget name or `false` | `x-ui.decorator` | Any |
+| `hidden` | Boolean | `x-ui.hidden` | Any |
+| `order` | Array of field names | `x-ui.order` | `object` |
+| `groups` | `[{title, fields}]`; each field appears at most once, in at most one group | `x-ui.groups` | `object` |
+| `layout` `columns` | `'stack' \| 'tabs' \| 'grid'`; integer of at least 1 | `x-ui.layout` `x-ui.columns` | `object`, effective only with `widget: 'page'` / `'inline'`; `columns` must come with `layout: 'grid'`, otherwise JOTL1017 |
+| `summary` | Field name | `x-ui.summary` | `object`, references to objects, `array` / `map` whose elements are objects; a warning (JOTL1049) when the elements are known not to be objects |
+| `root_if` `node_if` | Condition, see [Conditions](#conditions) | `x-ui.visibleIf` | Any |
+| `variants` | Scenario name → override object | `x-ui.variants` | Any |
+| `rules` | Rule array `[{match, ui}]` | Root `x-ui.rules` | Root entry only |
+| `id` | URI string | Root `$id` | Root entry only |
+| `widgets` | Name → underlying type or module declaration, see extension components in [Entries](#entries) | Registers extension components for this file; module declarations go into the root `x-ui.widgets` | Root entry only |
+| `schema` | JSON object | Merged as is; on conflict it wins, with a warning | Any |
+| `x_*` | JSON value | `x-` plus camelCase (`x_biz_code` → `x-bizCode`) | Any |
 
-- 标题不进元数据, 只由标签表达.
-- `variants` 内的覆盖对象与 `rules` 各规则的 `ui` 用 `x-ui` 字段名, 条件写 `root_if` / `node_if`(编译为 `visibleIf`, 也接受直接写 `visibleIf`).
-- `x-ui.version` 由编译器在根自动写入, 作者不写.
-- v1(凤蝶)别名(`min` `max` `regExp` `errorMsg` ...)不进解析器, 由迁移工具转换.
+- Titles are not metadata; they come only from labels.
+- Override objects in `variants` and the `ui` of each rule in `rules` use `x-ui` field names; conditions in them are written as `root_if` / `node_if` (compiled to `visibleIf`; writing `visibleIf` directly is also accepted).
+- The compiler writes `x-ui.version` on the root automatically; authors do not write it.
+- v1 (Fengdie) aliases (`min` `max` `regExp` `errorMsg` ...) are not accepted by the parser; the migration tool converts them.
 
-## 数值, 金额与大整数
+## Numbers, money and big integers
 
-- `number` / `integer` 共用数字框; `decimals` 指定小数位, `integer` 固定为 0, `number` 默认不限; 按它设 `step`, 失焦舍入; 校验编译为 `x-decimals`, 由 ajv 自定义关键字按十进制位数检查, 不用 `multipleOf`.
-- 精确数字符串: `^-?\d+(\.\d+)?$`, 只禁止指数, 千分位, 空白.
-- `money` 的值: `{ type: 'money', value, currency, unit? }`
-  - `value` 为精确数字符串; 没有 `unit` 时为主单位, 小数位定长, 默认取 ISO 4217 位数(CNY USD 2, JPY 0); 有 `unit` 时默认不限; `decimals` 都可覆盖.
-  - `currency` 为 ISO 4217 代码, 总是存入数据; 元数据 `currency: 'CNY'` 固定(编译为 `const`), `currency: ['CNY', 'USD']` 可选(编译为 `enum`, 首个为默认).
-  - `unit` 由业务定义, 只校验为字符串, 原样透传; 元数据 `unit: 'fen'` 固定, `unit: ['yuan', 'fen']` 可选, 不写则不显示单位选择.
-- `bigint` 的值: `{ type: 'bigint', value }`, `value` 为 `^-?\d+$`.
-- 范围: `money` `bigint` 上的 `minimum` `maximum` 写字符串, 编译为 `x-decimalRange` 作用于 `value`, 按精确数比较; 默认不限正负.
-- 运算: `@jotl/form/core` 依赖 `big.js`, 提供 `toBig(x): Big` 与 `fromBig(b, template, decimals?)`; 不提供单位换算.
-- 千分位: 存储值永远不含千分位; 聚焦时显示原值, 失焦与只读时显示带千分位的值, 不在输入时实时插入; 键入与粘贴时去掉 `,` `，` 空格 `_` 再校验, 不合法时保留草稿并提示; 对字符串整数部分按 3 位插 `,`, 不经过 `Number` / `Intl`; 固定 `,` 分组 `.` 小数点; `thousands` 开关, `money` 默认开, `number` `integer` `bigint` 默认关; `money` `bigint` 与开了千分位的 `number` `integer` 用 `<input type="text">`, 小数位为 0 时(`integer` `bigint` 或 `decimals: 0`) `inputmode="numeric"`, 否则 `decimal`.
-- TS 输出: `{ type: 'money'; value: string; currency: 'CNY'; unit?: string }`, `{ type: 'bigint'; value: string }`.
+- `number` / `integer` share a numeric input. `decimals` sets the number of decimal places: fixed at 0 for `integer`, unlimited by default for `number`; the input uses it as `step` and rounds on blur. Validation compiles to `x-decimals`, which an ajv custom keyword checks by counting decimal digits, not with `multipleOf`.
+- Exact number string: `^-?\d+(\.\d+)?$`; only exponents, thousands separators and whitespace are forbidden.
+- `money` value: `{ type: 'money', value, currency, unit? }`
+  - `value` is an exact number string. Without `unit` it is in the major unit with a fixed number of decimal places, defaulting to the ISO 4217 digits (2 for CNY and USD, 0 for JPY); with `unit` it is unlimited by default; `decimals` overrides both.
+  - `currency` is an ISO 4217 code and is always stored in the data; metadata `currency: 'CNY'` fixes it (compiled to `const`), `currency: ['CNY', 'USD']` makes it selectable (compiled to `enum`, first one default).
+  - `unit` is defined by your business logic, only validated as a string, and passed through unchanged; metadata `unit: 'fen'` fixes it, `unit: ['yuan', 'fen']` makes it selectable, and without it no unit selector is shown.
+- `bigint` value: `{ type: 'bigint', value }`, where `value` matches `^-?\d+$`.
+- Ranges: `minimum` `maximum` on `money` `bigint` are written as strings, compile to `x-decimalRange` applied to `value`, and compare as exact numbers; no sign restriction by default.
+- Arithmetic: `@jotl/form/core` depends on `big.js` and provides `toBig(x): Big` and `fromBig(b, template, decimals?)`; there is no unit conversion.
+- Thousands separators: stored values never contain them. The raw value shows while focused, and the separated value shows on blur and when read-only; separators are not inserted while typing. On typing and paste, `,` `，` spaces and `_` are stripped before validation, and an invalid value stays as a draft with a hint. A `,` is inserted every 3 digits of the integer part of the string, without going through `Number` / `Intl`; grouping is always `,` and the decimal point always `.`. The switch is `thousands`: on by default for `money`, off for `number` `integer` `bigint`. `money` `bigint` and `number` `integer` with separators enabled use `<input type="text">`, with `inputmode="numeric"` when there are 0 decimal places (`integer` `bigint` or `decimals: 0`) and `decimal` otherwise.
+- TS output: `{ type: 'money'; value: string; currency: 'CNY'; unit?: string }`, `{ type: 'bigint'; value: string }`.
 
-## 日期与时间
+## Dates and times
 
-`date` `time` `datetime` 分别渲染为 `<input type="date">` `<input type="time">` `<input type="datetime-local">`; 存储格式由元数据 `value_format` 决定.
+`date` `time` `datetime` render as `<input type="date">` `<input type="time">` `<input type="datetime-local">` respectively; the storage format is set by the `value_format` metadata.
 
-| 组件 | 原生值 | 默认 `value_format` | 默认存储示例 |
+| Component | Native value | Default `value_format` | Default stored example |
 |---|---|---|---|
 | `date` | `2026-10-13` | `YYYY-MM-DD` | `2026-10-13` |
-| `time` | `09:30`, 设了 step 时 `09:30:15` | `HH:mm:ss` | `09:30:15` |
-| `datetime` | `2026-10-13T09:30`(无时区) | `iso` | `2026-10-13T09:30:15+08:00` |
+| `time` | `09:30`, or `09:30:15` when step is set | `HH:mm:ss` | `09:30:15` |
+| `datetime` | `2026-10-13T09:30` (no time zone) | `iso` | `2026-10-13T09:30:15+08:00` |
 
-`value_format` 取值:
+`value_format` values:
 
-- dayjs 格式串(`YYYYMMDD` `YYYY-MM-DD HH:mm:ss` `HH:mm` ...); 不含时区的按浏览器本地时区解释与写回; 校验时严格解析.
-- `x` 毫秒时间戳, `X` 秒时间戳, 值为整数; `time` 不能用; `date` 取当天本地零点.
-- 别名, 读取时接受任意合法 RFC 3339 date-time(带不带毫秒, `Z` 或 `±HH:mm`), 写回时统一:
+- A dayjs format string (`YYYYMMDD` `YYYY-MM-DD HH:mm:ss` `HH:mm` ...); formats without a time zone are interpreted and written back in the browser's local time zone; validation parses strictly.
+- `x` for a millisecond timestamp, `X` for a second timestamp, with integer values; not allowed on `time`; `date` uses local midnight of that day.
+- Aliases: on read they accept any valid RFC 3339 date-time (with or without milliseconds, `Z` or `±HH:mm`), and on write they normalize to:
 
-| 别名 | 示例(北京时间 09:30:15) | 写回实现 |
+| Alias | Example (09:30:15 Beijing time) | Write-back implementation |
 |---|---|---|
 | `iso` | `2026-10-13T09:30:15+08:00` | `dayjs(v).format()` |
-| `iso-x` | `2026-10-13T09:30:15.000+08:00` | `iso` 的结果在偏移前插入 `.` 与 `dayjs(v).format('SSS')` |
-| `utc` | `2026-10-13T01:30:15Z` | `utc-x` 的结果去掉毫秒 |
+| `iso-x` | `2026-10-13T09:30:15.000+08:00` | The `iso` result with `.` and `dayjs(v).format('SSS')` inserted before the offset |
+| `utc` | `2026-10-13T01:30:15Z` | The `utc-x` result without milliseconds |
 | `utc-x` | `2026-10-13T01:30:15.000Z` | `dayjs(v).toISOString()` |
 
-别名也可用于 `date` `time`: 值为按别名写回的完整日期时间串, 编译时归入下表 "其他" 一行.
+Aliases also work on `date` `time`: the value is the full date-time string written back per the alias, and it compiles under the "Others" row of the table below.
 
-编译:
+Compilation:
 
 | `value_format` | JSON Schema |
 |---|---|
-| `date` 的 `YYYY-MM-DD`(默认) | `{type: string, format: date}` |
-| `datetime` 的四个别名(默认 `iso`) | `{type: string, format: date-time}`, 不是 `iso` 时另写 `x-valueFormat` |
-| `x` / `X` | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` 为组件名 |
-| 其他(含 `time` 默认 `HH:mm:ss`) | `{type: string, x-valueFormat}` + `x-ui.widget` 为组件名 |
+| `YYYY-MM-DD` on `date` (default) | `{type: string, format: date}` |
+| The four aliases on `datetime` (default `iso`) | `{type: string, format: date-time}`, plus `x-valueFormat` when not `iso` |
+| `x` / `X` | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` set to the component name |
+| Others (including the `time` default `HH:mm:ss`) | `{type: string, x-valueFormat}` + `x-ui.widget` set to the component name |
 
-- 标准 `format: time` 要求带时区, 所以 `time` 默认不再编译为它; 已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`.
-- 格式串含 `Z` 时接受任意偏移, 读入后按本地时区显示; 写回时用本地偏移.
-- `value_format` 用在其他组件上报 `JOTL1007`; `time` 用 `x` / `X` 报 `JOTL1020`; 数据不符合存储格式报 `JOTL4025`.
-- 编译期按 `value_format` 检查 `default`, 不符报 `JOTL1008`: 时间戳要求整数, 别名按 RFC 3339, 格式串严格逐位匹配并校验日历日期; 格式串只检查 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义, 含其他记号时不检查.
+- The standard `format: time` requires a time zone, so `time` no longer compiles to it by default; an existing `format: time` prints as a plain string, `string[format: 'time']`.
+- A format string containing `Z` accepts any offset, displays in the local time zone after reading, and writes back with the local offset.
+- `value_format` on other components reports `JOTL1007`; `x` / `X` on `time` reports `JOTL1020`; data not matching the storage format reports `JOTL4025`.
+- At compile time `default` is checked against `value_format` and mismatches report `JOTL1008`: timestamps must be integers, aliases follow RFC 3339, and format strings must match position by position with a valid calendar date. Format strings are only checked for `YYYY MM DD HH mm ss SSS Z ZZ A a` and `[..]` escapes; those with other tokens are not checked.
 
-## 条件
+## Conditions
 
 ```jotl
 a?: string[root_if: {left: 'mode', op: 'eq', right: 'dark'}]
@@ -357,57 +363,57 @@ c?: string[root_if: {and: [{left: 'list[*].on', op: 'truthy'}, {not: {left: 'a.b
 d?: string[node_if: 'href']
 ```
 
-- 叶子 `{left: 路径, op, right?}`; `op`: `eq` `ne` `in` `not_in` `gt` `gte` `lt` `lte` `truthy` `falsy`, 后两个不写 `right`.
-- 组合 `{and: [...]}` `{or: [...]}` `{not: 条件}`; 直接写路径字符串等价 `{left: 路径, op: 'truthy'}`.
-- 路径为 lodash `get` 语法(`a.b[0].c` `a['x-y']`), `[*]` 取当前节点所在数组的对应下标; `root_if` 另接受 `$.` 前缀.
-- 基准: `root_if` 从数据根, `node_if` 从字段所在对象; 不支持向上引用.
-- 编译为 `x-ui.visibleIf`([x-ui 规范](x-ui.md) 的条件格式):
+- Leaf: `{left: path, op, right?}`; `op` is one of `eq` `ne` `in` `not_in` `gt` `gte` `lt` `lte` `truthy` `falsy`, and the last two take no `right`.
+- Combinators: `{and: [...]}` `{or: [...]}` `{not: condition}`; a bare path string is equivalent to `{left: path, op: 'truthy'}`.
+- Paths use lodash `get` syntax (`a.b[0].c` `a['x-y']`), and `[*]` takes the index of the array containing the current node; `root_if` also accepts a `$.` prefix.
+- Base: `root_if` starts from the data root, `node_if` from the object containing the field; references upward are not supported.
+- Compiles to `x-ui.visibleIf` (the condition format of the [x-ui specification](x-ui.md)):
 
-| 写法 | 编译为 |
+| Syntax | Compiles to |
 |---|---|
-| `left` 路径 | `field`: JSON Pointer(`[*]` 保留为 `*` 片段); `node_if` 另加 `base: "node"` |
-| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'` | 同名键, 值为 `right` |
-| `op: 'not_in'` | `notIn`, 值为 `right` |
-| `op: 'truthy'` / 路径字符串 | `truthy: true` |
+| `left` path | `field`: JSON Pointer (`[*]` kept as a `*` segment); `node_if` adds `base: "node"` |
+| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'` | Key of the same name, value `right` |
+| `op: 'not_in'` | `notIn`, value `right` |
+| `op: 'truthy'` / path string | `truthy: true` |
 | `op: 'falsy'` | `truthy: false` |
-| `{and: [...]}` `{or: [...]}` `{not: 条件}` | `{all: [...]}` `{any: [...]}` `{not: 条件}` |
-| 同时写 `root_if` 与 `node_if` | `{all: [根条件, 节点条件]}` |
+| `{and: [...]}` `{or: [...]}` `{not: condition}` | `{all: [...]}` `{any: [...]}` `{not: condition}` |
+| Both `root_if` and `node_if` | `{all: [root condition, node condition]}` |
 
-- 只控制显示, 不控制必填与只读.
+- Conditions control visibility only, not required or read-only state.
 
-## 编译与打印
+## Compiling and printing
 
-- 编译结果满足下文 [规范化规则](#规范化规则).
-- `print` 输出规范形: 单引号字符串, 能不加引号的键不加, 各段紧贴, 一行一个条目, 无分隔符; 默认的 `widget` 不写出; 无法表达的关键字经 `schema: {...}` 写出; 组件名按 JSON Schema 与 `widget` 还原(`string` + `widget: 'textarea'` 还原为 `text`); 经 `schema` 写出的 `$ref` 随类型改名与内联根移入 `$defs/<根名>` 改指; 根 `x-ui.widgets` 写回根条目的 `widgets`(模块声明形态, 有 `base` 时一并写回; 与类型名重名或取值不合法时报 JOTL1032 并忽略); 输出嵌套超过 256 层, 或输入 JSON 嵌套超过 1024 层时不输出源码, 报 JOTL1029.
-- v0 写法(`export type X = ...`, `@注解`, `= v`, `Enum` `Image` 等大写语义类型)不再接受; v0 源码先用旧版编译器编译, 再用 `print` 打印即得到 v1 源码.
+- Compile output satisfies the [Normalization rules](#normalization-rules) below.
+- `print` emits the canonical form: single-quoted strings, keys unquoted where possible, segments packed together, one entry per line, no separators; a default `widget` is omitted; keywords Jotl cannot express go out through `schema: {...}`; component names are restored from JSON Schema and `widget` (`string` + `widget: 'textarea'` becomes `text`); `$ref`s written through `schema` are retargeted when types are renamed or an inline root moves into `$defs/<root name>`; the root `x-ui.widgets` is written back to the root entry's `widgets` (in module-declaration form, including `base` when present; entries that clash with type names or have invalid values report JOTL1032 and are ignored); when output nesting exceeds 256 levels or input JSON nesting exceeds 1024 levels, no source is emitted and JOTL1029 is reported.
+- v0 syntax (`export type X = ...`, `@annotations`, `= v`, capitalized semantic types such as `Enum` `Image`) is no longer accepted; to get v1 source, compile v0 source with the old compiler, then run `print` on the result.
 
-## 诊断
+## Diagnostics
 
-代码与消息文本见 `packages/core/src/syntax/diagnostics.ts` 的 `SYNTAX_DIAGNOSTICS`; 下表按情形归类.
+Codes and message texts live in `SYNTAX_DIAGNOSTICS` in `packages/core/src/syntax/diagnostics.ts`; the table below groups them by situation.
 
-| 级别 | 代码 | 情形 |
+| Severity | Codes | Situation |
 |---|---|---|
-| error | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | 词法: 非法字符与未知 `<...>` 记号; 字符串缺结束引号; 块注释未闭合; 未知转义或字符串中的控制字符; 数字写法不合法(含 `Infinity` `NaN`); 标签为空 |
-| error | JOTL1002 JOTL1003 JOTL1040 | 语法: 此处应为另一种记号; 缺右括号; 冒号后有内容却省略冒号 |
-| error | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层: 顶层名不是大驼峰; 顶层写 `?`; 标识写在体内; 标识重复; 类型名重复; 类型名与扩展组件(含根元数据 `widgets` 声明的)重名 |
-| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件: 未知组件; 未声明的类型或未登记的扩展组件; 保留字 `import` `export` `from`; 不允许体的组件写了体; 引用类型带体; 写法不完整(如 `union` 缺 `discriminator` 与 `union_item`) |
-| error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | 体与键: 同一体或同一元数据内键重复; 枚举值重复; 枚举没有成员; 体中条目不合法(枚举成员写 `?` `:` 或裸 `null`, 元组位置, union 分支写法等) |
-| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | 元数据: 未知键; 键不适用于该组件; 键不能用在此处(只能写在根, 需要 `multiple`, `schema` 写入保留关键字等); 取值不合法; `x-ui` 相关取值不合法(`order` `groups` `layout` `columns` `summary` 条件 `variants` `rules`, 空 `widget`) |
-| error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | 类型串不合法(含 `null` `enum`, 名字重复或为空); 按 JSON 类型区分的联合有同类分支; `default` 不满足约束; 嵌套超过上限 |
-| warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 | `widget` 不接受该数据形态(降级为默认); `schema` 与生成结果冲突; `format` 覆盖组件自带的格式(如 `image[format: 'email']`, 以元数据为准); `summary` 用在元素不是对象的 `array` / `map` 上; `schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`(原样写入, 不阻断) |
-| error | JOTL1030 JOTL1031 JOTL1035 | `print`: 输入不是 JSON Schema; 含非 JSON 值; `rootName` 不是大驼峰 |
-| warning | JOTL1032 JOTL1033 JOTL1034 JOTL1051 | `print`: 关键字无法表达已忽略; 布尔 schema 按等价对象打印; 类型名不合法已改名; 选项 `defaultExport` 不是 `$defs` 的键已忽略 |
+| error | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | Lexical: illegal characters and unknown `<...>` tokens; string missing its closing quote; unclosed block comment; unknown escape or control character in a string; invalid number (including `Infinity` `NaN`); empty label |
+| error | JOTL1002 JOTL1003 JOTL1040 | Syntax: a different token was expected here; missing closing bracket; colon omitted although content follows |
+| error | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | Top level: top-level name not PascalCase; `?` at the top level; marker inside a body; duplicate marker; duplicate type name; type name clashes with an extension component (including those declared in the root `widgets` metadata) |
+| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | Components: unknown component; undeclared type or unregistered extension component; reserved words `import` `export` `from`; body on a component that allows none; body on a type reference; incomplete form (e.g. `union` with neither `discriminator` nor `union_item`) |
+| error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | Bodies and keys: duplicate key in one body or one metadata block; duplicate enum value; enum with no members; invalid entry in a body (enum member with `?` `:` or bare `null`, tuple positions, union branch syntax, etc.) |
+| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | Metadata: unknown key; key not applicable to this component; key not allowed here (root only, requires `multiple`, reserved keyword written via `schema`, etc.); invalid value; invalid `x-ui`-related value (`order` `groups` `layout` `columns` `summary`, conditions, `variants` `rules`, empty `widget`) |
+| error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | Invalid type string (contains `null` or `enum`, duplicate or empty names); JSON-type union with branches of the same type; `default` violates constraints; nesting exceeds the limit |
+| warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 | `widget` does not accept this data shape (degraded to default); `schema` conflicts with generated output; `format` overrides the component's built-in format (e.g. `image[format: 'email']`; metadata wins); `summary` on an `array` / `map` whose elements are not objects; `x-ui` written via `schema` does not match the x-ui meta-schema or contains root-only fields `version` `rules` `widgets` (written as is, not blocking) |
+| error | JOTL1030 JOTL1031 JOTL1035 | `print`: input is not a JSON Schema; contains non-JSON values; `rootName` is not PascalCase |
+| warning | JOTL1032 JOTL1033 JOTL1034 JOTL1051 | `print`: keyword cannot be expressed and was ignored; boolean schema printed as its equivalent object; invalid type name was renamed; option `defaultExport` is not a key of `$defs` and was ignored |
 
-## 规范化规则
+## Normalization rules
 
-编译器, 打印器与各转换模块输出的 schema 都满足以下规则, 读取时可以假定已满足; 例外: `@jotl/convert` 的版本升级不执行规则 2, 嵌套 `$defs` 保留原位(提到根会改变 `$ref` 的解析):
+Schemas output by the compiler, the printer and the conversion modules all satisfy these rules, so readers may assume them. Exception: version upgrades in `@jotl/convert` skip rule 2 and leave nested `$defs` in place (hoisting them to the root would change how `$ref` resolves).
 
-1. 根对象带 `$schema: "https://json-schema.org/draft/2020-12/schema"`.
-2. 命名类型只出现在根的 `$defs` 中.
-3. 带标签或说明的枚举(至少一个成员有标签或 `description`)统一为 `oneOf: [{ const, title?, description? }]`; 其余多值枚举为 `enum`, 单值为 `const`.
-4. 枚举, `oneOf` 枚举与 `const` 外层带 `type`: 成员 JSON 类型唯一时为字符串, 否则为类型数组; 整数值的 JSON 类型记为 `integer`, 其余数值为 `number`.
-5. 空 schema `{}` 保持对象形式, 不改写为 `true`.
-6. `required` 按声明顺序排列, 为空时省略.
-7. 对象关键字顺序: `$schema $id $ref $comment title description type const enum oneOf anyOf format contentMediaType` → 各类约束 → `properties required additionalProperties prefixItems items uniqueItems` → `default examples deprecated readOnly writeOnly x-ui x-deprecatedReason $defs`; 未列出的关键字按字母序排在 `x-ui` 之前. 顺序只影响输出可读性, 比较 schema 时按深度相等.
+1. The root object carries `$schema: "https://json-schema.org/draft/2020-12/schema"`.
+2. Named types appear only in the root `$defs`.
+3. Enums with labels or descriptions (at least one member has a label or `description`) are always `oneOf: [{ const, title?, description? }]`; other multi-value enums are `enum`, and single values are `const`.
+4. Enums, `oneOf` enums and `const` carry an outer `type`: a string when the members have a single JSON type, otherwise an array of types; integer values count as `integer`, other numbers as `number`.
+5. The empty schema `{}` stays an object and is not rewritten to `true`.
+6. `required` is in declaration order and omitted when empty.
+7. Object keyword order: `$schema $id $ref $comment title description type const enum oneOf anyOf format contentMediaType` → constraints → `properties required additionalProperties prefixItems items uniqueItems` → `default examples deprecated readOnly writeOnly x-ui x-deprecatedReason $defs`; unlisted keywords go in alphabetical order before `x-ui`. Order only affects readability; compare schemas by deep equality.
 
-规则 7 的实现是 `@jotl/core` 的 `orderKeywords`.
+Rule 7 is implemented by `orderKeywords` in `@jotl/core`.

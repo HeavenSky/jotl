@@ -1,5 +1,5 @@
 {
-  "extension.description": "Jotl 语言支持: 语法高亮, 诊断, 补全, 悬停, 跳转, 以及编译出的 JSON Schema, TypeScript 与表单的实时预览.",
+  "extension.description": "用 Jotl 编写 JSON Schema, 边写边检查, 编译出的 schema, TypeScript 声明与表单实时可见.",
   "category": "Jotl",
   "command.showPreview": "打开预览",
   "config.registeredWidgets": "内置组件之外已注册的组件名; 语言服务据此补全组件名, 并不对这些名字报 \"组件未注册\"; 大驼峰名另作为扩展组件按 string 编译; 要指定底层类型请登记在 jotl.config.json 中, 同名时以它为准.",

@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "description": "Jotl 语言核心: JSON Schema 2020-12 与 x-ui 类型契约, 诊断, JSON Pointer; Jotl 语法的解析, 编译到 JSON Schema, 打印与格式化",
+  "description": "Compile Jotl to JSON Schema 2020-12 and print schemas back, with diagnostics that point to the exact line and column.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/core"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -11,8 +16,7 @@
     }
   },
   "files": [
-    "dist",
-    "README.zh-CN.md"
+    "dist"
   ],
   "scripts": {
     "build": "tsc -b",

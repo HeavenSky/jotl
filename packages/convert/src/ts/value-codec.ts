@@ -1,4 +1,4 @@
-// JSDoc 标签取值的编码与解码(README "标签协议" 的取值编码): 文本转义, JSON 取值, 正则与示例的写法.
+// JSDoc 标签取值的编码与解码(docs/tag-protocol.md 的取值编码): 文本转义, JSON 取值, 正则与示例的写法.
 
 /** TSDoc 会当作语法的字符; 文本中出现时用反斜杠转义. */
 const TSDOC_SPECIAL = /[\\@{}<>`]/g;

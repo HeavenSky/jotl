@@ -7,7 +7,7 @@ export interface CustomTagDefinition {
   syntax: TagSyntax;
 }
 
-/** README "标签协议" 中的全部自定义标签; 必须与包根的 `tsdoc.json` 的 `tagDefinitions` 一致. */
+/** docs/tag-protocol.md 中的全部自定义标签; 必须与包根的 `tsdoc.json` 的 `tagDefinitions` 一致. */
 export const CUSTOM_TAGS: readonly CustomTagDefinition[] = [
   { name: "title", syntax: "block" },
   { name: "writeOnly", syntax: "modifier" },
@@ -58,7 +58,7 @@ export const TEXT_KEYWORDS = ["title", "format", "contentMediaType", "contentEnc
 /** 扩展关键字与同义的自定义标签, 取值原样为文本. */
 export const EXTENSION_TEXT_TAGS: Readonly<Record<string, string>> = { "x-valueFormat": "valueFormat" };
 
-/** 读取时接受的标签名(小写)到规范标签名; 别名按 README "标签协议" 与 ts-json-schema-generator 的习惯写法. */
+/** 读取时接受的标签名(小写)到规范标签名; 别名按 docs/tag-protocol.md 与 ts-json-schema-generator 的习惯写法. */
 export const TAG_ALIASES: Readonly<Record<string, string>> = {
   default: "defaultValue",
   defaultvalue: "defaultValue",
@@ -85,7 +85,7 @@ export const DEPRECATED_DEFAULT_TEXT_EN = "Deprecated.";
 /** 读回时视为默认说明的文本, 两种语言生成的都不产生 x-deprecatedReason. */
 export const DEPRECATED_DEFAULT_TEXTS: readonly string[] = [DEPRECATED_DEFAULT_TEXT, DEPRECATED_DEFAULT_TEXT_EN];
 
-/** `@enumTitles` 的键: 字符串取其本身, 其余取 JSON 文本(README "标签协议"). */
+/** `@enumTitles` 的键: 字符串取其本身, 其余取 JSON 文本(docs/tag-protocol.md). */
 export function enumTitleKey(value: unknown): string {
   return typeof value === "string" ? value : JSON.stringify(value);
 }

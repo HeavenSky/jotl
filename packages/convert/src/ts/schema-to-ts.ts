@@ -21,7 +21,7 @@ import { TYPIA_FORMATS, renderTypeLiteral } from "./typia.js";
 import { encodeExample, encodeJson, encodePattern, encodeText } from "./value-codec.js";
 
 export interface SchemaToTsOptions {
-  /** 把 typia 能表达的约束改写为 typia 类型标签(README "typia 类型标签"); 产物需要 `import { tags } from "typia"`. */
+  /** 把 typia 能表达的约束改写为 typia 类型标签(docs/ts-conversion.md "Write typia type tags"); 产物需要 `import { tags } from "typia"`. */
   typiaTags?: boolean;
   /**
    * 默认导出的 `$defs` 键(Jotl 编译结果的 `defaultExport`); 缺省或不在 `$defs` 中时默认导出根.
@@ -620,7 +620,7 @@ function isInterfaceShape(schema: JsonSchema): schema is JsonSchemaObject {
   return schema.type === "object" || (schema.type === undefined && isSchemaObject(schema.properties));
 }
 
-/** 把 JSON Schema 2020-12 文档转为 TS 声明文件文本(包 README "标签协议", fixtures README 的格式约定). */
+/** 把 JSON Schema 2020-12 文档转为 TS 声明文件文本(docs/tag-protocol.md, fixtures README 的格式约定). */
 export function schemaToTs(schema: JsonSchema, options: SchemaToTsOptions = {}): Result<string> {
   if (!isSchemaObject(schema)) return fail([tsDiagnostic("JOTL2001", undefined, { location: { kind: "pointer", pointer: "" } })]);
   const diagnostics: Diagnostic[] = [];

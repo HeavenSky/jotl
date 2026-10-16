@@ -3,7 +3,12 @@
   "version": "0.0.0",
   "license": "MIT",
   "type": "module",
-  "description": "Jotl 与其他格式互转: JSON Schema 与 TS + JSDoc 互转, 旧版 JSON Schema / OpenAPI 升级到 2020-12, 凤蝶 schema 迁移为 Jotl",
+  "description": "Turn JSON Schema into TypeScript declarations and back without losing constraints, and bring legacy JSON Schema, OpenAPI and Fengdie schemas up to JSON Schema 2020-12 and Jotl.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jotl-lang/jotl.git",
+    "directory": "packages/convert"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -21,8 +26,7 @@
   },
   "files": [
     "dist",
-    "tsdoc.json",
-    "README.zh-CN.md"
+    "tsdoc.json"
   ],
   "scripts": {
     "build": "tsc -b",
