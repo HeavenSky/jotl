@@ -54,10 +54,10 @@ export interface Profile {
 
 需要 VS Code 1.101 或更高版本。Jotl 语言服务已打包在插件内，无需另装。
 
-1. 安装插件（当前以预发布版本发布）：
+1. 安装插件：
 
    ```sh
-   code --install-extension heavensky.vscode-jotl --pre-release
+   code --install-extension heavensky.vscode-jotl
    ```
 
 2. 把上面的示例存为 `profile.jotl` 并打开：
@@ -78,7 +78,7 @@ export interface Profile {
 
 ## 使用限制
 
-当前是预发布版本，行为与设置仍可能调整。目前有两处限制：
+目前有两处限制：
 
 - 文件根写了 `$schema` 时，`*.schema.json` 中的 `x-ui` 校验不生效：VS Code 此时只按该地址取 schema，不再套用按文件名关联的 schema。编辑 `x-ui` 期间可以先删去根 `$schema`，改完再加回（Jotl 生成的 schema 都带它），或者改在 `.jotl` 源文件中编辑。
 - 插件只是编辑器。要在脚本和 CI 中编译或检查文件，用 [`jotl` 命令行](../../cli/zh/README.md)；要在浏览器中编辑并预览 Jotl，用 [Playground](../../../apps/playground/zh/README.md)。

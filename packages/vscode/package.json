@@ -145,7 +145,7 @@
     "check": "node scripts/check.mjs",
     "check:template": "node scripts/check-template.mjs",
     "gen:icon": "node scripts/gen-icon.mjs",
-    "package": "node scripts/package.mjs --pre-release",
+    "package": "node scripts/package.mjs",
     "vscode:prepublish": "node build.mjs --production"
   },
   "dependencies": {},

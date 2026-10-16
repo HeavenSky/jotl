@@ -118,7 +118,7 @@ jobs:
           name: VS Code extension v${{ steps.version.outputs.version }}
           tag_name: vscode-v${{ steps.version.outputs.version }}
           body_path: RELEASE_NOTES.md
-          prerelease: ${{ startsWith(steps.version.outputs.version, '0.') }}
+          prerelease: false
           files: ${{ steps.version.outputs.vsix }}
 
       - uses: actions/upload-artifact@v7
@@ -137,7 +137,7 @@ jobs:
           [ -n "$OVSX_PAT" ] && echo "has_ovsx_pat=true" >> "$GITHUB_OUTPUT" || echo "has_ovsx_pat=false" >> "$GITHUB_OUTPUT"
 
   # 仅在仓库配置了 VSCE_PAT 后运行; 用 --packagePath 发布 release job 已校验的那个 vsix, 不重新构建.
-  # 预发布标记已由打包时的 --pre-release 写进 vsix, 发布时沿用.
+  # 是否为预发布由打包时是否带 --pre-release 决定并写进 vsix, 发布时沿用.
   marketplace:
     needs: release
     if: needs.release.outputs.has_vsce_pat == 'true'

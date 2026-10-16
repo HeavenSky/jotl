@@ -1,6 +1,6 @@
 # Changelog
 
-## v0.0.1 2026-10-16 Initial preview
+## v0.0.1 2026-10-16 Initial release
 
 - `.jotl` files get syntax highlighting, diagnostics with quick fixes, completion, hover, Go to Definition, Find All References and an outline; the Jotl language server is bundled.
 - `Jotl: Open Preview` shows the compiled JSON Schema, TypeScript declarations and form side by side, following the color theme.
