@@ -12,3 +12,4 @@
 | 修正按旧 schema 保存的数据 | [迁移旧数据](./migration.md) |
 | 生成测试数据 | [生成 Mock 数据](./mock.md) |
 | 查某个 `JOTL4xxx` 代码 | [诊断代码](./diagnostic-codes.md) |
+| 查明 schema 为什么无法编译，或结果为什么与规范不同 | [已知限制](./known-limitations.md) |

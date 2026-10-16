@@ -17,4 +17,5 @@ Pick the page for what you want to do; the [package README](../README.md) covers
 | Show widget text and validation messages in English or Chinese | [Set the form language](locale.md) |
 | Find out why a field did not get the widget you expected | [Debug widget fallbacks](fallbacks.md) |
 | Use the form with React 16.8, 17, 18 or 19 | [React version compatibility](react-compat.md) |
+| Check known limitations and their workarounds before you rely on a behavior | [Known limitations](known-limitations.md) |
 | Build a renderer or widget package for another UI framework, or query widgets from a tool | [Build a renderer with `@jotl/form/core`](core.md) |

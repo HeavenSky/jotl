@@ -72,7 +72,7 @@ schema 根上带 `"x-ui": { version: 1 }`，因为 `@jotl/core` 的编译器会�
 
 `schemaToTs` 来自主入口 `@jotl/convert`，`tsToSchema` 只从子路径 `@jotl/convert/from-ts` 导出。本包依赖固定版本的 `typescript@6.0.3`，只有 `tsToSchema` 用到它。
 
-主入口（含 `schemaToTs` 与全部迁移 API）不引用 `typescript`，只用主入口的浏览器产物与插件不会打包编译器。从 `@jotl/convert/from-ts` 导入会把整个编译器打进产物；[`apps/playground/vite.config.ts`](../../../../apps/playground/vite.config.ts) 的构建守卫在产物混入 `typescript` 时让构建失败。`tsToSchema` 在浏览器中运行尚未验证，见根目录 [`TODO.md`](../../../../TODO.md) 的「确定不修」。
+主入口（含 `schemaToTs` 与全部迁移 API）不引用 `typescript`，只用主入口的浏览器产物与插件不会打包编译器。从 `@jotl/convert/from-ts` 导入会把整个编译器打进产物；[`apps/playground/vite.config.ts`](../../../../apps/playground/vite.config.ts) 的构建守卫在产物混入 `typescript` 时让构建失败。`tsToSchema` 在浏览器中运行尚未验证，见[已知限制](#已知限制)。
 
 ## API
 
@@ -124,4 +124,7 @@ schema 根上带 `"x-ui": { version: 1 }`，因为 `@jotl/core` 的编译器会�
 
 `JOTL20xx` 来自 schema → TS，`JOTL21xx` 来自 TS → schema；代码表是 [`src/ts/diagnostics.ts`](../../src/ts/diagnostics.ts) 的 `TS_DIAGNOSTICS`。针对 TS 源码的诊断带行列，`location.kind = "source"`；针对 schema 的诊断带指向节点的 JSON Pointer。
 
-已知限制见根目录 [`TODO.md`](../../../../TODO.md) 的「确定不修」。
+## 已知限制
+
+- **元组各位置的 title 会丢失。** TS 元组元素没有放注释的位置，`schemaToTs` 丢弃 `prefixItems` 各位置的 `title`，报 `JOTL2002`。`.d.ts` 的读者需要这些含义时，写进数组本身的 `description`。
+- **`tsToSchema` 未在浏览器中测试。** 它用自定义 compiler host 调用 `typescript@6.0.3` 的经典 API，只在 Node.js 下有测试覆盖。请在 Node.js 中运行；要在浏览器中使用，先在目标浏览器里自测。

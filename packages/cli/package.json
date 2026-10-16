@@ -1,10 +1,10 @@
 {
   "name": "jotl",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/cli"
   },
   "license": "MIT",

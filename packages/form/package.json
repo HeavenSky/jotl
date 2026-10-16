@@ -1,12 +1,12 @@
 {
   "name": "@jotl/form",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "type": "module",
   "description": "Render a validated React form straight from a JSON Schema, with widgets and layout chosen in the schema itself.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/form"
   },
   "exports": {

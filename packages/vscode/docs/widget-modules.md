@@ -41,3 +41,16 @@ After this page, the preview form renders your own React widget components inste
 
 - **`Failed to load the widget` with a Retry button in the field.** The module failed to load or its export is not a component. Check the URL or path and the `export` name, then click Retry; the rest of the form keeps working.
 - **`Extension widget modules are not loaded in the preview: …` at the top of the preview.** `jotl.preview.loadWidgetModules` is off, or the workspace is untrusted and the setting is only in the workspace. Turn it on in your user settings or trust the workspace.
+
+## Know what the preview cannot load
+
+The preview's content security policy lets modules load only from `https:` URLs and from local files, which rules out these cases:
+
+- **Modules from an `http:` dev server.** Serve the module over `https:`, or build it into a file in the workspace.
+- **A module's own stylesheet and its `fetch` requests.** Style the component through the `style` prop, or reuse `styles` and `cn` from `@jotl/form`, and pass data in through the schema instead of fetching it.
+- **Local dependencies outside the workspace.** Bundle them into the module file.
+- **Relative paths in an untitled document.** Save the file first, so the path has a directory to resolve against.
+
+Windows drive paths and `file:` addresses are mapped to preview addresses, but this has not been tested on Windows.
+
+The same policy allows `'unsafe-eval'`, because the form's validator compiles validation functions from the schema at run time and the schema changes as you type. Scripts still run only from the preview's own tags, plus local files and `https:` while module loading is on.

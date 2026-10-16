@@ -1,12 +1,12 @@
 {
   "name": "@jotl/antd",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "type": "module",
   "description": "Render Jotl forms with Ant Design components: one registry swaps the native widgets of @jotl/form for antd.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/antd"
   },
   "exports": {

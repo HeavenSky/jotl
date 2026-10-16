@@ -100,4 +100,5 @@ Upgrade codes are `JOTL3xxx`; the code table is `UPGRADE_DIAGNOSTICS` in [`src/m
 
 ## Known limitations
 
-Normalization rule 2 (named types only in the root `$defs`) does not hold for upgrade results. For this and other limitations see "确定不修" (Won't fix) in the root [`TODO.md`](../../../TODO.md).
+- **Nested `$defs` stay where they are.** Normalization rule 2 (named types only in the root `$defs`) does not hold for upgrade results. Moving a nested `$defs` to the root would change how the `$ref`s inside it resolve, so the upgrade leaves it in place. If you need every named type in the root `$defs`, move them yourself and rewrite the affected `$ref`s.
+- **Some subschemas under unknown keywords are not upgraded.** When a `$ref` points into an unknown keyword at a property named like a data keyword, such as `default` or `const`, the upgrade treats that position as data and skips it, because the path alone cannot tell the two apart. That subschema keeps its old syntax; upgrade it by hand, or move it under `$defs` before upgrading.

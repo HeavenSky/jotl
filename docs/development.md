@@ -56,7 +56,7 @@ Package directories are named after the package without the `@jotl/` prefix.
 | `@jotl/form` | `packages/form` | `src/react/`: React renderer; `src/html/`: native HTML widgets and styles; `src/core/`: framework-independent `x-ui` parsing, widget registry and render planning, exported as `@jotl/form/core` |
 | `@jotl/antd` | `packages/antd` | Ant Design widgets for `@jotl/form` |
 | `@jotl/language-server` | `packages/language-server` | Language server (LSP) |
-| `vscode-jotl` (Marketplace ID `jotl-lang.vscode-jotl`) | `packages/vscode` | VS Code extension and its preview panel |
+| `vscode-jotl` (Marketplace ID `heavensky.vscode-jotl`) | `packages/vscode` | VS Code extension and its preview panel |
 | `jotl` | `packages/cli` | Command line |
 | `@jotl/playground` | `apps/playground` | Browser playground |
 
@@ -72,4 +72,4 @@ Other directories:
 
 ## Open issues
 
-Open issues, pending decisions and deferred work are tracked in [TODO.md](../TODO.md).
+Report bugs and track open work in [GitHub Issues](https://github.com/HeavenSky/jotl/issues).

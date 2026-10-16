@@ -12,3 +12,4 @@ Pick the page for what you want to do. For installation and a first run, see [Qu
 | Repair data saved under an older schema | [Migrate old data](./migration.md) |
 | Produce test data | [Generate mock data](./mock.md) |
 | Look up a `JOTL4xxx` code | [Diagnostic codes](./diagnostic-codes.md) |
+| Find out why a schema fails to compile or a result differs from the specification | [Known limitations](./known-limitations.md) |

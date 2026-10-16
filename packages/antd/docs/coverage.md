@@ -34,4 +34,4 @@ This page lists the antd component behind each built-in widget name and the opti
 
 ## Known differences from the schema
 
-`maxLength` on `Input`, `Input.Password` and `Input.TextArea` counts UTF-16 code units, the same as the native inputs, so text with surrogate-pair characters (such as many emoji) is stopped earlier than the schema's character count. The project keeps this behavior; it is listed under "确定不修" (Won't fix) in the repository's [TODO.md](../../../TODO.md).
+`maxLength` on `Input`, `Input.Password` and `Input.TextArea` counts UTF-16 code units, the same as the native inputs, so text with surrogate-pair characters (such as many emoji) is stopped earlier than the schema's character count. Validation still counts characters, so it never reports text the input let through. To allow the full character count while typing, register your own input widget that passes antd's `count` with `max` and `strategy: (text) => [...text].length` instead of `maxLength`; `count` needs antd 5.10 or later.

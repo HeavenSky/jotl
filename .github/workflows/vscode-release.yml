@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'packages/vscode/package.json 中的版本号, 例如 0.1.0'
+        description: 'packages/vscode/package.json 中的版本号, 例如 0.0.1'
         required: true
 
 # 顶层给只读, 写权限只下沉到真正要创建 Release 的那个 job.

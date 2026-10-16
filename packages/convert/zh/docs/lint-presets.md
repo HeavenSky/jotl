@@ -27,4 +27,4 @@ export default [{ rules: { "jsdoc/check-tag-names": ["error", { definedTags }] }
 
 ## 测试覆盖情况
 
-`tsdoc.json` 的 `extends` 有测试覆盖。两个 ESLint 插件加载预设后的实际表现尚未实测，见根目录 [`TODO.md`](../../../../TODO.md) 的「确定不修」。
+`tsdoc.json` 的 `extends` 有测试覆盖。eslint-plugin-tsdoc 与 eslint-plugin-jsdoc 加载预设后的实际表现尚未测试：两个插件都不是本包的依赖。插件仍把自定义标签报为错误时，检查它是否读到了上文的 `tsdoc.json` 或 `definedTags`。

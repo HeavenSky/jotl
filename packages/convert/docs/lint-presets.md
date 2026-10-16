@@ -27,4 +27,4 @@ export default [{ rules: { "jsdoc/check-tag-names": ["error", { definedTags }] }
 
 ## Test coverage
 
-`extends` in `tsdoc.json` is covered by tests. How the two ESLint plugins behave after loading the presets has not been tested in practice; see "确定不修" (Won't fix) in the root [`TODO.md`](../../../TODO.md).
+`extends` in `tsdoc.json` is covered by tests. How eslint-plugin-tsdoc and eslint-plugin-jsdoc behave after loading the presets has not been tested: neither plugin is a dependency of this package. If a plugin still flags a custom tag, check that it reads the `tsdoc.json` or `definedTags` shown above.

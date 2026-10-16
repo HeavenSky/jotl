@@ -94,7 +94,7 @@ JOTL4009 /color Use a hex color
 
 - [使用指南](./docs/README.md)：调用约定、默认数据、校验、迁移、Mock 数据、诊断代码
 - [`@jotl/core`](../../core/zh/README.md)：`Result`、诊断与数据能力接口
-- 已知限制（如引用解析范围、Ajv 与官方测试集的差异）：见 [TODO.md](../../../TODO.md) 的「确定不修」
+- [已知限制](./docs/known-limitations.md)：不支持的 format、Ajv 与官方测试集的差异、引用解析范围
 
 ## 许可证
 

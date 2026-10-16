@@ -1,12 +1,12 @@
 {
   "name": "@jotl/core",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "type": "module",
   "description": "Compile Jotl to JSON Schema 2020-12 and print schemas back, with diagnostics that point to the exact line and column.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/core"
   },
   "exports": {

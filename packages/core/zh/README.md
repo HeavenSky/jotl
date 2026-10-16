@@ -111,7 +111,7 @@ console.log(JSON.stringify(result.value?.schema, null, 2));
 
 - [使用指南](./docs/README.md)：编译与打印、扩展组件、诊断与语言、JSON Pointer、schema 类型
 - [Jotl 语法规范](../../../zh/docs/spec/jotl.md)与 [`x-ui` 规范](../../../zh/docs/spec/x-ui.md)
-- 已知限制：见 [TODO.md](../../../TODO.md) 的「确定不修」
+- [已知限制](./docs/known-limitations.md)：打印往返、深度上限、编译期检查的日期格式
 
 ## 许可证
 

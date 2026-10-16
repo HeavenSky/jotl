@@ -34,4 +34,4 @@
 
 ## 与 schema 的已知差异
 
-`Input`、`Input.Password`、`Input.TextArea` 的 `maxLength` 与原生输入框一样按 UTF-16 代码单元计数，含代理对字符（如多数 emoji）的文本会比 schema 的字符数更早被拦下。项目决定保持这一行为，见仓库 [TODO.md](../../../../TODO.md) 的「确定不修」。
+`Input`、`Input.Password`、`Input.TextArea` 的 `maxLength` 与原生输入框一样按 UTF-16 代码单元计数，含代理对字符（如多数 emoji）的文本会比 schema 的字符数更早被拦下。校验仍按字符计数，所以输入框放行的文本不会被校验报错。想在输入时允许满额字符数，自己登记一个输入 widget，不传 `maxLength`，改传 antd 的 `count`，其中写 `max` 与 `strategy: (text) => [...text].length`；`count` 需要 antd 5.10 及以上。

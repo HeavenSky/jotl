@@ -19,7 +19,7 @@ TextMate 语法 `syntaxes/jotl.tmLanguage.json`,
 pnpm build
 pnpm --filter ./packages/vscode run package
 mkdir -p .ai-ctx/cache/vscode-verify/pack
-cp packages/vscode/artifacts/vscode-jotl-0.1.0.vsix .ai-ctx/cache/vscode-verify/pack/jotl.vsix
+cp packages/vscode/artifacts/vscode-jotl-0.0.1.vsix .ai-ctx/cache/vscode-verify/pack/jotl.vsix
 ```
 
 - `package` 先跑 `vscode:prepublish` 生产构建, 构建只读各依赖包的 `dist/`, 所以先 `pnpm build`.

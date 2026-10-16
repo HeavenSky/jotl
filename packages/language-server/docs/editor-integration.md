@@ -101,4 +101,4 @@ All diagnostics carry `source: "jotl"`.
 ## Known limitations
 
 - Definition, references and the outline cover top-level types in the current file only.
-- When `item_meta` is written before `*_item`, completion inside it does not know the item type.
+- When `item_meta` is written before `*_item`, completion inside it does not know the item type. Write `item_meta` after `*_item` to get completion for the item type.

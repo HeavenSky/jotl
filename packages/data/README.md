@@ -92,7 +92,7 @@ The package is ESM only, so the script uses the `.mjs` extension.
 
 - [Guides](./docs/README.md): call conventions, default data, validation, migration, mock data, diagnostic codes
 - [`@jotl/core`](../core/README.md) for `Result`, diagnostics and the data capability interfaces
-- Known limitations, such as the scope of reference resolution and differences between Ajv and the official test suite: the "确定不修" (Won't fix) section of [TODO.md](../../TODO.md)
+- [Known limitations](./docs/known-limitations.md): unsupported formats, differences between Ajv and the official test suite, the scope of reference resolution
 
 ## License
 

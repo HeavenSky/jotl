@@ -1,10 +1,10 @@
 {
   "name": "@jotl/language-server",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/language-server"
   },
   "license": "MIT",

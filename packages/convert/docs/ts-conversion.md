@@ -72,7 +72,7 @@ The schema carries `"x-ui": { version: 1 }` on the root because `@jotl/core`'s c
 
 `schemaToTs` comes from the main entry `@jotl/convert`, and `tsToSchema` only from the subpath `@jotl/convert/from-ts`. The package depends on a pinned `typescript@6.0.3`, and only `tsToSchema` uses it.
 
-The main entry, including `schemaToTs` and all migration APIs, does not reference `typescript`, so browser bundles and extensions that use only the main entry do not bundle the compiler. Importing from `@jotl/convert/from-ts` bundles the entire compiler; the build guard in [`apps/playground/vite.config.ts`](../../../apps/playground/vite.config.ts) fails the build when `typescript` ends up in the output. Running `tsToSchema` in a browser has not been verified; see "确定不修" (Won't fix) in the root [`TODO.md`](../../../TODO.md).
+The main entry, including `schemaToTs` and all migration APIs, does not reference `typescript`, so browser bundles and extensions that use only the main entry do not bundle the compiler. Importing from `@jotl/convert/from-ts` bundles the entire compiler; the build guard in [`apps/playground/vite.config.ts`](../../../apps/playground/vite.config.ts) fails the build when `typescript` ends up in the output. Running `tsToSchema` in a browser has not been verified; see [Known limitations](#known-limitations).
 
 ## API
 
@@ -124,4 +124,7 @@ The output type-checks with zero errors against the type definitions of `typia@1
 
 `JOTL20xx` codes come from schema → TS and `JOTL21xx` from TS → schema; the code table is `TS_DIAGNOSTICS` in [`src/ts/diagnostics.ts`](../src/ts/diagnostics.ts). Diagnostics on TS source carry a line and column with `location.kind = "source"`; diagnostics on the schema carry a JSON Pointer to the node.
 
-Known limitations are listed under "确定不修" (Won't fix) in the root [`TODO.md`](../../../TODO.md).
+## Known limitations
+
+- **Titles of tuple positions are dropped.** TS tuple elements have no place for a comment, so `schemaToTs` drops the `title` of each `prefixItems` position and reports `JOTL2002`. Put the meaning in the `description` of the array itself if readers of the `.d.ts` need it.
+- **`tsToSchema` is untested in browsers.** It runs the classic API of `typescript@6.0.3` with a custom compiler host, which is covered only under Node.js. Run it in Node.js, or test it in your target browser before relying on it.

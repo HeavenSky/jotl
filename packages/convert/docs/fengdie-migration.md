@@ -95,4 +95,9 @@ The per-type metadata allowlists are `UMO_META_KEYS` in [`src/migrate/fengdie/um
 
 ## Known limitations
 
-See "确定不修" (Won't fix) in the root [`TODO.md`](../../../TODO.md).
+- **Data saved under Fengdie can fail validation against the migrated schema.** `Image`, `File` and `URL` fields carry `format: "uri"`, and `Color` accepts only hexadecimal colors, following Jotl's own types. Values Fengdie accepted, such as relative addresses or colors in other notations, are reported by `validate` of [`@jotl/data`](../../data/README.md); fix them by hand. `migrate` of `@jotl/data` does not rewrite them either.
+- **Fengdie extension metadata has no effect after migration.** Data sources (`source`, `sourceType`), `rule`, `reuseable`, semantic types such as `Component`, and conditional required or read-only settings have no Jotl notation. They are kept in `x-fengdie` and survive round trips, but forms and validation ignore them.
+- **Only some `if` expressions become conditions.** These forms convert to `x-ui.visibleIf`: a path's truthiness, `===` and `!==`, `==` and `!=` against `null`, loose equality and numeric comparisons when the field type is known, and `&&`, `||`, `!` with parentheses. Function calls, other variables, arithmetic and the like are recorded in `x-fengdie`, and the field is then always shown.
+- **Converted conditions can differ at the edges.** When a middle segment of the path is `undefined`, Fengdie's JavaScript throws, while the converted condition is simply false. Conversions that depend on the field type assume the data matches the declared type.
+- **With several exports, the first one becomes the root.** A Jotl file always has a root, so put the export you want as the root first before migrating.
+- **`regExp` with both `i` and `u` loses Unicode case folding.** After `i` is rewritten as `[kK]`-style classes, `k` no longer matches the Kelvin sign `K` (U+212A) and `s` no longer matches `ſ` (U+017F).

@@ -56,7 +56,7 @@
 | `@jotl/form` | `packages/form` | `src/react/`：React 渲染器；`src/html/`：原生 HTML widget 与样式；`src/core/`：与框架无关的 `x-ui` 解析、widget 注册与渲染规划，以 `@jotl/form/core` 导出 |
 | `@jotl/antd` | `packages/antd` | `@jotl/form` 的 Ant Design widget |
 | `@jotl/language-server` | `packages/language-server` | 语言服务（LSP） |
-| `vscode-jotl`（市场 ID `jotl-lang.vscode-jotl`） | `packages/vscode` | VS Code 插件及其预览面板 |
+| `vscode-jotl`（市场 ID `heavensky.vscode-jotl`） | `packages/vscode` | VS Code 插件及其预览面板 |
 | `jotl` | `packages/cli` | 命令行 |
 | `@jotl/playground` | `apps/playground` | 浏览器 playground |
 
@@ -72,4 +72,4 @@
 
 ## 待解决事项
 
-尚未解决的问题、待确认与后置事项记在 [TODO.md](../../TODO.md)。
+问题反馈与待办跟踪见 [GitHub Issues](https://github.com/HeavenSky/jotl/issues)。

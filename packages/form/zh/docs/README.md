@@ -17,4 +17,5 @@
 | 让 widget 文案与校验消息显示为中文或英文 | [设置表单语言](locale.md) |
 | 查明某个字段为什么没用上预期的 widget | [排查 widget 降级](fallbacks.md) |
 | 在 React 16.8、17、18 或 19 中使用表单 | [React 版本兼容](react-compat.md) |
+| 依赖某个行为之前，先查已知限制与绕过办法 | [已知限制](known-limitations.md) |
 | 为其他 UI 框架实现渲染器或 widget 包，或在工具中查询 widget | [用 `@jotl/form/core` 实现渲染器](core.md) |

@@ -1,6 +1,6 @@
 {
   "name": "vscode-jotl",
-  "version": "0.1.0",
+  "version": "0.0.1",
   "private": true,
   "keywords": [
     "jotl",
@@ -14,14 +14,14 @@
   "description": "%extension.description%",
   "displayName": "Jotl",
   "license": "MIT",
-  "publisher": "jotl-lang",
+  "publisher": "heavensky",
   "bugs": {
-    "url": "https://github.com/jotl-lang/jotl/issues"
+    "url": "https://github.com/HeavenSky/jotl/issues"
   },
-  "homepage": "https://github.com/jotl-lang/jotl/tree/HEAD/packages/vscode#readme",
+  "homepage": "https://github.com/HeavenSky/jotl/tree/HEAD/packages/vscode#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/vscode"
   },
   "icon": "media/icon.png",

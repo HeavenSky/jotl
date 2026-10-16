@@ -4,11 +4,11 @@
 
 Write JSON Schema in Jotl with checks as you type, and see the compiled schema, TypeScript declarations and form update live.
 
-[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/jotl-lang.vscode-jotl.svg?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=jotl-lang.vscode-jotl)
-[![Installs](https://vsmarketplacebadges.dev/installs-short/jotl-lang.vscode-jotl.svg)](https://marketplace.visualstudio.com/items?itemName=jotl-lang.vscode-jotl)
+[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/heavensky.vscode-jotl.svg?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=heavensky.vscode-jotl)
+[![Installs](https://vsmarketplacebadges.dev/installs-short/heavensky.vscode-jotl.svg)](https://marketplace.visualstudio.com/items?itemName=heavensky.vscode-jotl)
 [![License](https://img.shields.io/badge/license-MIT-blue)](./LICENSE.txt)
 
-[Jotl](https://github.com/jotl-lang/jotl) is a compact language that compiles to JSON Schema 2020-12. This extension is for people who maintain form or configuration schemas and are tired of hand-editing nested JSON. You write one line per field, the editor flags mistakes while you type, and a preview panel shows the exact schema, the TypeScript declarations and the form that `@jotl/form` renders from them, so you never switch to another tool to check the result.
+[Jotl](https://github.com/HeavenSky/jotl) is a compact language that compiles to JSON Schema 2020-12. This extension is for people who maintain form or configuration schemas and are tired of hand-editing nested JSON. You write one line per field, the editor flags mistakes while you type, and a preview panel shows the exact schema, the TypeScript declarations and the form that `@jotl/form` renders from them, so you never switch to another tool to check the result.
 
 ## See what one file produces
 
@@ -44,6 +44,10 @@ export interface Profile {
 }
 ```
 
+The Form tab checks values as you type, using the same rules as the schema:
+
+![The preview panel beside profile.jotl: the Form tab flags an invalid email and an age above 150](docs/images/preview-form.png)
+
 ## Get a live preview in three steps
 
 You need VS Code 1.101 or later; the Jotl language server is bundled, so nothing else is installed.
@@ -51,7 +55,7 @@ You need VS Code 1.101 or later; the Jotl language server is bundled, so nothing
 1. Install the extension (it is published as a pre-release):
 
    ```sh
-   code --install-extension jotl-lang.vscode-jotl --pre-release
+   code --install-extension heavensky.vscode-jotl --pre-release
    ```
 
 2. Save the example above as `profile.jotl` and open it:

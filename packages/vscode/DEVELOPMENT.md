@@ -47,7 +47,7 @@ pnpm run package     # 生产构建 + 打 vsix 到 artifacts/ + 内容断言
 
 - `package` 以预发布(`--pre-release`)打包; 转正式版时从 `package.json` 的 `package` 脚本去掉 `--pre-release`.
 - vsix 内容由 `package.json` 的 `files` 白名单决定, 打包后再按清单推导的允许清单逐项断言; 新增随包产物时两边都要加(`scripts/package.mjs` 的 `RUNTIME_FILES`).
-- README 中的相对链接由 vsce 改写为 `https://github.com/jotl-lang/jotl/blob/HEAD/packages/vscode/...`(基址来自 `repository.url` 与 `repository.directory`).
+- README 中的相对链接由 vsce 改写为 `https://github.com/HeavenSky/jotl/blob/HEAD/packages/vscode/...`(基址来自 `repository.url` 与 `repository.directory`).
 - 图标的唯一真源是 `scripts/icon-spec.mjs`; 改动后跑 `pnpm run gen:icon`, 不要手改 `media/icon.svg` 或 `media/icon.png`.
 - 本地安装: `code --install-extension packages/vscode/artifacts/jotl-<版本>.vsix --force`.
 

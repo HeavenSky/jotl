@@ -47,7 +47,7 @@ This renders a text box labeled "Title" with a required mark, a radio group for 
 
 ## When to use something else
 
-The widgets are React DOM components: for Vue, Svelte or React Native you get only the planner in `@jotl/form/core` and write the widgets yourself. The input must be JSON Schema 2020-12; convert older drafts and OpenAPI schemas with [`@jotl/convert`](../convert/README.md) first. Known limitations the project chose not to fix are listed under "确定不修" (Won't fix) in the repository's [TODO.md](../../TODO.md).
+The widgets are React DOM components: for Vue, Svelte or React Native you get only the planner in `@jotl/form/core` and write the widgets yourself. The input must be JSON Schema 2020-12; convert older drafts and OpenAPI schemas with [`@jotl/convert`](../convert/README.md) first. Known limitations and their workarounds are listed in [Known limitations](docs/known-limitations.md).
 
 ## Read more
 

@@ -109,7 +109,7 @@ The package is ESM only, so the script uses the `.mjs` extension.
 
 - [Guides](./docs/README.md): compiling and printing, extension components, diagnostics and language, JSON Pointer, schema types
 - [Jotl syntax specification](../../docs/spec/jotl.md) and [`x-ui` specification](../../docs/spec/x-ui.md)
-- Known limitations: the "确定不修" (Won't fix) section of [TODO.md](../../TODO.md)
+- [Known limitations](./docs/known-limitations.md): print round trips, depth limit, date formats checked at compile time
 
 ## License
 

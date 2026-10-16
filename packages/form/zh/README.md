@@ -49,7 +49,7 @@ export default function App() {
 
 ## 不适合的场景
 
-widget 是 React DOM 组件：在 Vue、Svelte 或 React Native 中只能用 `@jotl/form/core` 的规划器，widget 要自己写。输入必须是 JSON Schema 2020-12；旧版 draft 与 OpenAPI schema 先用 [`@jotl/convert`](../../convert/zh/README.md) 转换。项目决定不修的已知限制见仓库 [TODO.md](../../../TODO.md) 的「确定不修」。
+widget 是 React DOM 组件：在 Vue、Svelte 或 React Native 中只能用 `@jotl/form/core` 的规划器，widget 要自己写。输入必须是 JSON Schema 2020-12；旧版 draft 与 OpenAPI schema 先用 [`@jotl/convert`](../../convert/zh/README.md) 转换。已知限制与绕过办法见[已知限制](docs/known-limitations.md)。
 
 ## 延伸阅读
 

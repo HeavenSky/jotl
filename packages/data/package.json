@@ -1,10 +1,10 @@
 {
   "name": "@jotl/data",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "Generate defaults, validate, migrate and mock data from a JSON Schema 2020-12, with errors that name the field and say what is wrong.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/jotl-lang/jotl.git",
+    "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/data"
   },
   "license": "MIT",

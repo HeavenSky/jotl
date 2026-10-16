@@ -6,11 +6,11 @@
 
 用 Jotl 编写 JSON Schema，边写边检查，编译出的 schema、TypeScript 声明与表单实时可见。
 
-[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/jotl-lang.vscode-jotl.svg?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=jotl-lang.vscode-jotl)
-[![Installs](https://vsmarketplacebadges.dev/installs-short/jotl-lang.vscode-jotl.svg)](https://marketplace.visualstudio.com/items?itemName=jotl-lang.vscode-jotl)
+[![VS Marketplace](https://vsmarketplacebadges.dev/version-short/heavensky.vscode-jotl.svg?label=VS%20Marketplace)](https://marketplace.visualstudio.com/items?itemName=heavensky.vscode-jotl)
+[![Installs](https://vsmarketplacebadges.dev/installs-short/heavensky.vscode-jotl.svg)](https://marketplace.visualstudio.com/items?itemName=heavensky.vscode-jotl)
 [![License](https://img.shields.io/badge/license-MIT-blue)](../LICENSE.txt)
 
-[Jotl](https://github.com/jotl-lang/jotl) 是一门编译为 JSON Schema 2020-12 的简洁语言。这个插件面向维护表单或配置 schema、不想再手改层层嵌套的 JSON 的人。每个字段写一行，写错当场标出；预览面板同时给出编译出的 schema、TypeScript 声明，以及 `@jotl/form` 据此渲染的表单，核对结果不用切到别的工具。
+[Jotl](https://github.com/HeavenSky/jotl) 是一门编译为 JSON Schema 2020-12 的简洁语言。这个插件面向维护表单或配置 schema、不想再手改层层嵌套的 JSON 的人。每个字段写一行，写错当场标出；预览面板同时给出编译出的 schema、TypeScript 声明，以及 `@jotl/form` 据此渲染的表单，核对结果不用切到别的工具。
 
 ## 看一个文件能产出什么
 
@@ -46,6 +46,10 @@ export interface Profile {
 }
 ```
 
+表单页签边输入边校验，规则与 schema 一致：
+
+![profile.jotl 旁的预览面板：表单页签标出了不合法的邮箱和超过 150 的年龄](../docs/images/preview-form.png)
+
 ## 三步打开实时预览
 
 需要 VS Code 1.101 或更高版本。Jotl 语言服务已打包在插件内，无需另装。
@@ -53,7 +57,7 @@ export interface Profile {
 1. 安装插件（当前以预发布版本发布）：
 
    ```sh
-   code --install-extension jotl-lang.vscode-jotl --pre-release
+   code --install-extension heavensky.vscode-jotl --pre-release
    ```
 
 2. 把上面的示例存为 `profile.jotl` 并打开：
