@@ -70,6 +70,28 @@
 | `scripts/` | 仓库脚本 |
 | `vendor/` | JSON-Schema-Test-Suite 的下载位置，不入库 |
 
+## 发布
+
+推送标签即发布：`npm-v<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/` 下全部公开包，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过 npm 上已有的版本，所以失败后重跑是安全的。
+
+1. 把所有公开包 `packages/*/package.json` 的 `version` 改成同一个版本，提交并推送到 `main`。
+2. 推送标签：
+
+   ```sh
+   git tag npm-v0.0.2 && git push origin npm-v0.0.2
+   ```
+
+npm 发布走 Trusted Publishing，仓库里不存 npm token。每个包需要登记一次信任关系，新包要先手动发布一次才能登记。一次性登记全部包：第一个包做 2FA 时勾选「5 分钟内跳过两步验证」，其余包不再确认：
+
+```sh
+for f in packages/*/package.json; do
+  name=$(node -p "const p=require('./$f'); p.private ? '' : p.name")
+  [ -n "$name" ] && npm trust github "$name" --repo HeavenSky/jotl --file npm-release.yml --allow-publish --yes && sleep 2
+done
+```
+
+插件 workflow 需要 secret `VSCE_PAT`（VS Code Marketplace）与 `OVSX_PAT`（Open VSX），缺哪个就跳过哪个市场。
+
 ## 待解决事项
 
 问题反馈与待办跟踪见 [GitHub Issues](https://github.com/HeavenSky/jotl/issues)。

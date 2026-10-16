@@ -1,0 +1,157 @@
+# 推送 npm-v<版本> 形式的 tag 时发布 packages/ 下全部非 private 包, 例: npm-v0.0.2; 各包版本须与 tag 一致
+# npm 登录走 Trusted Publishing(OIDC), 不需要 NPM_TOKEN; 各包需先登记本仓库与本文件, 批量登记见 docs/development.md
+# build 执行依赖代码但只有只读权限, publish 只拿 OIDC 且不执行依赖代码
+# npm 上已有的版本会跳过, 因此部分失败后重跑同一运行是安全的
+name: Release npm packages
+run-name: Release npm ${{ github.ref_name }}
+
+on:
+  push:
+    tags: ['npm-v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: npm-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      actions: read # 查询 CI 结果
+      contents: read
+    outputs:
+      count: ${{ steps.pack.outputs.count }}
+      dist_tag: ${{ steps.version.outputs.dist_tag }}
+    env:
+      TAG: ${{ github.ref_name }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Check versions
+        id: version
+        run: |
+          version="${TAG#npm-v}"
+          bad=0
+          for f in packages/*/package.json; do
+            read -r private actual name < <(node -p "const p=require('./$f'); [p.private===true, p.version, p.name].join(' ')")
+            [ "$private" = true ] && continue
+            if [ "$actual" != "$version" ]; then
+              echo "::error::$name 的版本是 $actual, 与 tag 的 $version 不一致"
+              bad=1
+            fi
+          done
+          [ "$bad" = 0 ] || exit 1
+          # 带预发布后缀(例: 0.0.2-beta.1)的版本发布到 next, 不覆盖 latest
+          case "$version" in
+            *-*) echo "dist_tag=next" >> "$GITHUB_OUTPUT" ;;
+            *) echo "dist_tag=latest" >> "$GITHUB_OUTPUT" ;;
+          esac
+
+      # 不重复跑检查: 等待同一提交在 main 上的 CI 结束, 通过才发布
+      - name: Wait for CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          started=$SECONDS
+          while :; do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=1" \
+              --jq '.workflow_runs[0] | if . == null then "missing" else "\(.status)/\(.conclusion // "")" end')"
+            case "$state" in
+              completed/success) echo "CI 已通过"; exit 0 ;;
+              completed/*) echo "::error::CI 未通过($state), 不发布"; exit 1 ;;
+              missing)
+                if [ $((SECONDS - started)) -gt 300 ]; then
+                  echo "::error::提交 $GITHUB_SHA 没有 CI 运行记录, 先把它推送到 main"
+                  exit 1
+                fi ;;
+            esac
+            echo "CI 状态: $state, 30 秒后重试"
+            sleep 30
+          done
+
+      # pnpm 版本取仓库根 package.json 的 packageManager; 必须在 setup-node 之前, cache: pnpm 需要 pnpm 已在 PATH 上.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm build
+
+      # pnpm pack 把 workspace: 依赖换成实际版本; npm 上已有的版本不打包
+      - name: Pack
+        id: pack
+        run: |
+          mkdir -p "$RUNNER_TEMP/pack"
+          for dir in packages/*/; do
+            read -r private name version < <(node -p "const p=require('./${dir}package.json'); [p.private===true, p.name, p.version].join(' ')")
+            [ "$private" = true ] && continue
+            if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
+              echo "$name@$version 已在 npm 上, 跳过"
+              continue
+            fi
+            (cd "$dir" && pnpm pack --pack-destination "$RUNNER_TEMP/pack")
+          done
+          for tgz in "$RUNNER_TEMP"/pack/*.tgz; do
+            [ -e "$tgz" ] || continue
+            if tar -xzOf "$tgz" package/package.json | grep -q '"workspace:'; then
+              echo "::error::$(basename "$tgz") 中仍有 workspace: 依赖"
+              exit 1
+            fi
+          done
+          count=$(find "$RUNNER_TEMP/pack" -name '*.tgz' | wc -l | tr -d ' ')
+          echo "count=$count" >> "$GITHUB_OUTPUT"
+          ls -l "$RUNNER_TEMP/pack"
+
+      - uses: actions/upload-artifact@v7
+        if: steps.pack.outputs.count != '0'
+        with:
+          name: packages
+          path: ${{ runner.temp }}/pack/*.tgz
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    needs: build
+    if: needs.build.outputs.count != '0'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      id-token: write # npm Trusted Publishing
+    steps:
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: pack
+      # Trusted Publishing 需要 npm >= 11.5.1 与 Node >= 22.14.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24.x
+          registry-url: https://registry.npmjs.org
+          package-manager-cache: false
+      - run: npm i -g npm@11
+      # 只发布 build 产出的 tarball, 不安装依赖也不执行任何脚本; 单个失败不影响其余, 最后统一报错
+      - name: Publish
+        env:
+          DIST_TAG: ${{ needs.build.outputs.dist_tag }}
+        run: |
+          failed=0
+          for tgz in pack/*.tgz; do
+            read -r name version < <(tar -xzOf "$tgz" package/package.json | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const p=JSON.parse(s);console.log(p.name, p.version)})')
+            if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
+              echo "$name@$version 已在 npm 上, 跳过"
+              continue
+            fi
+            # 必须带 ./: 写成 pack/x.tgz 会被 npm 当成 GitHub 简写 <用户>/<仓库> 去 git 拉取
+            npm publish "./$tgz" --provenance --access public --tag "$DIST_TAG" || { echo "::error::$name@$version 发布失败"; failed=1; }
+          done
+          exit "$failed"

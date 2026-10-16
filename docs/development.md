@@ -70,6 +70,28 @@ Other directories:
 | `scripts/` | Repository scripts |
 | `vendor/` | Download location of the JSON-Schema-Test-Suite, not committed |
 
+## Release
+
+Pushing a tag publishes everything: `npm-v<version>` releases every public package under `packages/` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published, so rerunning a failed run is safe.
+
+1. Set the same `version` in every public `packages/*/package.json`, commit and push to `main`.
+2. Push the tag:
+
+   ```sh
+   git tag npm-v0.0.2 && git push origin npm-v0.0.2
+   ```
+
+npm publishing uses Trusted Publishing, so the repository holds no npm token. Each package needs a one-time trust entry, and a new package must be published once by hand before it can get one. Register all packages in one go; confirm 2FA on the first one and tick "skip two-factor authentication for the next 5 minutes" so the rest go through without prompts:
+
+```sh
+for f in packages/*/package.json; do
+  name=$(node -p "const p=require('./$f'); p.private ? '' : p.name")
+  [ -n "$name" ] && npm trust github "$name" --repo HeavenSky/jotl --file npm-release.yml --allow-publish --yes && sleep 2
+done
+```
+
+The extension workflow needs the `VSCE_PAT` secret for the VS Code Marketplace and `OVSX_PAT` for Open VSX; a missing secret skips that marketplace.
+
 ## Open issues
 
 Report bugs and track open work in [GitHub Issues](https://github.com/HeavenSky/jotl/issues).
