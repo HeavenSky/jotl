@@ -1,0 +1,9 @@
+{
+  "extension.description": "Jotl 语言支持: 语法高亮, 诊断, 补全, 悬停, 跳转, 以及编译出的 JSON Schema, TypeScript 与表单的实时预览.",
+  "category": "Jotl",
+  "command.showPreview": "打开预览",
+  "config.registeredWidgets": "内置组件之外已注册的组件名; 语言服务据此补全组件名, 并不对这些名字报 \"组件未注册\"; 大驼峰名另作为扩展组件按 string 编译; 要指定底层类型请登记在 jotl.config.json 中, 同名时以它为准.",
+  "config.preview.loadWidgetModules": "在预览表单中加载扩展组件模块: jotl.config.json 与 Jotl 文件根元数据 widgets 中声明的模块(https 地址, 或相对声明所在文件的路径); 模块在预览中运行, 与预览共用 React. 关闭时这些组件按降级方式显示, 预览顶部给出提示.",
+  "capabilities.untrustedWorkspaces": "在不受信任的工作区中忽略 jotl.preview.loadWidgetModules 的工作区取值, 仓库不能自行开启扩展组件模块代码的加载.",
+  "jsonValidation.configSchema": "./dist/jotl.config.schema.zh-cn.json"
+}

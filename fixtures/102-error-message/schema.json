@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/SignUp",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "SignUp": {
+      "title": "报名",
+      "description": "报名表",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "姓名",
+          "type": "string",
+          "minLength": 2,
+          "maxLength": 20,
+          "errorMessage": {
+            "minLength": "姓名至少 2 个字",
+            "maxLength": "姓名最多 20 个字"
+          }
+        },
+        "age": {
+          "title": "年龄",
+          "type": "integer",
+          "minimum": 18,
+          "maximum": 9007199254740991,
+          "errorMessage": "年龄须为不小于 18 的整数"
+        },
+        "email": {
+          "title": "邮箱",
+          "type": "string",
+          "format": "email",
+          "errorMessage": {
+            "required": "请填写邮箱",
+            "format": "邮箱格式不正确"
+          }
+        },
+        "phone": {
+          "title": "电话",
+          "type": "string",
+          "pattern": "^1\\d{10}$",
+          "errorMessage": {
+            "pattern": "请填写 11 位手机号"
+          }
+        }
+      },
+      "required": [
+        "name",
+        "email"
+      ]
+    }
+  }
+}

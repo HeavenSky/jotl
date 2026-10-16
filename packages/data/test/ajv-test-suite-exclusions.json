@@ -1,0 +1,430 @@
+{
+  "core": {
+    "dynamicRef.json": {
+      "A $dynamicRef to a $dynamicAnchor in the same schema resource behaves like a normal $ref to an $anchor": [
+        "An array of strings is valid"
+      ],
+      "A $dynamicRef to an $anchor in the same schema resource behaves like a normal $ref to an $anchor": [
+        "An array of strings is valid"
+      ],
+      "A $dynamicRef resolves to the first $dynamicAnchor still in scope that is encountered when the schema is evaluated": [
+        "An array of strings is valid"
+      ],
+      "A $dynamicRef without anchor in fragment behaves identical to $ref": [
+        "An array of numbers is valid"
+      ],
+      "A $dynamicRef with intermediate scopes that don't include a matching $dynamicAnchor does not affect dynamic scope resolution": [
+        "An array of strings is valid"
+      ],
+      "An $anchor with the same name as a $dynamicAnchor is not used for dynamic scope resolution": [
+        "Any array is valid"
+      ],
+      "A $dynamicRef without a matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor": [
+        "Any array is valid"
+      ],
+      "A $dynamicRef with a non-matching $dynamicAnchor in the same schema resource behaves like a normal $ref to $anchor": [
+        "Any array is valid"
+      ],
+      "A $dynamicRef that initially resolves to a schema with a matching $dynamicAnchor resolves to the first $dynamicAnchor in the dynamic scope": [
+        "The recursive part is valid against the root",
+        "The recursive part is not valid against the root"
+      ],
+      "A $dynamicRef that initially resolves to a schema without a matching $dynamicAnchor behaves like a normal $ref to $anchor": [
+        "The recursive part doesn't need to validate against the root"
+      ],
+      "multiple dynamic paths to the $dynamicRef keyword": [
+        "number list with string values",
+        "string list with number values"
+      ],
+      "after leaving a dynamic scope, it is not used by a $dynamicRef": [
+        "string matches /$defs/thingy, but the $dynamicRef does not stop here",
+        "first_scope is not in dynamic scope for the $dynamicRef",
+        "/then/$defs/thingy is the final stop for the $dynamicRef"
+      ],
+      "tests for implementation dynamic anchor and reference link": [
+        "correct extended schema"
+      ],
+      "$ref and $dynamicAnchor are independent of order - $defs first": [
+        "correct extended schema"
+      ],
+      "$ref and $dynamicAnchor are independent of order - $ref first": [
+        "correct extended schema"
+      ],
+      "$ref to $dynamicRef finds detached $dynamicAnchor": [
+        "number is valid",
+        "non-number is invalid"
+      ],
+      "$dynamicRef points to a boolean schema": [
+        "follow $dynamicRef to a false schema"
+      ],
+      "$dynamicRef skips over intermediate resources - direct reference": [
+        "integer property passes"
+      ],
+      "$dynamicRef avoids the root of each schema, but scopes are still registered": [
+        "data is sufficient for schema at second#/$defs/length",
+        "data is not sufficient for schema at second#/$defs/length"
+      ]
+    },
+    "enum.json": {
+      "empty enum": [
+        "string is invalid",
+        "number is invalid",
+        "null is invalid",
+        "object is invalid",
+        "array is invalid",
+        "boolean is invalid"
+      ]
+    },
+    "format.json": {
+      "email format": [
+        "invalid email string is only an annotation by default"
+      ],
+      "regex format": [
+        "invalid regex string is only an annotation by default"
+      ],
+      "ipv4 format": [
+        "invalid ipv4 string is only an annotation by default"
+      ],
+      "ipv6 format": [
+        "invalid ipv6 string is only an annotation by default"
+      ],
+      "hostname format": [
+        "invalid hostname string is only an annotation by default"
+      ],
+      "date format": [
+        "invalid date string is only an annotation by default"
+      ],
+      "date-time format": [
+        "invalid date-time string is only an annotation by default"
+      ],
+      "time format": [
+        "invalid time string is only an annotation by default"
+      ],
+      "json-pointer format": [
+        "invalid json-pointer string is only an annotation by default"
+      ],
+      "relative-json-pointer format": [
+        "invalid relative-json-pointer string is only an annotation by default"
+      ],
+      "uri format": [
+        "invalid uri string is only an annotation by default"
+      ],
+      "uri-reference format": [
+        "invalid uri-reference string is only an annotation by default"
+      ],
+      "uri-template format": [
+        "invalid uri-template string is only an annotation by default"
+      ],
+      "uuid format": [
+        "invalid uuid string is only an annotation by default"
+      ],
+      "duration format": [
+        "invalid duration string is only an annotation by default"
+      ]
+    },
+    "properties.json": {
+      "properties whose names are Javascript object property names": [
+        "__proto__ not valid"
+      ]
+    },
+    "ref.json": {
+      "refs with relative uris and defs": [
+        "invalid on inner field",
+        "invalid on outer field",
+        "valid on both fields"
+      ],
+      "relative refs with absolute uris and defs": [
+        "invalid on inner field",
+        "invalid on outer field",
+        "valid on both fields"
+      ],
+      "URN ref with nested pointer ref": [
+        "a string is valid",
+        "a non-string is invalid"
+      ]
+    },
+    "unevaluatedItems.json": {
+      "unevaluatedItems with nested items": [
+        "with no additional items",
+        "with invalid additional item"
+      ],
+      "unevaluatedItems with $dynamicRef": [
+        "with no unevaluated items",
+        "with unevaluated items"
+      ],
+      "unevaluatedItems depends on adjacent contains": [
+        "contains passes, second item is not evaluated"
+      ],
+      "unevaluatedItems depends on multiple nested contains": [
+        "7 not evaluated, fails unevaluatedItems"
+      ],
+      "unevaluatedItems and contains interact to control item dependency relationship": [
+        "only b's are invalid",
+        "only c's are invalid",
+        "only b's and c's are invalid",
+        "only a's and c's are invalid"
+      ],
+      "unevaluatedItems with minContains = 0": [
+        "all items evaluated by contains"
+      ],
+      "unevaluatedItems can see annotations from if without then and else": [
+        "valid in case if is evaluated"
+      ]
+    },
+    "unevaluatedProperties.json": {
+      "unevaluatedProperties with if/then/else, then not defined": [
+        "when if is true and has no unevaluated properties",
+        "when if is false and has unevaluated properties"
+      ],
+      "unevaluatedProperties with $dynamicRef": [
+        "with no unevaluated properties",
+        "with unevaluated properties"
+      ],
+      "unevaluatedProperties can see annotations from if without then and else": [
+        "valid in case if is evaluated"
+      ]
+    },
+    "vocabulary.json": {
+      "schema that uses custom metaschema with with no validation vocabulary": [
+        "no validation: invalid number, but it still validates"
+      ]
+    }
+  },
+  "optional": {
+    "optional/cross-draft.json": {
+      "refs to historic drafts are processed as historic drafts": [
+        "first item not a string is valid"
+      ]
+    },
+    "optional/dynamicRef.json": {
+      "$dynamicRef skips over intermediate resources - pointer reference across resource boundary": [
+        "integer property passes"
+      ]
+    },
+    "optional/float-overflow.json": {
+      "all integers are multiples of 0.5, if overflow is handled": [
+        "valid if optional overflow handling is implemented"
+      ]
+    },
+    "optional/format-assertion.json": {
+      "schema that uses custom metaschema with format-assertion: false": [
+        "format-assertion: false: valid string",
+        "format-assertion: false: invalid string"
+      ],
+      "schema that uses custom metaschema with format-assertion: true": [
+        "format-assertion: true: valid string",
+        "format-assertion: true: invalid string"
+      ]
+    },
+    "optional/unknownKeyword.json": {
+      "$id inside an unknown keyword is not a real identifier": [
+        "type matches second anyOf, which has a real schema in it",
+        "type matches non-schema in first anyOf",
+        "type matches non-schema in third anyOf"
+      ]
+    }
+  },
+  "format": {
+    "optional/format/date-time.json": {
+      "validation of date-time strings": [
+        "a numeric offset without minutes is invalid",
+        "hour 24 is invalid even with a leap second",
+        "a second fraction of fifteen nines is valid",
+        "an invalid minute in date-time string, with a numeric offset"
+      ]
+    },
+    "optional/format/duration.json": {
+      "validation of duration strings": [
+        "years and days cannot appear without months",
+        "hours and seconds cannot appear without minutes"
+      ]
+    },
+    "optional/format/ecmascript-regex.json": {
+      "\\a is not an ECMA 262 control escape": [
+        "when used as a pattern"
+      ]
+    },
+    "optional/format/email.json": {
+      "validation of e-mail addresses": [
+        "a quoted string with a space in the local part is valid",
+        "a quoted string with a double dot in the local part is valid",
+        "a quoted string with a @ in the local part is valid",
+        "an IPv4-address-literal after the @ is valid",
+        "an IPv6-address-literal after the @ is valid",
+        "an empty quoted string in the local part is valid",
+        "a quoted string containing only a space in the local part is valid",
+        "a quoted string with no special characters in the local part is valid",
+        "a quoted pair in the local part is valid",
+        "an escaped double quote in the local part is valid",
+        "an escaped backslash in the local part is valid",
+        "a single-label domain is valid",
+        "a lowercase IPv6 tag in an address literal is valid"
+      ]
+    },
+    "optional/format/hostname.json": {
+      "validation of host names": [
+        "trailing dot"
+      ],
+      "validation of A-label (punycode) host names": [
+        "invalid Punycode",
+        "contains illegal char U+302E Hangul single dot tone mark",
+        "Begins with a Spacing Combining Mark",
+        "Begins with a Nonspacing Mark",
+        "Begins with an Enclosing Mark",
+        "Exceptions that are DISALLOWED, right-to-left chars",
+        "Exceptions that are DISALLOWED, left-to-right chars",
+        "MIDDLE DOT with no preceding 'l'",
+        "MIDDLE DOT with nothing preceding",
+        "MIDDLE DOT with no following 'l'",
+        "MIDDLE DOT with nothing following",
+        "Greek KERAIA not followed by Greek",
+        "Greek KERAIA not followed by anything",
+        "Hebrew GERESH not preceded by Hebrew",
+        "Hebrew GERESH not preceded by anything",
+        "Hebrew GERSHAYIM not preceded by Hebrew",
+        "Hebrew GERSHAYIM not preceded by anything",
+        "KATAKANA MIDDLE DOT with no Hiragana, Katakana, or Han",
+        "KATAKANA MIDDLE DOT with no other characters",
+        "Arabic-Indic digits mixed with Extended Arabic-Indic digits",
+        "ZERO WIDTH JOINER not preceded by Virama",
+        "ZERO WIDTH JOINER not preceded by anything",
+        "contains \"--\" in the 3rd and 4th position"
+      ]
+    },
+    "optional/format/idn-email.json": {
+      "validation of an internationalized e-mail addresses": [
+        "an invalid e-mail/idn e-mail address",
+        "a fullwidth commercial at is not a local-part separator",
+        "a domain label starting with a hyphen is not valid",
+        "a domain label ending with a hyphen is not valid",
+        "a domain starting with a dot is not valid",
+        "a domain ending with a dot is not valid",
+        "two subsequent dots inside the domain are not valid",
+        "domain is required"
+      ]
+    },
+    "optional/format/idn-hostname.json": {
+      "validation of internationalized host names": [
+        "illegal first char U+302E Hangul single dot tone mark",
+        "contains illegal char U+302E Hangul single dot tone mark",
+        "a single label of 64 characters is too long",
+        "invalid label, correct Punycode",
+        "invalid Punycode",
+        "U-label contains \"--\" in the 3rd and 4th position",
+        "U-label starts with a dash",
+        "U-label ends with a dash",
+        "U-label starts and ends with a dash",
+        "Begins with a Spacing Combining Mark",
+        "Begins with a Nonspacing Mark",
+        "Begins with an Enclosing Mark",
+        "Exceptions that are DISALLOWED, right-to-left chars",
+        "Exceptions that are DISALLOWED, left-to-right chars",
+        "MIDDLE DOT with no preceding 'l'",
+        "MIDDLE DOT with nothing preceding",
+        "MIDDLE DOT with no following 'l'",
+        "MIDDLE DOT with nothing following",
+        "Greek KERAIA not followed by Greek",
+        "Greek KERAIA not followed by anything",
+        "Hebrew GERESH not preceded by Hebrew",
+        "Hebrew GERESH not preceded by anything",
+        "Hebrew GERSHAYIM not preceded by Hebrew",
+        "Hebrew GERSHAYIM not preceded by anything",
+        "KATAKANA MIDDLE DOT with no Hiragana, Katakana, or Han",
+        "KATAKANA MIDDLE DOT with no other characters",
+        "Arabic-Indic digits mixed with Extended Arabic-Indic digits",
+        "ZERO WIDTH JOINER not preceded by Virama",
+        "ZERO WIDTH JOINER not preceded by anything",
+        "empty string",
+        "a label of only Arabic-Indic digits is invalid",
+        "zero width non-joiner must pass at every occurrence",
+        "Bidi domain name with a digit-first label is invalid",
+        "label starting with a digit before a right-to-left letter is invalid",
+        "left-to-right label containing a right-to-left letter is invalid",
+        "right-to-left label mixing both digit types is invalid",
+        "A-label that decodes to a disallowed code point is invalid",
+        "A-label that decodes to a Bidi rule violation is invalid",
+        "a U-label whose A-label form is longer than 63 octets is invalid",
+        "empty label between two dots is invalid",
+        "a name longer than 253 characters is invalid",
+        "A-label that decodes to only ASCII is invalid",
+        "non-canonical Punycode that does not re-encode to itself is invalid"
+      ],
+      "validation of separators in internationalized host names": [
+        "single dot",
+        "single ideographic full stop",
+        "single fullwidth full stop",
+        "single halfwidth ideographic full stop",
+        "leading dot",
+        "leading ideographic full stop",
+        "leading fullwidth full stop",
+        "leading halfwidth ideographic full stop",
+        "trailing dot",
+        "trailing ideographic full stop",
+        "trailing fullwidth full stop",
+        "trailing halfwidth ideographic full stop"
+      ]
+    },
+    "optional/format/iri-reference.json": {
+      "validation of IRI References": [
+        "an invalid IRI Reference",
+        "an invalid IRI fragment",
+        "an embedded IPv4 with a leading zero is invalid",
+        "a trailing newline after a valid IRI Reference is invalid",
+        "invalid percent-encoding with non-hex digits",
+        "incomplete percent-encoding triplet",
+        "lone percent sign is invalid"
+      ]
+    },
+    "optional/format/iri.json": {
+      "validation of IRIs": [
+        "invalid percent-encoding with non-hex digits",
+        "incomplete percent-encoding triplet",
+        "lone percent sign is invalid",
+        "an IPv6 address without enclosing brackets is invalid",
+        "an invalid relative IRI Reference",
+        "an invalid IRI",
+        "an invalid IRI though valid IRI reference",
+        "an IPv6 host whose embedded IPv4 has a leading zero is invalid",
+        "a trailing newline after a valid IRI is invalid"
+      ]
+    },
+    "optional/format/time.json": {
+      "validation of time strings": [
+        "a numeric time-offset requires the colon separator",
+        "a numeric time-offset requires the minutes component",
+        "hour 24 is invalid with a numeric time-offset",
+        "minute 60 is invalid with a numeric time-offset",
+        "a valid time string with a 15 digit second fraction"
+      ]
+    },
+    "optional/format/uri-reference.json": {
+      "validation of URI References": [
+        "a double quote in a path",
+        "square brackets outside an authority",
+        "a non-numeric port in a network-path reference",
+        "more than one at-sign in the authority",
+        "a leading zero in the IPv4 part of an IPv6 literal",
+        "a colon in the first segment of a relative-path reference"
+      ]
+    },
+    "optional/format/uri-template.json": {
+      "format: uri-template": [
+        "a dotted variable name is valid",
+        "a delete character in a literal is invalid",
+        "an apostrophe in a literal is valid"
+      ]
+    },
+    "optional/format/uri.json": {
+      "validation of URIs": [
+        "non-numeric port is invalid",
+        "leading zero in an embedded IPv4 address is invalid",
+        "square brackets are not allowed in a path segment"
+      ]
+    },
+    "optional/format/uuid.json": {
+      "uuid format": [
+        "URN prefixed UUID is invalid"
+      ]
+    }
+  }
+}

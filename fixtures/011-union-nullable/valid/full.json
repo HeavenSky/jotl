@@ -1,0 +1,12 @@
+{
+  "id": 1,
+  "note": "x",
+  "size": "s",
+  "link": {
+    "href": "https://example.com"
+  },
+  "shape": {
+    "r": 1,
+    "kind": "circle"
+  }
+}

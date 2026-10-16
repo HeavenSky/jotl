@@ -1,0 +1,118 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Form",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Form": {
+      "title": "表单",
+      "type": "object",
+      "properties": {
+        "size": {
+          "title": "尺寸",
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "string",
+              "pattern": "^\\d+%$"
+            }
+          ]
+        },
+        "value": {
+          "title": "值",
+          "anyOf": [
+            {
+              "type": "boolean"
+            },
+            {
+              "$ref": "#/$defs/Range"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "number"
+              }
+            }
+          ]
+        },
+        "shape": {
+          "title": "形状",
+          "anyOf": [
+            {
+              "oneOf": [
+                {
+                  "title": "圆",
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "circle"
+                    },
+                    "radius": {
+                      "title": "半径",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "radius"
+                  ]
+                },
+                {
+                  "title": "矩形",
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "const": "rect"
+                    },
+                    "width": {
+                      "title": "宽",
+                      "type": "number"
+                    },
+                    "height": {
+                      "title": "高",
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "type",
+                    "width",
+                    "height"
+                  ],
+                  "additionalProperties": false
+                }
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "size"
+      ]
+    },
+    "Range": {
+      "title": "区间",
+      "type": "object",
+      "properties": {
+        "from": {
+          "type": "number"
+        },
+        "to": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "from",
+        "to"
+      ]
+    }
+  }
+}

@@ -1,0 +1,19 @@
+// 可区分联合(分支为对象体)与按 JSON 类型区分的联合
+Form(表单): {
+  size(尺寸): union[union_item: 'number|string', item_meta: {number: {minimum: 0}, string: {pattern: '^\\d+%$'}}]
+  value(值)?: union[union_item: 'boolean|Range|array', item_meta: {array: {array_item: 'number'}}]
+  shape(形状)?: union[discriminator: 'type', nullable: true] {
+    circle(圆): {
+      radius(半径): number
+    }
+    rect(矩形): [closed: true] {
+      width(宽): number
+      height(高): number
+    }
+  }
+}
+
+Range(区间): {
+  from: number
+  to: number
+}

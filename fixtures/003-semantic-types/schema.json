@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Semantic",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Semantic": {
+      "type": "object",
+      "properties": {
+        "intro": {
+          "type": "string",
+          "x-ui": {
+            "widget": "textarea"
+          }
+        },
+        "body": {
+          "type": "string",
+          "contentMediaType": "text/html"
+        },
+        "site": {
+          "type": "string",
+          "format": "uri"
+        },
+        "mail": {
+          "type": "string",
+          "format": "email"
+        },
+        "birthday": {
+          "type": "string",
+          "format": "date"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "alarm": {
+          "type": "string",
+          "x-valueFormat": "HH:mm:ss",
+          "x-ui": {
+            "widget": "time"
+          }
+        },
+        "theme": {
+          "type": "string",
+          "format": "color",
+          "default": "#1677ff"
+        },
+        "cover": {
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image"
+          }
+        },
+        "attachment": {
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "file"
+          }
+        }
+      },
+      "required": [
+        "intro",
+        "site"
+      ]
+    }
+  }
+}

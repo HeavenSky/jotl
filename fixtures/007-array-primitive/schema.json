@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Lists",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Lists": {
+      "type": "object",
+      "properties": {
+        "tags": {
+          "title": "标签",
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "maxLength": 10
+          }
+        },
+        "scores": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 100
+          }
+        },
+        "loose": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Loose"
+          },
+          "uniqueItems": false
+        }
+      },
+      "required": [
+        "tags",
+        "scores"
+      ]
+    },
+    "Loose": {
+      "type": "string",
+      "enum": [
+        "x",
+        "y"
+      ]
+    }
+  }
+}

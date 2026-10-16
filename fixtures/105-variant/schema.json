@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Article",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Article": {
+      "title": "文章",
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "标题",
+          "type": "string",
+          "maxLength": 50,
+          "x-ui": {
+            "variants": {
+              "view": {
+                "widget": "output"
+              }
+            }
+          }
+        },
+        "body": {
+          "title": "正文",
+          "type": "string",
+          "contentMediaType": "text/html",
+          "x-ui": {
+            "variants": {
+              "view": {
+                "widget": "json",
+                "props": {
+                  "readOnly": true
+                }
+              },
+              "mobile": {
+                "widget": "textarea",
+                "props": {
+                  "rows": 6
+                }
+              }
+            }
+          }
+        },
+        "cover": {
+          "title": "封面",
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image",
+            "variants": {
+              "view": {
+                "hidden": true
+              }
+            }
+          }
+        },
+        "tags": {
+          "title": "标签",
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "x-ui": {
+            "variants": {
+              "view": {
+                "decorator": false,
+                "props": {
+                  "inline": true
+                }
+              }
+            }
+          }
+        },
+        "author": {
+          "$ref": "#/$defs/Author",
+          "title": "作者",
+          "x-ui": {
+            "variants": {
+              "mobile": {
+                "visibleIf": {
+                  "field": "/title",
+                  "truthy": true
+                }
+              }
+            }
+          }
+        }
+      },
+      "required": [
+        "title",
+        "body"
+      ],
+      "x-ui": {
+        "variants": {
+          "mobile": {
+            "layout": "stack",
+            "order": [
+              "title",
+              "body"
+            ]
+          },
+          "view": {
+            "groups": [
+              {
+                "title": "元信息",
+                "fields": [
+                  "tags",
+                  "author"
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "Author": {
+      "title": "作者",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "姓名",
+          "type": "string"
+        },
+        "avatar": {
+          "title": "头像",
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image"
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "x-ui": {
+        "variants": {
+          "view": {
+            "layout": "grid",
+            "columns": 2
+          }
+        }
+      }
+    }
+  }
+}

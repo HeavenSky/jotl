@@ -1,0 +1,5 @@
+{
+  "price": { "type": "money", "value": "1.00", "currency": "CNY" },
+  "total": { "type": "bigint", "value": "1" },
+  "rate": 0.125
+}

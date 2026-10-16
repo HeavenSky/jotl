@@ -1,0 +1,8 @@
+Matrix: {
+  grid: array[array_item: 'array', item_meta: {array_item: 'number'}]
+  pages?: array[array_item: 'array', item_meta: {array_item: 'Banner'}]
+}
+
+Banner: {
+  img: image
+}

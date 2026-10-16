@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Article",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Article": {
+      "description": "文章\n第二行描述",
+      "type": "object",
+      "properties": {
+        "title": {
+          "description": "文章标题\n不超过 50 字",
+          "type": "string",
+          "maxLength": 50
+        },
+        "oldTitle": {
+          "type": "string",
+          "deprecated": true,
+          "x-deprecatedReason": "改用 title"
+        },
+        "id": {
+          "type": "string",
+          "readOnly": true
+        },
+        "password": {
+          "type": "string",
+          "writeOnly": true
+        },
+        "views": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991,
+          "examples": [
+            10,
+            200
+          ]
+        },
+        "slug": {
+          "$comment": "内部使用",
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "草稿",
+              "const": "draft"
+            },
+            {
+              "title": "已发布",
+              "const": "published"
+            }
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "id",
+        "slug",
+        "status"
+      ]
+    }
+  }
+}

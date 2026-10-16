@@ -1,0 +1,12 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "运行 Jotl 插件",
+      "type": "extensionHost",
+      "request": "launch",
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/packages/vscode", "${workspaceFolder}/fixtures"],
+      "outFiles": ["${workspaceFolder}/packages/vscode/dist/**/*.cjs"]
+    }
+  ]
+}

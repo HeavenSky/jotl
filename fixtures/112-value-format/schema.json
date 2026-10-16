@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Schedule",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Schedule": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "string",
+          "format": "date"
+        },
+        "dayCompact": {
+          "type": "string",
+          "x-valueFormat": "YYYYMMDD",
+          "x-ui": {
+            "widget": "date"
+          }
+        },
+        "dayStamp": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991,
+          "x-valueFormat": "x",
+          "x-ui": {
+            "widget": "date"
+          }
+        },
+        "alarm": {
+          "type": "string",
+          "x-valueFormat": "HH:mm:ss",
+          "x-ui": {
+            "widget": "time"
+          }
+        },
+        "alarmShort": {
+          "type": "string",
+          "default": "09:00",
+          "x-valueFormat": "HH:mm",
+          "x-ui": {
+            "widget": "time"
+          }
+        },
+        "at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "atIsoMs": {
+          "type": "string",
+          "format": "date-time",
+          "x-valueFormat": "iso-x"
+        },
+        "atUtc": {
+          "type": "string",
+          "format": "date-time",
+          "x-valueFormat": "utc"
+        },
+        "atUtcMs": {
+          "type": "string",
+          "format": "date-time",
+          "x-valueFormat": "utc-x"
+        },
+        "atMs": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991,
+          "x-valueFormat": "x",
+          "x-ui": {
+            "widget": "datetime"
+          }
+        },
+        "atSec": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991,
+          "x-valueFormat": "X",
+          "x-ui": {
+            "widget": "datetime"
+          }
+        },
+        "atText": {
+          "type": "string",
+          "x-valueFormat": "YYYY-MM-DD HH:mm:ss",
+          "x-ui": {
+            "widget": "datetime"
+          }
+        }
+      },
+      "required": [
+        "day"
+      ]
+    }
+  }
+}

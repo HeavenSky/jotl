@@ -1,0 +1,1 @@
+{ "covers": ["map", "key_meta", "summary", "tuple", "jsontext"], "skip": ["types.d.ts"] }

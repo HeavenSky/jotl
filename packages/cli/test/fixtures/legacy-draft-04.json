@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "id": "https://example.com/legacy",
+  "type": "object",
+  "definitions": {
+    "Count": { "type": "integer", "minimum": 0, "exclusiveMinimum": true }
+  },
+  "properties": {
+    "count": { "$ref": "#/definitions/Count" }
+  }
+}

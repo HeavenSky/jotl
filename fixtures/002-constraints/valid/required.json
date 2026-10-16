@@ -1,0 +1,10 @@
+{
+  "title": "t",
+  "code": "abc",
+  "price": 10,
+  "count": 2,
+  "tags": [
+    "x",
+    "y"
+  ]
+}

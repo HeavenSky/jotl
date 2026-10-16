@@ -1,0 +1,8 @@
+{
+  "blocks": [
+    {
+      "kind": "video",
+      "src": "https://example.com/a.mp4"
+    }
+  ]
+}

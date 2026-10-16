@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Matrix",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Matrix": {
+      "type": "object",
+      "properties": {
+        "grid": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          }
+        },
+        "pages": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/Banner"
+            }
+          }
+        }
+      },
+      "required": [
+        "grid"
+      ]
+    },
+    "Banner": {
+      "type": "object",
+      "properties": {
+        "img": {
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image"
+          }
+        }
+      },
+      "required": [
+        "img"
+      ]
+    }
+  }
+}

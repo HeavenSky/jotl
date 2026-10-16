@@ -1,0 +1,29 @@
+{
+  "files": [],
+  "references": [
+    {
+      "path": "./packages/core"
+    },
+    {
+      "path": "./packages/convert"
+    },
+    {
+      "path": "./packages/data"
+    },
+    {
+      "path": "./packages/form"
+    },
+    {
+      "path": "./packages/antd"
+    },
+    {
+      "path": "./packages/language-server"
+    },
+    {
+      "path": "./packages/vscode"
+    },
+    {
+      "path": "./packages/cli"
+    }
+  ]
+}

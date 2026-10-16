@@ -1,0 +1,12 @@
+{
+  "intro": "a",
+  "body": "<p>hi</p>",
+  "site": "https://example.com/a?b=1",
+  "mail": "a@example.com",
+  "birthday": "2026-10-08",
+  "createdAt": "2026-10-08T10:00:00Z",
+  "alarm": "10:00:00",
+  "theme": "#ff0000",
+  "cover": "https://example.com/a.png",
+  "attachment": "https://example.com/a.pdf"
+}

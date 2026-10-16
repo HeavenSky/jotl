@@ -1,0 +1,12 @@
+Shipping(配送): {
+  method(配送方式): enum[default: 'express']{ express(快递) pickup(自提) }
+  address(收货地址)?: string[root_if: {left: 'method', op: 'eq', right: 'express'}]
+  store(自提点)?: string[root_if: {left: 'method', op: 'ne', right: 'express'}]
+  invoice(需要发票): boolean[default: false]
+  title(发票抬头)?: string[description: '只在需要发票且不是自提时填写', root_if: {and: ['invoice', {not: {left: 'method', op: 'in', right: ['pickup']}}]}]
+  items(商品)?: array {
+    name(名称): string
+    gift(礼品): boolean[default: false]
+    note(赠言)?: string[root_if: {or: [{left: 'items[*].gift', op: 'eq', right: true}, {left: 'method', op: 'not_in', right: ['express', 'pickup']}]}]
+  }
+}

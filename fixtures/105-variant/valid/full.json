@@ -1,0 +1,13 @@
+{
+  "title": "标题",
+  "body": "<p>正文</p>",
+  "cover": "https://example.com/a.png",
+  "tags": [
+    "a",
+    "b"
+  ],
+  "author": {
+    "name": "张三",
+    "avatar": "https://example.com/b.png"
+  }
+}

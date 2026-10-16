@@ -1,0 +1,46 @@
+{
+  "type": "object",
+  "description": "首页",
+  "properties": {
+    "title": {
+      "key": "title",
+      "type": "string",
+      "description": "标题",
+      "meta": {
+        "maxLength": 20,
+        "default": "欢迎"
+      }
+    },
+    "mode": {
+      "key": "mode",
+      "type": "enum",
+      "description": "模式",
+      "items": [
+        {
+          "label": "浅色",
+          "value": "light"
+        },
+        {
+          "label": "深色",
+          "value": "dark"
+        }
+      ],
+      "meta": {
+        "default": "light"
+      }
+    },
+    "card": {
+      "key": "card",
+      "type": "component",
+      "description": "卡片"
+    },
+    "share": {
+      "key": "share",
+      "type": "plugin",
+      "description": "分享",
+      "meta": {
+        "foo": "share"
+      }
+    }
+  }
+}

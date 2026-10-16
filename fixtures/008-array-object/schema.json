@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Gallery",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Gallery": {
+      "type": "object",
+      "properties": {
+        "items": {
+          "title": "图片列表",
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "type": "object",
+            "properties": {
+              "src": {
+                "title": "地址",
+                "type": "string",
+                "format": "uri"
+              },
+              "alt": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "src"
+            ]
+          }
+        }
+      },
+      "required": [
+        "items"
+      ]
+    }
+  }
+}

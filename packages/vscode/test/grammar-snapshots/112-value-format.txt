@@ -1,0 +1,138 @@
+> // 日期组件的存储格式 value_format: 默认, 自定义格式, 时间戳与 4 个别名
+  "//" comment.line.double-slash.jotl punctuation.definition.comment.jotl
+  " 日期组件的存储格式 value_format: 默认, 自定义格式, 时间戳与 4 个别名" comment.line.double-slash.jotl
+> Schedule: {
+  "Schedule" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   day: date
+  "day" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "date" meta.object.type.jotl support.type.builtin.jotl
+>   dayCompact?: date[value_format: 'YYYYMMDD']
+  "dayCompact" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "date" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "YYYYMMDD" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   dayStamp?: date[value_format: 'x']
+  "dayStamp" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "date" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "x" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   alarm?: time
+  "alarm" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "time" meta.object.type.jotl support.type.builtin.jotl
+>   alarmShort?: time[value_format: 'HH:mm', default: '09:00']
+  "alarmShort" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "time" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "HH:mm" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "09:00" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   at?: datetime
+  "at" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+>   atIsoMs?: datetime[value_format: 'iso-x']
+  "atIsoMs" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "iso-x" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   atUtc?: datetime[value_format: 'utc']
+  "atUtc" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "utc" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   atUtcMs?: datetime[value_format: 'utc-x']
+  "atUtcMs" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "utc-x" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   atMs?: datetime[value_format: 'x']
+  "atMs" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "x" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   atSec?: datetime[value_format: 'X']
+  "atSec" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "X" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   atText?: datetime[value_format: 'YYYY-MM-DD HH:mm:ss']
+  "atText" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "value_format" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "YYYY-MM-DD HH:mm:ss" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

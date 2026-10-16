@@ -1,0 +1,54 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Multi",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Multi": {
+      "type": "object",
+      "properties": {
+        "colors": {
+          "title": "颜色",
+          "type": "array",
+          "items": {
+            "type": "string",
+            "oneOf": [
+              {
+                "title": "红",
+                "const": "red"
+              },
+              {
+                "title": "绿",
+                "const": "green"
+              },
+              {
+                "title": "蓝",
+                "const": "blue"
+              }
+            ]
+          },
+          "uniqueItems": true,
+          "default": [
+            "red"
+          ]
+        },
+        "flags": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "a",
+              "b"
+            ]
+          },
+          "uniqueItems": true
+        }
+      },
+      "required": [
+        "colors",
+        "flags"
+      ]
+    }
+  }
+}

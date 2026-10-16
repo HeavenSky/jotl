@@ -1,0 +1,20 @@
+{
+  "blocks": [
+    {
+      "kind": "text",
+      "content": "你好"
+    },
+    {
+      "kind": "image",
+      "src": "https://example.com/a.png",
+      "alt": "示意图"
+    },
+    {
+      "kind": "divider"
+    }
+  ],
+  "hero": {
+    "kind": "image",
+    "src": "https://example.com/b.png"
+  }
+}

@@ -1,0 +1,16 @@
+<root/>
+A: {
+  name: string[closed: true]
+  ref?: B[closed: true]
+  list?: array[array_item: 'string', layout: 'tabs']
+  mode: string[root_if: {left: 'a', op: 'eq'}]
+  tag?: string[variants: {view: {order: []}}]
+  note?: string[errorMessage: {maxLen: '太长'}]
+  grid?: [layout: 'tabs', columns: 2] {}
+  url?: string[id: 'https://x']
+  pick: enum[multiple: true, widget: 'radio']{ a b }
+  kind: union[union_item: 'email|url']
+}
+
+<root/>
+B: [id: 'https://jotl.dev/x'] {}

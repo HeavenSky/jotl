@@ -1,0 +1,4 @@
+Dict: {
+  labels: map[map_item: 'string']
+  counters?: map[map_item: 'number', minProperties: 1]
+}

@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Page",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Page": {
+      "title": "页面",
+      "description": "页面由不同类型的区块组成",
+      "type": "object",
+      "properties": {
+        "blocks": {
+          "title": "区块",
+          "type": "array",
+          "maxItems": 10,
+          "items": {
+            "$ref": "#/$defs/Block"
+          }
+        },
+        "hero": {
+          "title": "头图",
+          "oneOf": [
+            {
+              "title": "文本",
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "text"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/$defs/TextBlock"
+                }
+              ]
+            },
+            {
+              "title": "图片",
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "image"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/$defs/ImageBlock"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "blocks"
+      ]
+    },
+    "Block": {
+      "title": "区块",
+      "oneOf": [
+        {
+          "title": "文本",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "text"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/$defs/TextBlock"
+            }
+          ]
+        },
+        {
+          "title": "图片",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "image"
+            }
+          },
+          "required": [
+            "kind"
+          ],
+          "allOf": [
+            {
+              "$ref": "#/$defs/ImageBlock"
+            }
+          ]
+        },
+        {
+          "title": "分隔线",
+          "type": "object",
+          "properties": {
+            "kind": {
+              "type": "string",
+              "const": "divider"
+            }
+          },
+          "required": [
+            "kind"
+          ]
+        }
+      ]
+    },
+    "TextBlock": {
+      "title": "文本区块",
+      "type": "object",
+      "properties": {
+        "content": {
+          "title": "内容",
+          "type": "string",
+          "maxLength": 200,
+          "x-ui": {
+            "widget": "textarea"
+          }
+        }
+      },
+      "required": [
+        "content"
+      ]
+    },
+    "ImageBlock": {
+      "title": "图片区块",
+      "type": "object",
+      "properties": {
+        "src": {
+          "title": "图片",
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image"
+          }
+        },
+        "alt": {
+          "title": "替代文字",
+          "type": "string"
+        }
+      },
+      "required": [
+        "src"
+      ]
+    }
+  }
+}

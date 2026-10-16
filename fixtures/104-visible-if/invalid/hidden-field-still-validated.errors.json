@@ -1,0 +1,10 @@
+[
+  {
+    "code": "JOTL4001",
+    "pointer": "/title"
+  },
+  {
+    "code": "JOTL4002",
+    "pointer": "/items/0/name"
+  }
+]

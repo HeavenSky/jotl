@@ -1,0 +1,14 @@
+Address(地址): [id: 'https://jotl.dev/fixtures/101-closed-file-id.json', closed: true, description: '收件地址, 不允许出现未声明的字段'] {
+  city(城市): string
+  street(街道)?: string
+  country(国家): [default: '中国']
+  geo(坐标)?: [closed: true] {
+    lat: number
+    lng: number
+  }
+  points(途经点)?: array[item_meta: {closed: true}] {
+    x: number
+    y: number
+  }
+  extra(附加信息)?: map[map_item: 'string']
+}

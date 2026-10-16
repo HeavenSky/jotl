@@ -1,0 +1,34 @@
+> Gallery: {
+  "Gallery" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   items(图片列表): array[maxItems: 10] {
+  "items" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "图片列表" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "array" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "maxItems" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "10" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+  "{" meta.object.type.jotl meta.object.type.jotl punctuation.definition.object.begin.jotl
+>     src(地址): url
+  "src" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "地址" meta.object.type.jotl meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl punctuation.separator.type.jotl
+  "url" meta.object.type.jotl meta.object.type.jotl support.type.builtin.jotl
+>     alt?: string
+  "alt" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl meta.object.type.jotl support.type.builtin.jotl
+>   }
+  "}" meta.object.type.jotl meta.object.type.jotl punctuation.definition.object.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

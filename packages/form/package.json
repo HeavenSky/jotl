@@ -1,0 +1,76 @@
+{
+  "name": "@jotl/form",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "按 JSON Schema 与 x-ui 渲染 React 表单, 含原生 HTML 默认组件与样式; 子路径 ./core 为不依赖 UI 框架的 x-ui 解析, 组件注册与渲染计划",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./core": {
+      "types": "./dist/core.d.ts",
+      "import": "./dist/core.js"
+    },
+    "./jsx-runtime": {
+      "types": "./dist/jsx-runtime.d.ts",
+      "import": "./dist/jsx-runtime.js"
+    },
+    "./jsx-dev-runtime": {
+      "types": "./dist/jsx-dev-runtime.d.ts",
+      "import": "./dist/jsx-dev-runtime.js"
+    },
+    "./style.css": "./style.css",
+    "./tailwind.css": "./tailwind.css",
+    "./theme.css": "./theme.css"
+  },
+  "files": [
+    "dist",
+    "src",
+    "style.css",
+    "tailwind.css",
+    "theme.css",
+    "README.zh-CN.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "build:css": "tailwindcss -i style.entry.css -o style.css",
+    "typecheck:test": "tsc -p tsconfig.test.json",
+    "test:react-compat": "for v in 16 17 18 19; do JOTL_REACT=$v vitest run --config vitest.compat.config.ts || exit 1; done"
+  },
+  "dependencies": {
+    "@jotl/core": "workspace:*",
+    "@jotl/data": "workspace:*",
+    "@types/big.js": "^7.0.0",
+    "big.js": "^7.0.1",
+    "dayjs": "^1.11.23",
+    "tailwind-merge": "^3.7.0",
+    "tailwind-variants": "^3.3.1"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "@testing-library/dom": "^10.4.2",
+    "@testing-library/react": "^16.3.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "jsdom": "^30.1.2",
+    "react": "^19.3.0",
+    "react-16": "npm:react@16.8.6",
+    "react-17": "npm:react@17.0.2",
+    "react-18": "npm:react@18.3.1",
+    "react-dom": "^19.3.0",
+    "react-dom-16": "npm:react-dom@16.8.6",
+    "react-dom-17": "npm:react-dom@17.0.2",
+    "react-dom-18": "npm:react-dom@18.3.1",
+    "tailwindcss": "^4.3.3"
+  }
+}

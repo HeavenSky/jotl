@@ -1,0 +1,13 @@
+Site(站点): [description: '站点配置'] {
+  home: Page
+  about?: Page
+  footer: Footer
+}
+
+Page(页面): {
+  title: string
+}
+
+Footer: {
+  text: string[default: '©']
+}

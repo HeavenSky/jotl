@@ -1,0 +1,8 @@
+/*
+ * 表单样式: 以 Tailwind 宿主方式编译 @jotl/form 的源样式(验证 README 中的宿主用法).
+ * 独立的 Tailwind 入口, 前缀 jt 只作用于此文件; 不引入 preflight, 页面自身样式见 app.css.
+ */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(jt);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "@jotl/form/tailwind.css";

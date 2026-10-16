@@ -1,0 +1,168 @@
+> // 金额, 大整数与数字小数位
+  "//" comment.line.double-slash.jotl punctuation.definition.comment.jotl
+  " 金额, 大整数与数字小数位" comment.line.double-slash.jotl
+> Pricing(定价): {
+  "Pricing" entity.name.type.alias.jotl
+  "(" meta.label.jotl punctuation.definition.label.begin.jotl
+  "定价" meta.label.jotl string.unquoted.label.jotl
+  ")" meta.label.jotl punctuation.definition.label.end.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   price(价格): money[currency: 'CNY', minimum: '0']
+  "price" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "价格" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "money" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "currency" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "CNY" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "minimum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "0" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   deposit(押金)?: money[currency: ['USD', 'JPY'], thousands: false]
+  "deposit" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "押金" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "money" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "currency" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "USD" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.separator.comma.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "JPY" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "thousands" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "false" meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   cost(成本)?: money[currency: 'CNY', unit: 'fen', decimals: 0]
+  "cost" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "成本" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "money" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "currency" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "CNY" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "unit" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "fen" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "decimals" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "0" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   fee(手续费)?: money[unit: ['yuan', 'fen'], exclusiveMaximum: '100']
+  "fee" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "手续费" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "money" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "unit" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "yuan" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.separator.comma.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "fen" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "exclusiveMaximum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "100" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   total(总量): bigint[minimum: '1', maximum: '99999999999999999999']
+  "total" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "总量" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "bigint" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "minimum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "1" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "maximum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "99999999999999999999" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   rate(费率)?: number[decimals: 2, minimum: 0, maximum: 1, thousands: true]
+  "rate" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "费率" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "number" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "decimals" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "2" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "minimum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "0" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "maximum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "1" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "thousands" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "true" meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   count(数量)?: integer[minimum: 0]
+  "count" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "数量" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "integer" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "minimum" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "0" meta.object.type.jotl meta.metadata.jotl constant.numeric.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

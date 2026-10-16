@@ -1,0 +1,111 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Ui",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Ui": {
+      "type": "object",
+      "properties": {
+        "title": {
+          "title": "标题",
+          "type": "string",
+          "x-ui": {
+            "widget": "headline",
+            "props": {
+              "size": "large"
+            }
+          }
+        },
+        "secret": {
+          "type": "string",
+          "x-ui": {
+            "hidden": true
+          }
+        },
+        "tags": {
+          "type": "array",
+          "maxItems": 5,
+          "items": {
+            "type": "string",
+            "x-ui": {
+              "widget": "tag"
+            }
+          },
+          "x-ui": {
+            "widget": "tag-list"
+          }
+        },
+        "matrix": {
+          "type": "array",
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "number",
+              "x-ui": {
+                "widget": "slider"
+              }
+            },
+            "x-ui": {
+              "widget": "row"
+            }
+          },
+          "x-ui": {
+            "widget": "table"
+          }
+        },
+        "bare": {
+          "type": "string",
+          "x-ui": {
+            "decorator": false
+          }
+        },
+        "boxed": {
+          "type": "string",
+          "x-ui": {
+            "decorator": "card"
+          }
+        },
+        "legacy": {
+          "type": "string",
+          "deprecated": true
+        },
+        "level": {
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "低",
+              "description": "低档位",
+              "const": "low"
+            },
+            {
+              "title": "高",
+              "const": "high"
+            }
+          ]
+        }
+      },
+      "required": [
+        "title",
+        "bare",
+        "level"
+      ],
+      "x-ui": {
+        "order": [
+          "bare",
+          "title"
+        ],
+        "groups": [
+          {
+            "title": "高级",
+            "fields": [
+              "secret",
+              "matrix"
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

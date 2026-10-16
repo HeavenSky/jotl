@@ -1,0 +1,7 @@
+// 单成员枚举编译为 const, 代替 v0 的字面量类型
+Consts: {
+  kind: enum{ banner }
+  version: enum{ 2 }
+  enabled: enum{ true }
+  only: enum{ fixed }
+}

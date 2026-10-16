@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Home",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Home": {
+      "type": "object",
+      "properties": {
+        "hero": {
+          "$ref": "#/$defs/Banner"
+        },
+        "mini": {
+          "$ref": "#/$defs/Banner",
+          "x-ui": {
+            "widget": "banner-mini"
+          }
+        }
+      },
+      "required": [
+        "hero"
+      ]
+    },
+    "Banner": {
+      "type": "object",
+      "properties": {
+        "img": {
+          "type": "string",
+          "format": "uri",
+          "x-ui": {
+            "widget": "image",
+            "props": {
+              "maxWidth": 750
+            }
+          }
+        }
+      },
+      "required": [
+        "img"
+      ],
+      "x-ui": {
+        "widget": "banner-card"
+      }
+    }
+  }
+}

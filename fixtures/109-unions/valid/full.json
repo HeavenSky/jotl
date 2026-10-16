@@ -1,0 +1,5 @@
+{
+  "size": 10,
+  "value": { "from": 1, "to": 2 },
+  "shape": { "type": "rect", "width": 1, "height": 2 }
+}

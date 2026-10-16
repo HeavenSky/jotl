@@ -1,0 +1,10 @@
+Ui: [order: ['bare', 'title'], groups: [{title: '高级', fields: ['secret', 'matrix']}]] {
+  title(标题): string[widget: 'headline', props: {size: 'large'}]
+  secret?: string[hidden: true]
+  tags?: array[array_item: 'string', item_meta: {widget: 'tag'}, maxItems: 5, widget: 'tag-list']
+  matrix?: array[array_item: 'array', item_meta: {array_item: 'number', item_meta: {widget: 'slider'}, widget: 'row'}, widget: 'table']
+  bare: string[decorator: false]
+  boxed?: string[decorator: 'card']
+  legacy?: string[deprecated: true]
+  level: enum{ low(低)[description: '低档位'] high(高) }
+}

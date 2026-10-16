@@ -1,0 +1,13 @@
+{
+  "covers": [
+    "root-marker",
+    "default-marker",
+    "root_if",
+    "node_if",
+    "description",
+    "multiple",
+    "rules",
+    "id"
+  ],
+  "defaultExport": "Shared"
+}

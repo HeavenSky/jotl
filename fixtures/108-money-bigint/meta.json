@@ -1,0 +1,1 @@
+{ "covers": ["money", "bigint", "decimals", "thousands"], "skip": ["types.d.ts"] }

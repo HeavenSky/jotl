@@ -1,0 +1,10 @@
+{
+  "method": "pickup",
+  "invoice": false,
+  "title": 1,
+  "items": [
+    {
+      "gift": false
+    }
+  ]
+}

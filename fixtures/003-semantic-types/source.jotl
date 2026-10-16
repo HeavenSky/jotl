@@ -1,0 +1,13 @@
+// 带格式与默认组件的字符串组件
+Semantic: {
+  intro: text
+  body?: richtext
+  site: url
+  mail?: email
+  birthday?: date
+  createdAt?: datetime
+  alarm?: time
+  theme?: color[default: '#1677ff']
+  cover?: image
+  attachment?: file
+}

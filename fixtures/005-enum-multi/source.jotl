@@ -1,0 +1,4 @@
+Multi: {
+  colors(颜色): enum[multiple: true, default: ['red']]{ red(红) green(绿) blue(蓝) }
+  flags: enum[multiple: true]{ a b }
+}

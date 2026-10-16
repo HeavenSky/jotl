@@ -1,0 +1,9 @@
+{
+  "i18n": { "en": "Hello", "zh": "你好" },
+  "users": { "u1": { "name": "张三", "age": 3 } },
+  "point": [120.1, 30.2],
+  "record": ["a", 1, 2],
+  "extra": "{\"a\": 1}",
+  "options": "{\"level\": 3}",
+  "matrix": "[1, 2]"
+}

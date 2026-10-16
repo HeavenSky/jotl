@@ -1,0 +1,1 @@
+{ "covers": ["union-discriminator", "union-json-type", "item_meta", "nullable"], "skip": ["types.d.ts"] }

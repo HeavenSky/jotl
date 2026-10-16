@@ -1,0 +1,8 @@
+{
+  "mode": "pro",
+  "level": 5,
+  "city": "bj",
+  "cities": ["sh", "gz"],
+  "advanced": "x",
+  "links": [{ "url": "https://a.com", "open": true, "target": "blank" }]
+}

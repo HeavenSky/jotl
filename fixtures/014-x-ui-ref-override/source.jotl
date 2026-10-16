@@ -1,0 +1,8 @@
+Home: {
+  hero: Banner
+  mini?: Banner[widget: 'banner-mini']
+}
+
+Banner: [widget: 'banner-card'] {
+  img: image[props: {maxWidth: 750}]
+}

@@ -1,0 +1,5 @@
+{
+  "price": { "type": "money", "value": "1.00", "currency": "CNY" },
+  "cost": { "type": "money", "value": "12.5", "currency": "CNY", "unit": "fen" },
+  "total": { "type": "bigint", "value": "1" }
+}

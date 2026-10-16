@@ -1,0 +1,52 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`变更清单 > 2019-09 递归引用与元组 1`] = `
+[
+  "info JOTL3112 /items: 数组形式的 items 改写为 prefixItems",
+  "info JOTL3113 /additionalItems: additionalItems 改写为 items",
+  "info JOTL3115 /$recursiveAnchor: $recursiveAnchor: true 改写为 $dynamicAnchor "recursiveAnchor"",
+  "info JOTL3114 /properties/tail/additionalItems: items 不是数组时 additionalItems 无作用, 已移除",
+  "info JOTL3117 /items/0/$recursiveRef: $recursiveRef "#" 改写为 $dynamicRef "#recursiveAnchor"",
+  "info JOTL3119 /$schema: $schema 改写为 https://json-schema.org/draft/2020-12/schema",
+]
+`;
+
+exports[`变更清单 > OpenAPI 3.0 改写 1`] = `
+[
+  "info JOTL3128 /properties/id/example: example 改写为 examples",
+  "info JOTL3129 /properties/id/format: format: "byte" 改写为 contentEncoding: "base64"",
+  "info JOTL3124 /properties/tag/nullable: nullable: true 改写为类型数组, 加入 "null"",
+  "info JOTL3125 /properties/tag/enum: nullable: true 时在 enum 中加入 null",
+  "info JOTL3102 /properties/size/exclusiveMinimum: exclusiveMinimum: true 与 minimum 合并为数值形式的 exclusiveMinimum",
+  "info JOTL3131 (根): 根上写入 $schema: https://json-schema.org/draft/2020-12/schema",
+]
+`;
+
+exports[`变更清单 > draft-04 全量改写: 每处一条带指针的 info 1`] = `
+[
+  "info JOTL3101 /id: id 改写为 $id",
+  "info JOTL3105 /definitions: definitions 改写为 $defs",
+  "info JOTL3107 /dependencies/coupon: dependencies 中的 coupon 拆分到 dependentRequired",
+  "info JOTL3108 /dependencies/gift: dependencies 中的 gift 拆分到 dependentSchemas",
+  "info JOTL3102 /properties/total/exclusiveMinimum: exclusiveMinimum: true 与 minimum 合并为数值形式的 exclusiveMinimum",
+  "info JOTL3112 /properties/lines/items: 数组形式的 items 改写为 prefixItems",
+  "info JOTL3113 /properties/lines/additionalItems: additionalItems 改写为 items",
+  "info JOTL3103 /properties/note/exclusiveMaximum: exclusiveMaximum: false 无作用, 已移除",
+  "info JOTL3101 /definitions/line/id: id 改写为 $id",
+  "info JOTL3109 /definitions/line/id: 只含片段的 $id "#line" 改写为 $anchor "line"",
+  "info JOTL3120 /properties/lines/items/0/$ref: $ref 随关键字改名调整: "#/definitions/line" → "#/$defs/line"",
+  "info JOTL3120 /properties/lines/additionalItems/$ref: $ref 随关键字改名调整: "#/definitions/line" → "#/$defs/line"",
+  "info JOTL3119 /$schema: $schema 改写为 https://json-schema.org/draft/2020-12/schema",
+]
+`;
+
+exports[`变更清单 > 宽松接受与冲突处理记为 warning 1`] = `
+[
+  "warning JOTL3201 /$defs: $defs 由 2019-09 引入, 声明版本 draft-07 中不存在; 已按 2020-12 语义接受",
+  "warning JOTL3203 /exclusiveMaximum: 声明版本 draft-07 中出现旧版写法 exclusiveMaximum: true; 按值的类型识别为 draft-04 写法并改写",
+  "warning JOTL3301 /definitions/a: definitions 与 $defs 都定义了 a [已按 2020-12 处理]",
+  "warning JOTL3303 /properties/x/$ref: draft-07 会忽略 $ref 旁的 minimum, 2020-12 中它们会生效, 校验结果会变 [已按 2020-12 处理]",
+  "info JOTL3120 /properties/x/$ref: $ref 随关键字改名调整: "#/definitions/a" → "#/$defs/a"",
+  "info JOTL3119 /$schema: $schema 改写为 https://json-schema.org/draft/2020-12/schema",
+]
+`;

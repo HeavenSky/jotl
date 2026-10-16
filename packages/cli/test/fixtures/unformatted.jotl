@@ -1,0 +1,5 @@
+Home(首页):{
+  title(标题):string[maxLength:20,default:"欢迎"],
+    // 数量
+  count?:integer;
+}

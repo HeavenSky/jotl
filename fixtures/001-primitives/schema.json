@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Primitives",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Primitives": {
+      "title": "基础类型",
+      "description": "基础类型样例: 覆盖全部基础类型与可选字段",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "名称",
+          "type": "string"
+        },
+        "age": {
+          "title": "年龄",
+          "type": "number"
+        },
+        "count": {
+          "type": "integer",
+          "minimum": -9007199254740991,
+          "maximum": 9007199254740991
+        },
+        "enabled": {
+          "title": "启用",
+          "type": "boolean"
+        },
+        "nothing": {
+          "type": "null"
+        }
+      },
+      "required": [
+        "name",
+        "count",
+        "enabled"
+      ]
+    }
+  }
+}

@@ -1,0 +1,12 @@
+Article(文章): [variants: {mobile: {layout: 'stack', order: ['title', 'body']}, view: {groups: [{title: '元信息', fields: ['tags', 'author']}]}}] {
+  title(标题): string[maxLength: 50, variants: {view: {widget: 'output'}}]
+  body(正文): richtext[variants: {view: {widget: 'json', props: {readOnly: true}}, mobile: {widget: 'textarea', props: {rows: 6}}}]
+  cover(封面)?: image[variants: {view: {hidden: true}}]
+  tags(标签)?: array[array_item: 'string', variants: {view: {decorator: false, props: {inline: true}}}]
+  author(作者)?: Author[variants: {mobile: {root_if: 'title'}}]
+}
+
+Author(作者): [variants: {view: {layout: 'grid', columns: 2}}] {
+  name(姓名): string
+  avatar(头像)?: image
+}

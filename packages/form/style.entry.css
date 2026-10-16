@@ -1,0 +1,5 @@
+/*! @jotl/form 预编译样式: 由 tailwind.css 经 `pnpm run build:css` 生成, 不要手改. */
+@layer theme, base, components, utilities;
+@import "tailwindcss/theme.css" layer(theme) prefix(jt);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "./tailwind.css";

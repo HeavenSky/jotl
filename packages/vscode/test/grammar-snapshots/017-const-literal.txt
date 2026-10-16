@@ -1,0 +1,38 @@
+> // 单成员枚举编译为 const, 代替 v0 的字面量类型
+  "//" comment.line.double-slash.jotl punctuation.definition.comment.jotl
+  " 单成员枚举编译为 const, 代替 v0 的字面量类型" comment.line.double-slash.jotl
+> Consts: {
+  "Consts" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   kind: enum{ banner }
+  "kind" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "banner" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+>   version: enum{ 2 }
+  "version" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "2" meta.object.type.jotl meta.enum.jotl constant.numeric.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+>   enabled: enum{ true }
+  "enabled" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "true" meta.object.type.jotl meta.enum.jotl constant.language.boolean.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+>   only: enum{ fixed }
+  "only" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "fixed" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

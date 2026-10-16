@@ -1,0 +1,19 @@
+Profile(个人资料): [description: '个人资料, 按标签页编排', groups: [{title: '联系方式', fields: ['phone', 'address', 'office']}, {title: '其他', fields: ['links']}], layout: 'tabs'] {
+  name(姓名): string
+  bio(简介)?: text
+  phone(电话)?: string
+  address(地址)?: Address
+  // 引用处不能写 layout, 经 schema 原样写入
+  office(办公地址)?: Address[schema: {'x-ui': {layout: 'stack'}}]
+  links(链接)?: [layout: 'grid', columns: 3] {
+    site(主页)?: url
+    blog(博客)?: url
+    repo(仓库)?: url
+  }
+}
+
+Address(地址): [layout: 'grid'] {
+  province(省份): string
+  city(城市): string
+  detail(详细地址)?: string
+}

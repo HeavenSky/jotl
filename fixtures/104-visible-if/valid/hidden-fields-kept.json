@@ -1,0 +1,17 @@
+{
+  "method": "pickup",
+  "address": "不可见但保留",
+  "store": "西湖店",
+  "invoice": false,
+  "items": [
+    {
+      "name": "书",
+      "gift": true,
+      "note": "生日快乐"
+    },
+    {
+      "name": "笔",
+      "gift": false
+    }
+  ]
+}

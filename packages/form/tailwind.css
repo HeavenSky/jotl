@@ -1,0 +1,154 @@
+/*
+ * @jotl/form 的 Tailwind v4 源样式: 外观由组件 className 上的 jt: 工具类表达, 此处只放工具类不好表达的部分
+ * (计数器, 伪元素内容, 原生下拉的 base-select 外观与弹层, 钻取页头面包屑与折叠面板的伪元素及跨组件的隐藏, 覆盖规则). 不含 theme 与 utilities 的引入, 由入口文件统一引入一次;
+ * 预编译入口见 style.entry.css, 宿主自行编译的写法见 README.
+ */
+@import "./theme.css";
+@source "./src";
+
+@layer components {
+  /* 单选下拉去掉原生箭头, 改画在右侧与输入框相同的内边距处; 多选下拉保留原生列表. */
+  :where(.jotl-select:not([multiple])) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2.5 4.5 6 8l3.5-3.5' fill='none' stroke='%23000' stroke-opacity='.25' stroke-width='1.2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 11px center;
+    background-size: 12px 12px;
+    appearance: none;
+  }
+
+  /*
+   * 支持可定制下拉的浏览器改用 base-select: 弹层在页面内渲染, 贴着下拉框左边缘展开.
+   * 只去掉原生外观(appearance: none)时, macOS 原生弹层会让选中项与框内文字重叠, 整个列表向左偏出.
+   * 右内边距与 flex 排版由组件上的 supports-[appearance:base-select] 工具类切换.
+   */
+  @supports (appearance: base-select) {
+    :where(.jotl-select:not([multiple])),
+    :where(.jotl-select:not([multiple]))::picker(select) {
+      appearance: base-select;
+    }
+
+    :where(.jotl-select:not([multiple])) {
+      background-image: none;
+    }
+
+    :where(.jotl-select:not([multiple]))::picker-icon {
+      margin-left: auto;
+      color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
+      font-size: 12px;
+      transition: rotate 0.2s;
+    }
+
+    :where(.jotl-select:not([multiple])):open::picker-icon {
+      rotate: 180deg;
+    }
+
+    :where(.jotl-select:not([multiple]))::picker(select) {
+      margin-top: 4px;
+      padding: 4px 0;
+      border: 0;
+      border-radius: var(--jotl-radius, 2px);
+      background: var(--jotl-surface, #ffffff);
+      box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+    }
+
+    :where(.jotl-select:not([multiple]) option) {
+      padding: 5px 11px;
+    }
+
+    :where(.jotl-select:not([multiple]) option)::checkmark {
+      display: none;
+    }
+
+    :where(.jotl-select:not([multiple]) option):hover {
+      background: var(--jotl-option-hover, #f5f5f5);
+    }
+
+    :where(.jotl-select:not([multiple]) option):checked {
+      background: var(--jotl-option-selected, #e6f7ff);
+      font-weight: 600;
+    }
+  }
+
+  /* 选项自带 4px 内边距, 与外层 7px 合起来和输入框的 11px 文字起点对齐. */
+  :where(.jotl-select[multiple] option) {
+    padding: 2px 4px;
+  }
+
+  /* 新增放在字段标签的同一行右侧(字段外壳是定位容器). */
+  :where(.jotl-field > .jotl-field-control > .jotl-array > .jotl-array-header) {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+
+  :where(.jotl-array-items) {
+    counter-reset: jotl-item;
+  }
+
+  :where(.jotl-array-item) {
+    counter-increment: jotl-item;
+  }
+
+  :where(.jotl-array-item)::before {
+    content: counter(jotl-item) ".";
+    flex: none;
+    min-width: 1.25rem;
+  }
+
+  :where(.jotl-array-add, .jotl-map-add)::before {
+    content: "+ " / "";
+  }
+}
+
+/* 渲染器(src/react)的面包屑, 折叠面板与页头. */
+
+@layer components {
+  :where(.jotl-breadcrumb-item + .jotl-breadcrumb-item)::before {
+    content: "/" / "";
+    padding: 0 0.5rem;
+    color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
+  }
+
+  /* 折叠面板: 标题行自画展开箭头; 面板标题代替对象自身的标题, 数组的新增回到面板内容的首行. */
+  :where(.jotl-panel-header) {
+    list-style: none;
+  }
+
+  :where(.jotl-panel-header)::-webkit-details-marker {
+    display: none;
+  }
+
+  :where(.jotl-panel-header)::before {
+    content: "›" / "";
+    flex: none;
+    width: 1em;
+    color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
+    text-align: center;
+    transition: rotate 0.2s;
+  }
+
+  :where(.jotl-panel[open] > .jotl-panel-header)::before {
+    rotate: 90deg;
+  }
+
+  :where(.jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-object > .jotl-object-title) {
+    display: none;
+  }
+
+  .jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-array > .jotl-array-header {
+    position: static;
+  }
+
+  /* 页头: 面包屑代替页根对象的标题, 与下方内容的间距由表单的行间距统一. */
+  :where(.jotl-breadcrumb ~ .jotl-object > .jotl-object-title) {
+    display: none;
+  }
+}
+
+/* 面板内的对象不再画分组边框; 写在 utilities 层并带足选择器权重, 才能盖过对象上的边框工具类. */
+@layer utilities {
+  .jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-object {
+    padding: 0;
+    border-width: 0;
+  }
+}

@@ -1,0 +1,54 @@
+> Multi: {
+  "Multi" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   colors(颜色): enum[multiple: true, default: ['red']]{ red(红) green(绿) blue(蓝) }
+  "colors" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "颜色" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "multiple" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "true" meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "red" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "red" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "(" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "红" meta.object.type.jotl meta.enum.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "green" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "(" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "绿" meta.object.type.jotl meta.enum.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "blue" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "(" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "蓝" meta.object.type.jotl meta.enum.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+>   flags: enum[multiple: true]{ a b }
+  "flags" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "multiple" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "true" meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "a" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "b" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

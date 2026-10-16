@@ -1,0 +1,10 @@
+// 说明与元数据: description, deprecated, readOnly, writeOnly, examples, comment
+Article: [description: '文章\n第二行描述'] {
+  title: string[maxLength: 50, description: '文章标题\n不超过 50 字']
+  oldTitle?: string[deprecated: '改用 title']
+  id: string[readOnly: true]
+  password?: string[writeOnly: true]
+  views?: integer[examples: [10, 200]]
+  slug: string[comment: '内部使用']
+  status: enum{ draft(草稿) published(已发布) }
+}

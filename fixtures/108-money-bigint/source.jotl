@@ -1,0 +1,10 @@
+// 金额, 大整数与数字小数位
+Pricing(定价): {
+  price(价格): money[currency: 'CNY', minimum: '0']
+  deposit(押金)?: money[currency: ['USD', 'JPY'], thousands: false]
+  cost(成本)?: money[currency: 'CNY', unit: 'fen', decimals: 0]
+  fee(手续费)?: money[unit: ['yuan', 'fen'], exclusiveMaximum: '100']
+  total(总量): bigint[minimum: '1', maximum: '99999999999999999999']
+  rate(费率)?: number[decimals: 2, minimum: 0, maximum: 1, thousands: true]
+  count(数量)?: integer[minimum: 0]
+}

@@ -1,0 +1,23 @@
+Page(页面): [description: '页面由不同类型的区块组成'] {
+  blocks(区块): array[array_item: 'Block', maxItems: 10]
+  hero(头图)?: union[discriminator: 'kind'] {
+    text(文本): TextBlock
+    image(图片): ImageBlock
+  }
+}
+
+// 分支可以引用对象类型, 也可以直接写对象体; 区分字段 kind 由编译器补上
+Block(区块): union[discriminator: 'kind'] {
+  text(文本): TextBlock
+  image(图片): ImageBlock
+  divider(分隔线): {}
+}
+
+TextBlock(文本区块): {
+  content(内容): text[maxLength: 200]
+}
+
+ImageBlock(图片区块): {
+  src(图片): image
+  alt(替代文字)?: string
+}

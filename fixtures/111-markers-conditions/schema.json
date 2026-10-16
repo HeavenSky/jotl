@@ -1,0 +1,215 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jotl.dev/fixtures/111.json",
+  "$ref": "#/$defs/Settings",
+  "x-ui": {
+    "version": 1,
+    "rules": [
+      {
+        "match": {
+          "type": "boolean"
+        },
+        "ui": {
+          "widget": "checkbox"
+        }
+      }
+    ]
+  },
+  "$defs": {
+    "Cities": {
+      "title": "城市",
+      "type": "string",
+      "oneOf": [
+        {
+          "title": "北京",
+          "const": "bj"
+        },
+        {
+          "title": "上海",
+          "const": "sh"
+        },
+        {
+          "title": "广州",
+          "const": "gz"
+        }
+      ]
+    },
+    "Shared": {
+      "title": "公共",
+      "type": "object",
+      "properties": {
+        "note": {
+          "title": "备注",
+          "type": "string"
+        }
+      }
+    },
+    "Settings": {
+      "title": "设置",
+      "description": "设置页",
+      "type": "object",
+      "properties": {
+        "mode": {
+          "title": "模式",
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "基础",
+              "const": "basic"
+            },
+            {
+              "title": "专业",
+              "const": "pro"
+            }
+          ],
+          "default": "basic"
+        },
+        "level": {
+          "title": "等级",
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 10,
+          "default": 0
+        },
+        "city": {
+          "$ref": "#/$defs/Cities",
+          "title": "城市"
+        },
+        "cities": {
+          "title": "常驻城市",
+          "type": "array",
+          "maxItems": 2,
+          "items": {
+            "$ref": "#/$defs/Cities"
+          },
+          "uniqueItems": true
+        },
+        "advanced": {
+          "title": "高级选项",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "field": "/mode",
+              "eq": "pro"
+            }
+          }
+        },
+        "bonus": {
+          "title": "奖励",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "all": [
+                {
+                  "field": "/level",
+                  "gte": 5
+                },
+                {
+                  "field": "/level",
+                  "lt": 9
+                }
+              ]
+            }
+          }
+        },
+        "warn": {
+          "title": "警告",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "any": [
+                {
+                  "field": "/level",
+                  "gt": 8
+                },
+                {
+                  "field": "/level",
+                  "lte": 0
+                }
+              ]
+            }
+          }
+        },
+        "quiet": {
+          "title": "静默",
+          "description": "未选城市时显示",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "field": "/city",
+              "truthy": false
+            }
+          }
+        },
+        "links": {
+          "title": "链接",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "title": "地址",
+                "type": "string",
+                "format": "uri"
+              },
+              "open": {
+                "title": "打开",
+                "type": "boolean"
+              },
+              "target": {
+                "title": "目标",
+                "type": "string",
+                "enum": [
+                  "self",
+                  "blank"
+                ],
+                "x-ui": {
+                  "visibleIf": {
+                    "field": "/open",
+                    "base": "node",
+                    "truthy": true
+                  }
+                }
+              },
+              "tip": {
+                "title": "提示",
+                "type": "string",
+                "x-ui": {
+                  "visibleIf": {
+                    "not": {
+                      "field": "/url",
+                      "base": "node",
+                      "in": [
+                        "https://a.com"
+                      ]
+                    }
+                  }
+                }
+              },
+              "extra": {
+                "title": "附加",
+                "type": "string",
+                "x-ui": {
+                  "visibleIf": {
+                    "field": "/links/*/open",
+                    "truthy": true
+                  }
+                }
+              }
+            },
+            "required": [
+              "url"
+            ]
+          },
+          "x-ui": {
+            "summary": "url"
+          }
+        }
+      },
+      "required": [
+        "mode",
+        "level"
+      ]
+    }
+  }
+}

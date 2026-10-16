@@ -1,0 +1,25 @@
+A: {
+  name: strng
+  name: string
+  age: number[maxLength: 3]
+  count: integer[minimum: 5, default: 1]
+  label: [default: 3]
+  ref: Missing
+  <root/>
+  tags: array[array_item: 'string|null']
+}
+
+B?: {
+  x: string
+}
+
+lower: string
+
+C: {
+  a: string[maxLength: ]
+  b: string
+  c: string %
+  d string
+  e: string[maxLen: 3]
+  f: boolean {}
+}

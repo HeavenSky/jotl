@@ -1,0 +1,62 @@
+> Site(站点): [description: '站点配置'] {
+  "Site" entity.name.type.alias.jotl
+  "(" meta.label.jotl punctuation.definition.label.begin.jotl
+  "站点" meta.label.jotl string.unquoted.label.jotl
+  ")" meta.label.jotl punctuation.definition.label.end.jotl
+  ":" punctuation.separator.type.jotl
+  "[" meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "description" meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "站点配置" meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.metadata.jotl punctuation.definition.metadata.end.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   home: Page
+  "home" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "Page" meta.object.type.jotl entity.name.type.jotl
+>   about?: Page
+  "about" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "Page" meta.object.type.jotl entity.name.type.jotl
+>   footer: Footer
+  "footer" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "Footer" meta.object.type.jotl entity.name.type.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>
+> Page(页面): {
+  "Page" entity.name.type.alias.jotl
+  "(" meta.label.jotl punctuation.definition.label.begin.jotl
+  "页面" meta.label.jotl string.unquoted.label.jotl
+  ")" meta.label.jotl punctuation.definition.label.end.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   title: string
+  "title" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl support.type.builtin.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>
+> Footer: {
+  "Footer" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   text: string[default: '©']
+  "text" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "©" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

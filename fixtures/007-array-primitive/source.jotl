@@ -1,0 +1,8 @@
+Lists: {
+  tags(标签): array[array_item: 'string', item_meta: {maxLength: 10}, maxItems: 5]
+  scores: array[array_item: 'number', item_meta: {minimum: 0, maximum: 100}, minItems: 1]
+  // 可重复的枚举元素: 引用枚举类型而不用 multiple
+  loose?: array[array_item: 'Loose', uniqueItems: false]
+}
+
+Loose: enum{ x y }

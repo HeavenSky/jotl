@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Shipping",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Shipping": {
+      "title": "配送",
+      "type": "object",
+      "properties": {
+        "method": {
+          "title": "配送方式",
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "快递",
+              "const": "express"
+            },
+            {
+              "title": "自提",
+              "const": "pickup"
+            }
+          ],
+          "default": "express"
+        },
+        "address": {
+          "title": "收货地址",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "field": "/method",
+              "eq": "express"
+            }
+          }
+        },
+        "store": {
+          "title": "自提点",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "field": "/method",
+              "ne": "express"
+            }
+          }
+        },
+        "invoice": {
+          "title": "需要发票",
+          "type": "boolean",
+          "default": false
+        },
+        "title": {
+          "title": "发票抬头",
+          "description": "只在需要发票且不是自提时填写",
+          "type": "string",
+          "x-ui": {
+            "visibleIf": {
+              "all": [
+                {
+                  "field": "/invoice",
+                  "truthy": true
+                },
+                {
+                  "not": {
+                    "field": "/method",
+                    "in": [
+                      "pickup"
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        },
+        "items": {
+          "title": "商品",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "title": "名称",
+                "type": "string"
+              },
+              "gift": {
+                "title": "礼品",
+                "type": "boolean",
+                "default": false
+              },
+              "note": {
+                "title": "赠言",
+                "type": "string",
+                "x-ui": {
+                  "visibleIf": {
+                    "any": [
+                      {
+                        "field": "/items/*/gift",
+                        "eq": true
+                      },
+                      {
+                        "field": "/method",
+                        "notIn": [
+                          "express",
+                          "pickup"
+                        ]
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "required": [
+              "name",
+              "gift"
+            ]
+          }
+        }
+      },
+      "required": [
+        "method",
+        "invoice"
+      ]
+    }
+  }
+}

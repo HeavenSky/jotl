@@ -1,0 +1,23 @@
+{
+  "name": "jotl-monorepo",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@12.6.0",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "clean": "tsc -b --clean",
+    "test": "vitest run",
+    "lint": "biome lint",
+    "check": "biome lint && tsc -b && pnpm -r --if-present run typecheck:test && vitest run && pnpm --filter @jotl/playground run build"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.5.15",
+    "@types/node": "^26.6.4",
+    "typescript": "6.0.3",
+    "vitest": "^5.0.3"
+  },
+  "license": "MIT"
+}

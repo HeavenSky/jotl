@@ -1,0 +1,26 @@
+// 根与默认导出标识不在第一条; 条件的各种写法; 全局枚举的多选
+Cities(城市): enum{ bj(北京) sh(上海) gz(广州) }
+
+<default/>
+Shared(公共): {
+  note(备注)?: string
+}
+
+<root/>
+Settings(设置): [description: '设置页', rules: [{match: {type: 'boolean'}, ui: {widget: 'checkbox'}}], id: 'https://jotl.dev/fixtures/111.json'] {
+  mode(模式): enum[default: 'basic']{ basic(基础) pro(专业) }
+  level(等级): integer[minimum: 0, maximum: 10, default: 0]
+  city(城市)?: Cities
+  cities(常驻城市)?: Cities[multiple: true, maxItems: 2]
+  advanced(高级选项)?: string[root_if: {left: 'mode', op: 'eq', right: 'pro'}]
+  bonus(奖励)?: string[root_if: {and: [{left: 'level', op: 'gte', right: 5}, {left: '$.level', op: 'lt', right: 9}]}]
+  warn(警告)?: string[root_if: {or: [{left: 'level', op: 'gt', right: 8}, {left: 'level', op: 'lte', right: 0}]}]
+  quiet(静默)?: string[root_if: {left: 'city', op: 'falsy'}, description: '未选城市时显示']
+  links(链接)?: array[summary: 'url'] {
+    url(地址): url
+    open(打开)?: boolean
+    target(目标)?: enum[node_if: 'open']{ self blank }
+    tip(提示)?: string[node_if: {not: {left: 'url', op: 'in', right: ['https://a.com']}}]
+    extra(附加)?: string[root_if: {left: 'links[*].open', op: 'truthy'}]
+  }
+}

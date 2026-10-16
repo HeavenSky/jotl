@@ -1,0 +1,9 @@
+{
+  "price": { "type": "money", "value": "12.50", "currency": "CNY" },
+  "deposit": { "type": "money", "value": "100", "currency": "JPY" },
+  "cost": { "type": "money", "value": "1250", "currency": "CNY", "unit": "fen" },
+  "fee": { "type": "money", "value": "99.999", "currency": "USD", "unit": "yuan" },
+  "total": { "type": "bigint", "value": "12345678901234567890" },
+  "rate": 0.35,
+  "count": 3
+}

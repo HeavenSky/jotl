@@ -1,0 +1,17 @@
+node_modules/
+dist/
+coverage/
+*.tsbuildinfo
+.DS_Store
+.ai-ctx/
+.env
+.env.*
+# 用户全局 gitignore 排除了 lockfile, 本仓依赖 --frozen-lockfile 安装, 必须提交它.
+!pnpm-lock.yaml
+# 官方 JSON-Schema-Test-Suite, 由 scripts/fetch-json-schema-test-suite.sh 下载.
+vendor/
+# 用户全局 gitignore 排除了以点开头的目录; 只放行根目录的发布工作流与插件调试配置(packages/vscode 自带 .gitignore 放行它自己的).
+!/.github/
+!/.vscode/
+/.vscode/*
+!/.vscode/launch.json

@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Jotl Playground</title>
+    <!-- 产物与 import map 用相对地址, 子路径缺结尾斜杠时(/sub)会解析到上一级而整页打不开, 先补斜杠; 最后一段含 . 视为文件名(/sub/index.html)不处理. -->
+    <script>
+      (function () {
+        var path = location.pathname;
+        if (path.slice(-1) !== "/" && path.slice(path.lastIndexOf("/") + 1).indexOf(".") === -1) location.replace(path + "/" + location.search + location.hash);
+      })();
+    </script>
+    <!-- 扩展组件模块里的 react 与 react/jsx-runtime 指到 public/shims 的垫片, 取宿主同一份 React; 必须在任何 module script 之前. -->
+    <script type="importmap">
+      {
+        "imports": {
+          "react": "./shims/react.js",
+          "react/jsx-runtime": "./shims/react-jsx-runtime.js"
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <noscript>Jotl Playground 需要启用 JavaScript. / Jotl Playground requires JavaScript.</noscript>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

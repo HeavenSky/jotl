@@ -1,0 +1,7 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": { "Name": { "type": "string" } },
+  "$defs": { "Name": { "type": "integer" } },
+  "type": "object",
+  "properties": { "name": { "$ref": "#/$defs/Name" } }
+}

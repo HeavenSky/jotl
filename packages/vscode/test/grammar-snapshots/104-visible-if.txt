@@ -1,0 +1,252 @@
+> Shipping(配送): {
+  "Shipping" entity.name.type.alias.jotl
+  "(" meta.label.jotl punctuation.definition.label.begin.jotl
+  "配送" meta.label.jotl string.unquoted.label.jotl
+  ")" meta.label.jotl punctuation.definition.label.end.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   method(配送方式): enum[default: 'express']{ express(快递) pickup(自提) }
+  "method" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "配送方式" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "enum" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "express" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+  "{" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.begin.jotl
+  "express" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "(" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "快递" meta.object.type.jotl meta.enum.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "pickup" meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
+  "(" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "自提" meta.object.type.jotl meta.enum.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.enum.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "}" meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
+>   address(收货地址)?: string[root_if: {left: 'method', op: 'eq', right: 'express'}]
+  "address" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "收货地址" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "root_if" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "left" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "method" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "op" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "eq" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl support.constant.condition-operator.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "right" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "express" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   store(自提点)?: string[root_if: {left: 'method', op: 'ne', right: 'express'}]
+  "store" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "自提点" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "root_if" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "left" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "method" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "op" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "ne" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl support.constant.condition-operator.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "right" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "express" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   invoice(需要发票): boolean[default: false]
+  "invoice" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "需要发票" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "boolean" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "false" meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   title(发票抬头)?: string[description: '只在需要发票且不是自提时填写', root_if: {and: ['invoice', {not: {left: 'method', op: 'in', right: ['pickup']}}]}]
+  "title" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "发票抬头" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "description" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "只在需要发票且不是自提时填写" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl punctuation.separator.comma.jotl
+  "root_if" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "and" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "invoice" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.separator.comma.jotl
+  "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "not" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "left" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "method" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "op" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "in" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl support.constant.condition-operator.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "right" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "pickup" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   items(商品)?: array {
+  "items" meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "商品" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "array" meta.object.type.jotl support.type.builtin.jotl
+  "{" meta.object.type.jotl meta.object.type.jotl punctuation.definition.object.begin.jotl
+>     name(名称): string
+  "name" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "名称" meta.object.type.jotl meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl meta.object.type.jotl support.type.builtin.jotl
+>     gift(礼品): boolean[default: false]
+  "gift" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "礼品" meta.object.type.jotl meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl punctuation.separator.type.jotl
+  "boolean" meta.object.type.jotl meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "default" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "false" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl constant.language.boolean.jotl
+  "]" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>     note(赠言)?: string[root_if: {or: [{left: 'items[*].gift', op: 'eq', right: true}, {left: 'method', op: 'not_in', right: ['express', 'pickup']}]}]
+  "note" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
+  "(" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
+  "赠言" meta.object.type.jotl meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
+  ")" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.end.jotl
+  "?" meta.object.type.jotl meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl punctuation.separator.type.jotl
+  "string" meta.object.type.jotl meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "root_if" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "{" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "or" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "{" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "left" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "items[*].gift" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "op" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "eq" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl support.constant.condition-operator.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "right" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "true" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl constant.language.boolean.jotl
+  "}" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.separator.comma.jotl
+  "{" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
+  "left" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "method" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "op" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "not_in" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl support.constant.condition-operator.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "right" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "[" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "express" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.separator.comma.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "pickup" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "}" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
+  "}" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
+  "]" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   }
+  "}" meta.object.type.jotl meta.object.type.jotl punctuation.definition.object.end.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

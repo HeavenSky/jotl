@@ -1,0 +1,15 @@
+// 日期组件的存储格式 value_format: 默认, 自定义格式, 时间戳与 4 个别名
+Schedule: {
+  day: date
+  dayCompact?: date[value_format: 'YYYYMMDD']
+  dayStamp?: date[value_format: 'x']
+  alarm?: time
+  alarmShort?: time[value_format: 'HH:mm', default: '09:00']
+  at?: datetime
+  atIsoMs?: datetime[value_format: 'iso-x']
+  atUtc?: datetime[value_format: 'utc']
+  atUtcMs?: datetime[value_format: 'utc-x']
+  atMs?: datetime[value_format: 'x']
+  atSec?: datetime[value_format: 'X']
+  atText?: datetime[value_format: 'YYYY-MM-DD HH:mm:ss']
+}

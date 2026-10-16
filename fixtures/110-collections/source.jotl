@@ -1,0 +1,22 @@
+// map 的键约束与值对象, 元组, JSON 文本
+Collections(集合): {
+  i18n(多语言)?: map[map_item: 'string', key_meta: {pattern: '^[a-z]{2}$', maxLength: 2}]
+  users(用户表)?: map[summary: 'name', maxProperties: 10] {
+    name(姓名): string
+    age(年龄)?: integer[minimum: 0]
+  }
+  point(坐标): array[array_item: 'tuple'] {
+    0(经度): number
+    1(纬度): number
+  }
+  record(记录)?: array[array_item: 'tuple', maxItems: 5] {
+    0(名称): string
+    *: number
+  }
+  extra(扩展配置)?: jsontext
+  options(选项)?: jsontext {
+    debug(调试)?: boolean
+    level(级别): integer[minimum: 1, maximum: 5]
+  }
+  matrix(矩阵)?: jsontext[json_item: 'array', item_meta: {array_item: 'number'}]
+}

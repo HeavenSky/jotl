@@ -1,0 +1,21 @@
+{
+  "name": "@jotl/core",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Jotl 语言核心: JSON Schema 2020-12 与 x-ui 类型契约, 诊断, JSON Pointer; Jotl 语法的解析, 编译到 JSON Schema, 打印与格式化",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.zh-CN.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck:test": "tsc -p tsconfig.test.json"
+  }
+}

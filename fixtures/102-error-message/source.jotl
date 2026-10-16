@@ -1,0 +1,6 @@
+SignUp(报名): [description: '报名表'] {
+  name(姓名): string[minLength: 2, maxLength: 20, errorMessage: {minLength: '姓名至少 2 个字', maxLength: '姓名最多 20 个字'}]
+  age(年龄)?: integer[minimum: 18, errorMessage: '年龄须为不小于 18 的整数']
+  email(邮箱): email[errorMessage: {required: '请填写邮箱', format: '邮箱格式不正确'}]
+  phone(电话)?: string[pattern: '^1\\d{10}$', errorMessage: {pattern: '请填写 11 位手机号'}]
+}

@@ -1,0 +1,79 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://jotl.dev/fixtures/101-closed-file-id.json",
+  "$ref": "#/$defs/Address",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Address": {
+      "title": "地址",
+      "description": "收件地址, 不允许出现未声明的字段",
+      "type": "object",
+      "properties": {
+        "city": {
+          "title": "城市",
+          "type": "string"
+        },
+        "street": {
+          "title": "街道",
+          "type": "string"
+        },
+        "country": {
+          "title": "国家",
+          "type": "string",
+          "default": "中国"
+        },
+        "geo": {
+          "title": "坐标",
+          "type": "object",
+          "properties": {
+            "lat": {
+              "type": "number"
+            },
+            "lng": {
+              "type": "number"
+            }
+          },
+          "required": [
+            "lat",
+            "lng"
+          ],
+          "additionalProperties": false
+        },
+        "points": {
+          "title": "途经点",
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "extra": {
+          "title": "附加信息",
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "required": [
+        "city",
+        "country"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

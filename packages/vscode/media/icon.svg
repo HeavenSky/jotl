@@ -1,0 +1,55 @@
+<!-- 由 scripts/gen-icon.mjs 从 scripts/icon-spec.mjs 生成, 请勿手工编辑。 -->
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256" role="img" aria-label="Jotl">
+  <defs>
+    <linearGradient id="g0" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2E3547" />
+      <stop offset="1" stop-color="#171B26" />
+    </linearGradient>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD866" />
+      <stop offset="1" stop-color="#FF9F43" />
+    </linearGradient>
+    <linearGradient id="g2" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD866" />
+      <stop offset="1" stop-color="#FF9F43" />
+    </linearGradient>
+    <linearGradient id="g3" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#6FD6FF" />
+      <stop offset="1" stop-color="#3E8BFF" />
+    </linearGradient>
+    <linearGradient id="g4" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C792EA" />
+      <stop offset="1" stop-color="#FF6AC1" />
+    </linearGradient>
+    <linearGradient id="g5" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFB3C1" />
+      <stop offset="1" stop-color="#FF7E9D" />
+    </linearGradient>
+    <linearGradient id="g6" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9BE7F0" />
+      <stop offset="1" stop-color="#5BC4DE" />
+    </linearGradient>
+    <linearGradient id="g7" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#9BE7F0" />
+      <stop offset="1" stop-color="#5BC4DE" />
+    </linearGradient>
+    <linearGradient id="g8" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#C3B5FF" />
+      <stop offset="1" stop-color="#9D88F2" />
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="256" height="256" rx="56" fill="url(#g0)" />
+  <rect x="3" y="3" width="250" height="250" rx="53" fill="none" stroke="#3C4459" stroke-width="3" />
+  <path d="M84.78 41.56 L80.99 41.75 L77.52 42.29 L74.39 43.18 L71.58 44.45 L69.1 46.07 L66.95 48.05 L65.14 50.39 L63.65 53.09 L62.5 56.15 L61.67 59.57 L61.17 63.36 L61.01 67.49 L61.01 106.39 L60.87 109.84 L60.47 112.99 L59.8 115.84 L58.85 118.39 L57.63 120.64 L56.15 122.6 L54.4 124.25 L52.37 125.6 L50.08 126.65 L47.51 127.39 L44.67 127.85 L41.56 128 L44.66 128.15 L47.51 128.61 L50.08 129.35 L52.37 130.4 L54.39 131.75 L56.15 133.4 L57.64 135.36 L58.85 137.61 L59.8 140.16 L60.47 143.01 L60.88 146.16 L61.01 149.61 L61.01 188.51 L61.17 192.64 L61.67 196.43 L62.5 199.85 L63.65 202.91 L65.14 205.61 L66.95 207.95 L69.1 209.93 L71.58 211.55 L74.39 212.82 L77.52 213.71 L80.99 214.25 L84.78 214.44" fill="none" stroke="url(#g1)" stroke-width="15.13" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M171.22 41.56 L175.01 41.75 L178.48 42.29 L181.61 43.18 L184.42 44.45 L186.9 46.07 L189.05 48.05 L190.86 50.39 L192.35 53.09 L193.5 56.15 L194.33 59.57 L194.83 63.36 L194.99 67.49 L194.99 106.39 L195.13 109.84 L195.53 112.99 L196.2 115.84 L197.15 118.39 L198.37 120.64 L199.85 122.6 L201.6 124.25 L203.63 125.6 L205.92 126.65 L208.49 127.39 L211.33 127.85 L214.44 128 L211.34 128.15 L208.49 128.61 L205.92 129.35 L203.63 130.4 L201.61 131.75 L199.85 133.4 L198.36 135.36 L197.15 137.61 L196.2 140.16 L195.53 143.01 L195.12 146.16 L194.99 149.61 L194.99 188.51 L194.83 192.64 L194.33 196.43 L193.5 199.85 L192.35 202.91 L190.86 205.61 L189.05 207.95 L186.9 209.93 L184.42 211.55 L181.61 212.82 L178.48 213.71 L175.01 214.25 L171.22 214.44" fill="none" stroke="url(#g2)" stroke-width="15.13" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="85.86" y="59.93" width="84.28" height="30.25" rx="9.72" fill="none" stroke="url(#g3)" stroke-width="6.48" />
+  <rect x="97.75" y="67.49" width="4.32" height="15.13" rx="2.16" fill="#FFF8F2" />
+  <path d="M162.57 90.18 L162.57 161.49 L161.72 171.45 L159.38 179.71 L155.82 186.31 L151.37 191.27 L146.31 194.6 L140.97 196.34 L135.62 196.5 L130.56 195.11 L126.11 192.19 L122.55 187.76 L120.21 181.84 L119.36 174.46" fill="none" stroke="url(#g4)" stroke-width="21.61" stroke-linecap="round" stroke-linejoin="round" />
+  <rect x="82.62" y="102.07" width="54.02" height="23.77" rx="11.89" fill="url(#g5)" />
+  <circle cx="124.76" cy="113.95" r="7.83" fill="#FFF8F2" />
+  <path d="M95.45 113.95 L104.09 113.95" fill="none" stroke="#FFF8F2" stroke-width="3.24" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M82.62 144.21 a11.89 11.89 0 1 0 23.78 0 a11.89 11.89 0 1 0 -23.78 0 Z M87.49 144.21 a7.02 7.02 0 1 0 14.04 0 a7.02 7.02 0 1 0 -14.04 0 Z" fill-rule="evenodd" fill="url(#g6)" />
+  <circle cx="94.51" cy="144.21" r="4.32" fill="url(#g7)" />
+  <rect x="112.87" y="132.32" width="23.77" height="23.77" rx="6.48" fill="url(#g8)" />
+  <path d="M118.82 144.64 L123.03 148.85 L130.7 139.89" fill="none" stroke="#FFF8F2" stroke-width="3.67" stroke-linecap="round" stroke-linejoin="round" />
+</svg>

@@ -1,0 +1,6 @@
+[
+  { "code": "JOTL4025", "pointer": "/dayCompact" },
+  { "code": "JOTL4025", "pointer": "/alarm" },
+  { "code": "JOTL4025", "pointer": "/alarmShort" },
+  { "code": "JOTL4025", "pointer": "/atText" }
+]

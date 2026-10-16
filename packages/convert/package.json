@@ -1,0 +1,42 @@
+{
+  "name": "@jotl/convert",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "description": "Jotl 与其他格式互转: JSON Schema 与 TS + JSDoc 互转, 旧版 JSON Schema / OpenAPI 升级到 2020-12, 凤蝶 schema 迁移为 Jotl",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./from-ts": {
+      "types": "./dist/from-ts.d.ts",
+      "import": "./dist/from-ts.js"
+    },
+    "./eslint": {
+      "types": "./dist/eslint.d.ts",
+      "import": "./dist/eslint.js"
+    },
+    "./tsdoc.json": "./tsdoc.json"
+  },
+  "files": [
+    "dist",
+    "tsdoc.json",
+    "README.zh-CN.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck:test": "tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@jotl/core": "workspace:*",
+    "typescript": "6.0.3"
+  },
+  "devDependencies": {
+    "@microsoft/tsdoc": "^0.17.1",
+    "@microsoft/tsdoc-config": "^0.18.3",
+    "ajv": "^8.20.0",
+    "ajv-formats": "^3.0.1",
+    "typia": "^15.1.0"
+  }
+}

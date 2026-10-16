@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Site",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Site": {
+      "title": "站点",
+      "description": "站点配置",
+      "type": "object",
+      "properties": {
+        "home": {
+          "$ref": "#/$defs/Page"
+        },
+        "about": {
+          "$ref": "#/$defs/Page"
+        },
+        "footer": {
+          "$ref": "#/$defs/Footer"
+        }
+      },
+      "required": [
+        "home",
+        "footer"
+      ]
+    },
+    "Page": {
+      "title": "页面",
+      "type": "object",
+      "properties": {
+        "title": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "title"
+      ]
+    },
+    "Footer": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string",
+          "default": "©"
+        }
+      },
+      "required": [
+        "text"
+      ]
+    }
+  }
+}

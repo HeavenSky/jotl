@@ -1,0 +1,44 @@
+// v1 综合示例: 对象钻取, 金额与大整数, 日期存储格式, 联合, 枚举多选, 数组与字典, 条件显示
+<root/>
+Shop(店铺): [description: '嵌套对象默认钻取为子页, 点入口行进入, 面包屑退回'] {
+  name(店名): string[maxLength: 20, default: '我的小店']
+  intro(简介)?: text[maxLength: 200]
+  homepage(主页)?: url
+  logo(Logo)?: image
+  mode(经营方式): enum[default: 'online']{ online(线上) offline(线下) }
+  address(门店地址)?: Address[root_if: {left: 'mode', op: 'eq', right: 'offline'}, description: '线下经营时显示']
+  openedOn(开业日期)?: date[value_format: 'YYYYMMDD']
+  updatedAt(更新时间)?: datetime[value_format: 'x', description: '毫秒时间戳']
+  channels(销售渠道): enum[multiple: true, widget: 'checkbox']{ app(App) web(网页) mini(小程序) }
+  price(起售价): money[currency: 'CNY', minimum: '0']
+  stock(总库存): bigint[minimum: '0']
+  size(展示尺寸)?: union[union_item: 'number|string', item_meta: {number: {minimum: 0}, string: {pattern: '^\\d+%$'}}]
+  contact(联系方式): [widget: 'inline', layout: 'grid', columns: 2] {
+    phone(电话): string
+    email(邮箱)?: email
+  }
+  seo(搜索优化)?: {
+    title(标题)?: string
+    keywords(关键词)?: array[array_item: 'string', maxItems: 5]
+  }
+  banners(轮播图)?: array[array_item: 'Banner', maxItems: 5, summary: 'title']
+  blocks(区块)?: array[array_item: 'Block']
+  i18n(多语言店名)?: map[map_item: 'string', key_meta: {pattern: '^[a-z]{2}$'}]
+}
+
+Address(地址): {
+  city(城市): string
+  detail(详细地址)?: text
+}
+
+Banner(轮播项): {
+  title(标题): string
+  img(图片): image
+  href(链接)?: url
+  target(打开方式)?: enum[node_if: 'href']{ self(当前页) blank(新窗口) }
+}
+
+Block(区块): union[discriminator: 'kind'] {
+  text(文本): { content(正文): richtext }
+  image(图片): { src(图片地址): image, alt(替代文字)?: string }
+}

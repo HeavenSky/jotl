@@ -1,0 +1,367 @@
+/* Playground 的页面布局与编辑器样式; 表单本身的样式见 jotl.css. */
+:root {
+  --pg-border: #d0d4da;
+  --pg-muted: #5f6670;
+  --pg-surface: #ffffff;
+  --pg-panel: #f6f7f9;
+  --pg-error: #c62828;
+  --pg-warning: #b26a00;
+  --pg-info: #2f6feb;
+  --pg-stale: #fff4d6;
+  --pg-code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --pg-line-height: 1.5;
+  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  color: #1f2328;
+  background: var(--pg-surface);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+.pg-app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+.pg-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.5rem 1rem;
+  border-bottom: 1px solid var(--pg-border);
+}
+
+.pg-title {
+  margin: 0;
+  font-size: 1.125rem;
+}
+
+.pg-examples {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pg-main {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  flex: 1;
+  min-height: 0;
+}
+
+.pg-left,
+.pg-right {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  min-width: 0;
+}
+
+.pg-left {
+  border-right: 1px solid var(--pg-border);
+}
+
+.pg-editor {
+  display: flex;
+  flex-direction: column;
+  flex: 3;
+  min-height: 0;
+}
+
+.pg-editor-body {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+/* 行号栏与 textarea 必须同字体同行高, 否则行号与源码行错位. */
+.pg-gutter,
+.pg-textarea {
+  font-family: var(--pg-code-font);
+  font-size: 13px;
+  line-height: var(--pg-line-height);
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.pg-gutter {
+  overflow: hidden;
+  min-width: 3.5rem;
+  padding-right: 0.5rem;
+  text-align: right;
+  color: var(--pg-muted);
+  background: var(--pg-panel);
+  user-select: none;
+}
+
+.pg-gutter-line {
+  white-space: pre;
+}
+
+.pg-mark-error {
+  color: var(--pg-error);
+  font-weight: 700;
+  box-shadow: inset 3px 0 0 var(--pg-error);
+}
+
+.pg-mark-warning {
+  color: var(--pg-warning);
+  box-shadow: inset 3px 0 0 var(--pg-warning);
+}
+
+.pg-mark-info {
+  color: var(--pg-info);
+}
+
+.pg-textarea {
+  flex: 1;
+  margin: 0;
+  padding-left: 0.75rem;
+  padding-right: 0.75rem;
+  border: 0;
+  resize: none;
+  outline: none;
+  white-space: pre;
+  overflow: auto;
+  tab-size: 2;
+}
+
+.pg-textarea:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--pg-info);
+}
+
+.pg-editor-status {
+  display: flex;
+  gap: 1rem;
+  padding: 0.25rem 1rem;
+  font-size: 0.8125rem;
+  color: var(--pg-muted);
+  border-top: 1px solid var(--pg-border);
+  background: var(--pg-panel);
+}
+
+.pg-section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  margin: 0 0 0.5rem;
+  font-size: 0.9375rem;
+}
+
+.pg-diagnostics {
+  flex: 1;
+  min-height: 6rem;
+  overflow: auto;
+  padding: 0.5rem 1rem;
+  border-top: 1px solid var(--pg-border);
+}
+
+.pg-diagnostics-count {
+  font-weight: 400;
+  font-size: 0.8125rem;
+  color: var(--pg-muted);
+}
+
+.pg-diagnostic-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pg-diagnostic-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.25rem 0.5rem;
+  font: inherit;
+  font-size: 0.875rem;
+  text-align: left;
+}
+
+.pg-diagnostic-button {
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.pg-diagnostic-button:hover,
+.pg-diagnostic-button:focus-visible {
+  background: var(--pg-panel);
+}
+
+.pg-severity {
+  font-weight: 600;
+}
+
+.pg-severity-error {
+  color: var(--pg-error);
+}
+
+.pg-severity-warning {
+  color: var(--pg-warning);
+}
+
+.pg-severity-info {
+  color: var(--pg-info);
+}
+
+.pg-diagnostic-location,
+.pg-diagnostic-stage,
+.pg-diagnostic-code {
+  color: var(--pg-muted);
+  font-family: var(--pg-code-font);
+  font-size: 0.8125rem;
+}
+
+.pg-output {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.pg-tablist {
+  display: flex;
+  gap: 0.25rem;
+  padding: 0.5rem 1rem 0;
+  border-bottom: 1px solid var(--pg-border);
+}
+
+.pg-tab {
+  margin-bottom: -1px;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid transparent;
+  border-radius: 4px 4px 0 0;
+  background: transparent;
+  font: inherit;
+  cursor: pointer;
+}
+
+.pg-tab[aria-selected="true"] {
+  border-color: var(--pg-border);
+  border-bottom-color: var(--pg-surface);
+  background: var(--pg-surface);
+  color: var(--pg-info);
+  font-weight: 600;
+}
+
+.pg-tab:focus-visible {
+  outline: 2px solid var(--pg-info);
+  outline-offset: 1px;
+}
+
+.pg-stale {
+  margin: 0;
+  padding: 0.5rem 1rem;
+  background: var(--pg-stale);
+  border-bottom: 1px solid var(--pg-border);
+  font-size: 0.875rem;
+}
+
+.pg-panels {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+}
+
+.pg-panels-stale {
+  opacity: 0.7;
+}
+
+.pg-panel {
+  padding: 1rem;
+}
+
+.pg-code {
+  margin: 0;
+  padding: 0.75rem;
+  overflow: auto;
+  font-family: var(--pg-code-font);
+  font-size: 13px;
+  line-height: var(--pg-line-height);
+  background: var(--pg-panel);
+  border-radius: 4px;
+}
+
+/* 配色取自 VS Code Light+ */
+.pg-tok-key { color: #0451a5; }
+.pg-tok-string { color: #a31515; }
+.pg-tok-number { color: #098658; }
+.pg-tok-literal,
+.pg-tok-keyword { color: #0000ff; }
+.pg-tok-type { color: #267f99; }
+.pg-tok-comment { color: #008000; }
+.pg-tok-tag { color: #008000; font-weight: 600; }
+
+.pg-form-preview {
+  display: grid;
+  gap: 1rem;
+}
+
+.pg-form-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  font-size: 0.875rem;
+}
+
+.pg-form-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pg-empty {
+  color: var(--pg-muted);
+}
+
+.pg-alert {
+  margin: 0;
+  color: var(--pg-error);
+}
+
+.pg-notice {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #e6c36a;
+  border-radius: 4px;
+  background: var(--pg-stale);
+  font-size: 0.875rem;
+}
+
+.pg-notice p,
+.pg-notice ul {
+  margin: 0;
+}
+
+.pg-notice ul {
+  padding-left: 1.25rem;
+  word-break: break-all;
+}
+
+@media (max-width: 900px) {
+  .pg-app {
+    height: auto;
+  }
+
+  .pg-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pg-left {
+    border-right: 0;
+    border-bottom: 1px solid var(--pg-border);
+  }
+
+  .pg-editor {
+    height: 60vh;
+  }
+}

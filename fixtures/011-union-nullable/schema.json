@@ -1,0 +1,132 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Unions",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Unions": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "number"
+            }
+          ]
+        },
+        "note": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "default": null
+        },
+        "link": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Link"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "size": {
+          "anyOf": [
+            {
+              "type": "string",
+              "enum": [
+                "s",
+                "m"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "shape": {
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "circle"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Circle"
+                }
+              ]
+            },
+            {
+              "type": "object",
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "const": "square"
+                }
+              },
+              "required": [
+                "kind"
+              ],
+              "allOf": [
+                {
+                  "$ref": "#/$defs/Square"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "required": [
+        "id",
+        "note",
+        "size"
+      ]
+    },
+    "Link": {
+      "type": "object",
+      "properties": {
+        "href": {
+          "type": "string",
+          "format": "uri"
+        }
+      },
+      "required": [
+        "href"
+      ]
+    },
+    "Circle": {
+      "type": "object",
+      "properties": {
+        "r": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "r"
+      ]
+    },
+    "Square": {
+      "type": "object",
+      "properties": {
+        "side": {
+          "type": "number"
+        }
+      },
+      "required": [
+        "side"
+      ]
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Page",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Page": {
+      "type": "object",
+      "properties": {
+        "meta": {
+          "title": "元信息",
+          "type": "object",
+          "properties": {
+            "seo": {
+              "title": "SEO",
+              "type": "object",
+              "properties": {
+                "keywords": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "robots": {
+                  "type": "string",
+                  "enum": [
+                    "index",
+                    "nofollow"
+                  ],
+                  "default": "index"
+                }
+              },
+              "required": [
+                "robots"
+              ]
+            },
+            "author": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "seo"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "default": "首页"
+        }
+      },
+      "required": [
+        "meta",
+        "title"
+      ]
+    }
+  }
+}

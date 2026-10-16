@@ -1,0 +1,6 @@
+Object(首页) {
+  title(标题): String[maxLength: 20, default: "欢迎"]
+  mode(模式): Enum[default: "light"] { light(浅色) dark(深色) }
+  card(卡片): Component
+  share(分享): Plugin[foo: "share"]
+}

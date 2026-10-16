@@ -1,0 +1,65 @@
+> // 带格式与默认组件的字符串组件
+  "//" comment.line.double-slash.jotl punctuation.definition.comment.jotl
+  " 带格式与默认组件的字符串组件" comment.line.double-slash.jotl
+> Semantic: {
+  "Semantic" entity.name.type.alias.jotl
+  ":" punctuation.separator.type.jotl
+  "{" meta.object.type.jotl punctuation.definition.object.begin.jotl
+>   intro: text
+  "intro" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "text" meta.object.type.jotl support.type.builtin.jotl
+>   body?: richtext
+  "body" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "richtext" meta.object.type.jotl support.type.builtin.jotl
+>   site: url
+  "site" meta.object.type.jotl variable.other.property.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "url" meta.object.type.jotl support.type.builtin.jotl
+>   mail?: email
+  "mail" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "email" meta.object.type.jotl support.type.builtin.jotl
+>   birthday?: date
+  "birthday" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "date" meta.object.type.jotl support.type.builtin.jotl
+>   createdAt?: datetime
+  "createdAt" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "datetime" meta.object.type.jotl support.type.builtin.jotl
+>   alarm?: time
+  "alarm" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "time" meta.object.type.jotl support.type.builtin.jotl
+>   theme?: color[default: '#1677ff']
+  "theme" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "color" meta.object.type.jotl support.type.builtin.jotl
+  "[" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.begin.jotl
+  "default" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "#1677ff" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
+>   cover?: image
+  "cover" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "image" meta.object.type.jotl support.type.builtin.jotl
+>   attachment?: file
+  "attachment" meta.object.type.jotl variable.other.property.jotl
+  "?" meta.object.type.jotl keyword.operator.optional.jotl
+  ":" meta.object.type.jotl punctuation.separator.type.jotl
+  "file" meta.object.type.jotl support.type.builtin.jotl
+> }
+  "}" meta.object.type.jotl punctuation.definition.object.end.jotl
+>

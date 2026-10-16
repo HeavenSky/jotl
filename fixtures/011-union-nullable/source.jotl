@@ -1,0 +1,22 @@
+Unions: {
+  id: union[union_item: 'string|number']
+  note: string[nullable: true, default: null]
+  link?: Link[nullable: true]
+  size: enum[nullable: true]{ s m }
+  shape?: union[discriminator: 'kind'] {
+    circle: Circle
+    square: Square
+  }
+}
+
+Link: {
+  href: url
+}
+
+Circle: {
+  r: number
+}
+
+Square: {
+  side: number
+}

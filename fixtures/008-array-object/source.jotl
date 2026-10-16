@@ -1,0 +1,6 @@
+Gallery: {
+  items(图片列表): array[maxItems: 10] {
+    src(地址): url
+    alt?: string
+  }
+}

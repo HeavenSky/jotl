@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Profile",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Profile": {
+      "title": "个人资料",
+      "description": "个人资料, 按标签页编排",
+      "type": "object",
+      "properties": {
+        "name": {
+          "title": "姓名",
+          "type": "string"
+        },
+        "bio": {
+          "title": "简介",
+          "type": "string",
+          "x-ui": {
+            "widget": "textarea"
+          }
+        },
+        "phone": {
+          "title": "电话",
+          "type": "string"
+        },
+        "address": {
+          "$ref": "#/$defs/Address",
+          "title": "地址"
+        },
+        "office": {
+          "$ref": "#/$defs/Address",
+          "title": "办公地址",
+          "x-ui": {
+            "layout": "stack"
+          }
+        },
+        "links": {
+          "title": "链接",
+          "type": "object",
+          "properties": {
+            "site": {
+              "title": "主页",
+              "type": "string",
+              "format": "uri"
+            },
+            "blog": {
+              "title": "博客",
+              "type": "string",
+              "format": "uri"
+            },
+            "repo": {
+              "title": "仓库",
+              "type": "string",
+              "format": "uri"
+            }
+          },
+          "x-ui": {
+            "layout": "grid",
+            "columns": 3
+          }
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "x-ui": {
+        "groups": [
+          {
+            "title": "联系方式",
+            "fields": [
+              "phone",
+              "address",
+              "office"
+            ]
+          },
+          {
+            "title": "其他",
+            "fields": [
+              "links"
+            ]
+          }
+        ],
+        "layout": "tabs"
+      }
+    },
+    "Address": {
+      "title": "地址",
+      "type": "object",
+      "properties": {
+        "province": {
+          "title": "省份",
+          "type": "string"
+        },
+        "city": {
+          "title": "城市",
+          "type": "string"
+        },
+        "detail": {
+          "title": "详细地址",
+          "type": "string"
+        }
+      },
+      "required": [
+        "province",
+        "city"
+      ],
+      "x-ui": {
+        "layout": "grid"
+      }
+    }
+  }
+}

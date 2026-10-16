@@ -1,0 +1,5 @@
+[
+  { "code": "JOTL4001", "pointer": "/dayStamp" },
+  { "code": "JOTL4001", "pointer": "/atMs" },
+  { "code": "JOTL4001", "pointer": "/atSec" }
+]

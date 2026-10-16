@@ -1,0 +1,84 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$ref": "#/$defs/Enums",
+  "x-ui": {
+    "version": 1
+  },
+  "$defs": {
+    "Enums": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "title": "模式",
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "浅色",
+              "const": "light"
+            },
+            {
+              "title": "深色",
+              "const": "dark"
+            }
+          ],
+          "default": "light"
+        },
+        "size": {
+          "type": "string",
+          "oneOf": [
+            {
+              "const": "small"
+            },
+            {
+              "title": "中",
+              "const": "medium"
+            },
+            {
+              "const": "large"
+            }
+          ]
+        },
+        "level": {
+          "type": "integer",
+          "oneOf": [
+            {
+              "title": "一级",
+              "const": 1
+            },
+            {
+              "title": "二级",
+              "const": 2
+            },
+            {
+              "const": 3
+            }
+          ]
+        },
+        "only": {
+          "type": "string",
+          "oneOf": [
+            {
+              "title": "固定",
+              "const": "fixed"
+            }
+          ]
+        },
+        "plain": {
+          "type": "string",
+          "enum": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      },
+      "required": [
+        "mode",
+        "size",
+        "level",
+        "only",
+        "plain"
+      ]
+    }
+  }
+}

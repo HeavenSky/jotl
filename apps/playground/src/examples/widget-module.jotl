@@ -1,0 +1,8 @@
+// 扩展组件模块(根元数据 widgets): 根条目声明的模块编译进根 x-ui.widgets, 预览时从该地址加载组件; 相对地址按页面所在目录解析
+<root/>
+Review(评价): [widgets: {Rating: {base: 'integer', module: './widgets/rating.js'}}] {
+  product(商品): string
+  score(评分): Rating[props: {max: 5}, default: 4]
+  service(服务)?: Rating[props: {max: 10}]
+  comment(评语)?: text[maxLength: 200]
+}

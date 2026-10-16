@@ -1,0 +1,29 @@
+{
+  "name": "jotl",
+  "version": "0.0.0",
+  "description": "Jotl 命令行工具",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "jotl": "./dist/bin.js"
+  },
+  "files": [
+    "dist",
+    "README.zh-CN.md"
+  ],
+  "scripts": {
+    "build": "tsc -b",
+    "typecheck:test": "tsc -p tsconfig.test.json"
+  },
+  "dependencies": {
+    "@jotl/core": "workspace:*",
+    "@jotl/convert": "workspace:*",
+    "@jotl/data": "workspace:*"
+  }
+}
