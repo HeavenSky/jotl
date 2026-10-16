@@ -72,14 +72,16 @@ Other directories:
 
 ## Release
 
-Pushing a tag publishes everything: `npm-v<version>` releases every public package under `packages/` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published, so rerunning a failed run is safe.
+Each package is released on its own by pushing a tag: `<directory>@<version>` releases `packages/<directory>` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published, so rerunning a failed run is safe.
 
-1. Set the same `version` in every public `packages/*/package.json`, commit and push to `main`.
-2. Push the tag:
+1. Bump `version` in the package's `package.json`, commit and push to `main`.
+2. Push the tag, for example for `packages/core`:
 
    ```sh
-   git tag npm-v0.0.2 && git push origin npm-v0.0.2
+   git tag core@0.0.2 && git push origin core@0.0.2
    ```
+
+A package that depends on another one through `workspace:*` is packed with that dependency's current version, so release the dependency first when both changed.
 
 npm publishing uses Trusted Publishing, so the repository holds no npm token. Each package needs a one-time trust entry, and a new package must be published once by hand before it can get one. Register all packages in one go; confirm 2FA on the first one and tick "skip two-factor authentication for the next 5 minutes" so the rest go through without prompts:
 

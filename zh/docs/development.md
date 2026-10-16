@@ -72,14 +72,16 @@
 
 ## 发布
 
-推送标签即发布：`npm-v<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/` 下全部公开包，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过 npm 上已有的版本，所以失败后重跑是安全的。
+每个包推送各自的标签单独发布：`<包目录名>@<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/<包目录名>`，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过 npm 上已有的版本，所以失败后重跑是安全的。
 
-1. 把所有公开包 `packages/*/package.json` 的 `version` 改成同一个版本，提交并推送到 `main`。
-2. 推送标签：
+1. 改该包 `package.json` 的 `version`，提交并推送到 `main`。
+2. 推送标签，以 `packages/core` 为例：
 
    ```sh
-   git tag npm-v0.0.2 && git push origin npm-v0.0.2
+   git tag core@0.0.2 && git push origin core@0.0.2
    ```
+
+经 `workspace:*` 依赖其他包的包，打包时写入的是依赖包当前的版本；两个包都有改动时先发布被依赖的那个。
 
 npm 发布走 Trusted Publishing，仓库里不存 npm token。每个包需要登记一次信任关系，新包要先手动发布一次才能登记。一次性登记全部包：第一个包做 2FA 时勾选「5 分钟内跳过两步验证」，其余包不再确认：
 
