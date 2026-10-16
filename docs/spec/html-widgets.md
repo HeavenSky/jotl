@@ -4,7 +4,7 @@
 
 This page describes which HTML elements implement the default widgets shipped with `@jotl/form`, how each one behaves, and how to replace or reuse them.
 
-The default widgets of `@jotl/form` (`src/html/`) implement every [built-in widget name](x-ui.md#built-in-widget-names) with native HTML elements only; they depend on neither a CSS framework nor the renderer (`src/react/`). For the props of each level see [Widget props by level](x-ui.md#widget-props-by-level).
+The default widgets of `@jotl/form` (`src/html/`) implement every [built-in widget name](x-ui.md#built-in-widget-names) with native HTML elements only; they need no CSS framework on the host and do not depend on the renderer (`src/react/`). For the props of each level see [Widget props by level](x-ui.md#widget-props-by-level).
 To replace a default widget, register a widget with the same name in an instance-level registry (`registry.extend()`); a registration at this level overrides the parent's registration of the same name.
 
 ## Widget table
@@ -15,11 +15,11 @@ To replace a default widget, register a widget with the same name in an instance
 | `textarea` | `<textarea>` | - |
 | `password` | `<input type="password">` | Changes only how the value is displayed |
 | `url` / `email` | `<input type="url">` / `<input type="email">` | - |
-| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | Converts with dayjs between the native value and the storage format (`x-valueFormat`, or `format` when absent) on read and write, in the local time zone; an existing value that does not match the storage format is shown in a raw-value text box with a hint, and the data is not rewritten; for the rules see the [Jotl syntax specification](jotl.md#dates-and-times) |
+| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | Converts with dayjs between the native value and the storage format (`x-valueFormat`, or when absent the component default `YYYY-MM-DD` / `HH:mm:ss` / `iso`, matching `format: date` / `date-time`) on read and write, in the local time zone; an existing value that does not match the storage format is shown in a raw-value text box with a hint, and the data is not rewritten; for the rules see the [Jotl syntax specification](jotl.md#dates-and-times) |
 | `color` | `<input type="color">` + text box | The native color picker supports only `#rrggbb`; for other values only the text box is shown |
-| `number` | `<input type="number">`; `<input type="text" inputmode="decimal">` when `thousands` is on | An empty string writes back `undefined`; `step` is set from `x-decimals` and the value is rounded on blur, with `step=1` for integer; `minimum` and `maximum` are synced |
-| `range` | `<input type="range">` | - |
-| `money` | `<input type="text" inputmode="decimal">` + currency and unit selectors | The value is `{type: "money", value, currency, unit?}`; currency and unit are shown as fixed text or a dropdown according to the schema's `const` / `enum`; decimal places are padded on blur |
+| `number` | `<input type="number">`; `<input type="text">` when `thousands` is on; `inputmode` is `numeric` for integer and `decimal` otherwise | An empty string writes back `undefined`; `step` is set from `x-decimals` (`any` without it, `1` for integer) and the value is rounded on blur; `minimum` and `maximum` are synced to `min` and `max`; with `thousands` on, `step` `min` `max` are not set and only the rounding on blur remains |
+| `range` | `<input type="range">` + `<output>` showing the current value | `minimum` / `maximum` become `min` / `max` (0 / 100 when absent); `step` follows `x-decimals`; disabled in both `view` and `disabled` mode |
+| `money` | `<input type="text" inputmode="decimal">` (`numeric` when no decimal places are allowed) + currency and unit parts | The value is `{type: "money", value, currency, unit?}`; currency and unit are shown as fixed text with a single allowed value or a dropdown with several, according to the schema's `const` / `enum`; an unconstrained currency is a 3-letter text box that upper-cases input, and an unconstrained unit is not shown; typing an amount fills in the first allowed currency (and unit) when missing; decimal places are padded on blur |
 | `bigint` | `<input type="text" inputmode="numeric">` | The value is `{type: "bigint", value}` |
 | `switch` | `<input type="checkbox" role="switch">` | - |
 | `checkbox` | boolean: one `<input type="checkbox">`; enum array: a group of them | - |
@@ -34,10 +34,10 @@ To replace a default widget, register a widget with the same name in an instance
 | `tuple` | `<ol>`, one item per position | Item i is rendered with `renderChild(String(i))`; position labels come from the wrapper (the `title` of that `prefixItems` entry, otherwise `Item n`); positions cannot be added or removed; when `items` is `true` or a schema, rest elements are listed after the positions (`rest`, item i is likewise rendered with `renderChild(String(i))`, where i is the actual index) with add and remove, subject to `minItems` / `maxItems` and `mode`, and nothing can be added until all positions are filled; when `items` is `false` or absent there is no rest area |
 | `nullable` `union` `kv` `tree` | See [Composite widgets](#composite-widgets) | - |
 | `json` | `<textarea>` (JSON) when editing, `<pre>` when viewing | Invalid JSON keeps the draft and shows an error; when the schema is a string, the value is the raw JSON text |
-| `field` | `<div>` + `<label for>` + required marker + help text + errors | The `id` of the error element is referenced by `aria-describedby`; a field with errors has `aria-invalid` |
-| `form` | `<form>` | Calls `submit()` on submit and prevents the default action; `errors` are listed at the top of the page, and with `goToError` each one is a button (its accessible name is the error message plus "go to field", or "跳到所在位置" in the Chinese UI) that calls `goToError(error)` when clicked |
+| `field` | `<div>` + `<label>` + required marker (`<abbr>`) + help text + errors | `for` is set only when the inner root element is a labelable control; composite widgets reference the label through `aria-labelledby`; the `id` of the error element is referenced by `aria-describedby`; the control (or group root) of a field with errors has `aria-invalid` |
+| `form` | `<form novalidate>` + submit and reset buttons in `edit` mode | Calls `submit()` on submit and `reset()` on reset, only in `edit` mode, and prevents the default action; `errors` are listed at the top of the form, and with `goToError` each one is a button (its accessible name is the error message plus "go to field", or "跳到所在位置" in the Chinese UI) that calls `goToError(error)` when clicked |
 
-- Thousands separators: `number` `money` `bigint` show the raw value while focused, and show separators according to `thousands` when blurred or read-only; typing and pasting strip `,` `，`, spaces and `_`; formatting uses `formatThousands` / `stripThousands` from `@jotl/form/core`.
+- Thousands separators: `number` `money` `bigint` show the raw value while focused, and show separators according to `thousands` when blurred or read-only (`thousands` defaults to on for `money` and off otherwise); typing and pasting strip `,` `，`, whitespace and `_` (for `number`, only while `thousands` is on); formatting uses `formatThousands` / `stripThousands` from `@jotl/form/core`.
 - Options are read with `enumOptions` from `@jotl/form/core`; field labels are computed by the renderer and passed in through `DecoratorProps.label` (the `title`, otherwise the key).
 
 ## Composite widgets
@@ -45,11 +45,11 @@ To replace a default widget, register a widget with the same name in an instance
 | Widget name | Form | Behavior |
 |---|---|---|
 | `nullable` | The original widget + a null toggle | The toggle calls `setNull`; when not null, the non-null branch is rendered with `renderContent()` |
-| `union` | Branch selector on the left, current branch content on the right, wrapping when space runs out | The branch selector is a dropdown by default; when `props.selector` is `"buttons"` and there are at most 4 branches, it is segmented buttons (a group of `<input type="radio">` with `role="radiogroup"`), falling back to the dropdown for more branches; options are `branches[i].title` and selecting one calls `selectBranch(i)`; the subform is rendered with `renderContent()` |
+| `union` | Branch selector on the left, current branch content on the right, wrapping when space runs out | With a single branch there is no selector; otherwise the branch selector is a dropdown by default; when `props.selector` is `"buttons"` and there are at most 4 branches, it is segmented buttons (a group of `<input type="radio">` with `role="radiogroup"`), falling back to the dropdown for more branches; options are `branches[i].title` and selecting one calls `selectBranch(i)`; the subform is rendered with `renderContent()` |
 | `kv` | List of key-value pairs | Keys can be added, removed and renamed (`addEntry` `removeEntry` `renameEntry`), disabled according to `canAdd` and `canRemove`; values are rendered with `renderChild`, the relative path being the key escaped with `escapePointerToken` |
 | `tree` | Collapsible tree, expanded on demand | The expanded state is controlled by `expanded` and `setExpanded`; `renderContent()` is not called while collapsed |
 
-- The `union` widget never rewrites data itself: on a branch switch, the renderer replaces the current value with the new branch's default data, caches each branch's last value within the same form instance, and restores it when you switch back.
+- The `union` widget never rewrites data itself: on a branch switch, the renderer replaces the current value with the new branch's default data, caches each branch's last value within the same form instance, and restores it when you switch back; the cache is cleared when the form is reset or its whole value is replaced.
 - The current branch of a discriminated union is decided by the renderer from the discriminator's value; the widget only reads `activeBranch`.
 
 ## Rich text editor
@@ -77,18 +77,18 @@ When an object has both `properties` and a schema-form `additionalProperties`, t
 ## Controlled widget constraints
 
 - Every widget is stateless and controlled: the value comes only from `value`, and changes go only through `onChange`.
-- The only local state allowed is draft text that is not yet valid while typing (such as `-` in a number box or an unclosed bracket in `json`); call `onChange` as soon as it becomes valid. The exception: `number` `money` `bigint` use focus state to switch between the raw value and the thousands-separated display.
+- Apart from UI state that is not data (such as upload status or the selected tab), the only local state allowed is draft text that is not yet valid while typing (such as `-` in a number box or an unclosed bracket in `json`); call `onChange` as soon as it becomes valid. The exception: `number` `money` `bigint` use focus state to switch between the raw value and the thousands-separated display.
 - There are three `mode`s: `edit` editable, `view` read-only display, `disabled` disabled.
 - When an adapter is not provided, the widget works in the reduced form described in the table above without raising errors.
 
 ## Styles
 
 - Elements carry both `jotl-` semantic class names and Tailwind CSS v4 utility classes (prefix `jt`, such as `jt:flex`); the semantic class names are the public hooks for overriding and targeting, while the utility classes carry no guarantee.
-- No preflight is included; all generated rules sit in the three cascade layers `theme` `components` `utilities`, so the host's unlayered styles take precedence.
+- No preflight is included; all generated style rules sit in cascade layers (`theme` `components` `utilities`, plus Tailwind's `properties`), so the host's unlayered styles take precedence.
 - Theming: design tokens are wired to `--jotl-*` variables through `@theme inline` (`--jotl-border` `--jotl-focus` `--jotl-error` `--jotl-muted` `--jotl-radius` `--jotl-gap` and others); override these variables on any subtree to restyle it. For default values see [`packages/form/theme.css`](../../packages/form/theme.css).
 - Two ways to wire in styles:
   - Hosts without Tailwind import the precompiled `@jotl/form/style.css`; widgets still work without it.
-  - Tailwind v4 hosts import `tailwindcss/theme.css` (`prefix(jt)`) and `tailwindcss/utilities.css` (`source(none)`) in a separate CSS entry, then import `@jotl/form/tailwind.css`; see the [`@jotl/form` README](../../packages/form/README.md) for the exact setup. The prefix applies only to that entry and cannot be merged into the host's own `@import "tailwindcss"`.
+  - Tailwind v4 hosts import `tailwindcss/theme.css` (`prefix(jt)`) and `tailwindcss/utilities.css` (`source(none)`) in a separate CSS entry, then import `@jotl/form/tailwind.css`; see [Compile with your Tailwind v4 build](../../packages/form/docs/styling.md#compile-with-your-tailwind-v4-build) for the exact setup, which also declares the layer order first. The prefix applies only to that entry and cannot be merged into the host's own `@import "tailwindcss"`.
 - `style.css` is generated by `pnpm run build:css`; the tests regenerate and compare it, and fail when it is out of date.
 - The widget package also exports `styles` (the utility classes of each widget) and `cn` (class name merging) so custom widgets can reuse the same look.
 

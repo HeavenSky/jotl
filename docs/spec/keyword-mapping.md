@@ -20,7 +20,7 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | ᴾ | Jotl protocol tags | Declared in [`packages/convert/tsdoc.json`](../../packages/convert/tsdoc.json); constraint tags share the names of their JSON Schema keywords; without this preset, TSDoc tools report unknown tags |
 | ᵀ | The TS type itself | No tag; expressed by how the type is written |
 
-"—" means the form has no counterpart: when the Jotl column is "—", the keyword can only be written verbatim through the `schema: {...}` metadata; when the TS column is "—", `schemaToTs` does not emit it and reports a `JOTL2002` warning, except for the fixed-dialect `$schema`.
+"—" means the form has no counterpart: when the Jotl column is "—", the keyword can only be written verbatim through the `schema: {...}` metadata; when the TS column is "—", `schemaToTs` does not emit it and reports a `JOTL2002` warning, except for the fixed-dialect `$schema` and the `additionalProperties: false` / `x-decimalRange` of `money` and `bigint` value objects, which are dropped silently.
 
 ## Document structure
 
@@ -32,7 +32,7 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | `$ref` | Reference to another schema | Type name `X` in a type position, compiled to `#/$defs/X` | ᵀ Type name `X` | The root and the default export are decided by `<root/>` `<default/>`, see [File structure](jotl.md#file-structure); the default export maps to `export default X;`, and when it differs from the root, the root type's comment carries ᴾ `@root`; `tsToSchema` uses the declaration with `@root` as the root, or the default export when there is none |
 | `$comment` | Note for maintainers, not used in validation | `comment: '...'` | `@privateRemarks text` | `@comment` is also accepted when reading |
 | `$anchor` | Anchor | — | — | Supported by validation, default data and `#name` references; not written in Jotl syntax, passed through via the `schema` metadata |
-| `$dynamicRef` `$dynamicAnchor` `$vocabulary` | Dynamic references and vocabularies | — | — | Only partially supported by Ajv |
+| `$dynamicRef` `$dynamicAnchor` `$vocabulary` | Dynamic references and vocabularies | — | — | Only partially supported by Ajv; `$dynamicRef` also makes the node degrade to `json` |
 
 ## Metadata
 
@@ -52,9 +52,9 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 |---|---|---|---|---|
 | `type: "string"` | String | `string`, or the component omitted | ᵀ `string` | Components such as `text` `url` `image` are also built on it, see the [Jotl syntax specification](jotl.md#built-in-components) |
 | `type: "number"` | Number | `number` | ᵀ `number` | |
-| `type: "integer"` | Integer | `integer` | ᵀ `number` + ᴾ `@asType integer` | `integer` on array elements and `Map` values has nowhere to carry the tag and is dropped in TS |
+| `type: "integer"` | Integer | `integer` | ᵀ `number` + ᴾ `@asType integer` | `integer` at positions that cannot carry a comment (array elements, `Map` values, tuple positions, union branches) is dropped with `JOTL2002`, unless `typiaTags` is enabled |
 | `type: "boolean"` | Boolean | `boolean` | ᵀ `boolean` | |
-| `type: "null"` | null | `nullable: true` | ᵀ `null` | Merged into `type: [T, "null"]` for basic types |
+| `type: "null"` | null | `nullable: true` | ᵀ `null` | Merged into `type: [T, "null"]` for basic types, otherwise `anyOf: [T, {type: "null"}]` |
 | `type: "object"` | Object | `{ ... }` or `map` | ᵀ `interface` / `{ ... }` | |
 | `type: "array"` | Array | `array[...]` | ᵀ `T[]` / `[A, B]` | |
 | `{}` (unconstrained) | Any value | `any` | ᵀ `unknown` | |
@@ -65,12 +65,13 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | `items` | Array elements | `array_item` or a body; `false` for a tuple without `*` | ᵀ `T[]` | Metadata of the element itself goes in `item_meta` |
 | `prefixItems` | Positional elements | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ Tuple `[A, B]` | |
 | `const` | Fixed value | Single-member enum `enum{ a }`; the discriminator of a discriminated union | ᵀ Literal type | The outer schema carries `type` (normalization rule 4) |
-| `enum` | Set of values | Unlabeled `enum{ a b }` | ᵀ Union of literals | Enum arrays get `uniqueItems: true` automatically |
+| `enum` | Set of values | Unlabeled `enum{ a b }` | ᵀ Union of literals | Multi-selects (`enum[multiple: true]`) get `uniqueItems: true` automatically |
 | `oneOf: [{ const, title }]` | Labeled enum | `enum{ a(Alpha) b(Beta) }`; members may carry `description` | ᵀ Union of literals + ᴾ `@enumTitles {"a":"Alpha"}`, with member descriptions in ᴾ `@enumDescriptions` | Used when at least one member has a label or description |
 | `oneOf` | Matches exactly one branch | `union[discriminator: 'kind'] {...}` | ᵀ Union `A \| B`, with branch titles in ᴾ `@branchTitles` | See the [Jotl syntax specification](jotl.md#union) |
 | `anyOf` | Matches at least one branch | `union[union_item: 'A\|B']` | ᵀ Union `A \| B` | Written the same as `oneOf` in TS; decided again by the discriminability conditions when read back |
 | `allOf` `not` `if` `then` `else` | Composition and conditionals | Reference branches of a discriminated union compile to `allOf: [{$ref}]`; otherwise — | Reference branches are ᵀ intersection types `X & {...}`; otherwise — | Validated as usual; when every member of `allOf` is a schema object, it is merged into this node before rendering (see `mergeAllOf` in [`packages/form/src/core/schema-node.ts`](../../packages/form/src/core/schema-node.ts)); otherwise the node, like `not` and `if`, degrades to the `json` widget (F7; for the decision table see `UNSUPPORTED_KEYWORDS` in [`packages/form/src/core/schema-shape.ts`](../../packages/form/src/core/schema-shape.ts)) |
-| `patternProperties` `propertyNames` `dependentRequired` `dependentSchemas` `contains` `minContains` `maxContains` `unevaluatedItems` `unevaluatedProperties` | Other structural keywords | — | — | Validated as usual; `patternProperties` and `dependentSchemas` also make the node degrade to `json` |
+| `propertyNames` | Constraints on key names | `map[key_meta: {...}]`, only `pattern` `minLength` `maxLength` | — | |
+| `patternProperties` `dependentRequired` `dependentSchemas` `contains` `minContains` `maxContains` `unevaluatedItems` `unevaluatedProperties` | Other structural keywords | — | — | Validated as usual; `patternProperties` and `dependentSchemas` also make the node degrade to `json` |
 
 ## Constraints
 
@@ -103,7 +104,7 @@ The following keywords appear in generated schemas but are not part of the JSON 
 
 | Keyword | Origin | Jotl | TS / TSDoc |
 |---|---|---|---|
-| `x-ui` | Jotl, see the [x-ui specification](x-ui.md) | Metadata `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands` `rules` | ᴾ `@widget name` when there is only `widget`, otherwise ᴾ `` @ui `{...}` ``; for array elements, ᴾ `@itemWidget` / `@itemUi` on the array property; the root's `rules` become ᴾ `` @rules `[...]` `` on the root type, and the root's `widgets` (extension component modules) become ᴾ `` @widgets `{...}` `` |
+| `x-ui` | Jotl, see the [x-ui specification](x-ui.md) | Metadata `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands`, plus `rules` `widgets` on the root entry only | ᴾ `@widget name` when there is only `widget`, otherwise ᴾ `` @ui `{...}` ``; for array elements, ᴾ `@itemWidget` / `@itemUi` on the array property; the root's `rules` become ᴾ `` @rules `[...]` `` on the root type, and the root's `widgets` (extension component modules) become ᴾ `` @widgets `{...}` `` |
 | `x-deprecatedReason` | Jotl | The reason in `deprecated: 'reason'` | The body of `@deprecated reason` |
 | `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl, maximum number of decimal places | `decimals: n` | — |

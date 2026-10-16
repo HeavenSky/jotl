@@ -57,9 +57,9 @@ The comments and labels in the examples are in Chinese because they are sample c
 | Strings | JSON5: `'...'` and `"..."`, JSON5 escapes, `\` line continuation allowed; an unknown escape is an error and keeps the backslash, with a quick fix to `\\` |
 | Numbers | JSON5 numbers (including `+1` `.5` `0x10`); `Infinity` and `NaN` are errors |
 | Labels | From `(` to its matching `)`, balanced nesting allowed (`价格(元)`); escapes `\(` `\)` `\\`; cannot span lines; must not be empty after trimming |
-| Punctuation | `{ } [ ] ( ) , ; : ?` |
+| Punctuation | `{ } [ ] ( ) , ; : ? *` |
 | Markers | `<root/>` and `<default/>` are each a single token; anything else starting with `<` is an error |
-| Illegal characters | `\|` `<` `>` `.` `@` `=` `#` are errors outside strings (`\|` only appears inside type-string strings) |
+| Illegal characters | Outside strings and comments, any character that cannot start a token is an error, such as `\|` `<` `>` `.` `@` `=` `#` `!` `%` (`\|` only appears inside type-string strings) |
 | Keywords | There are no reserved keywords: built-in component names only mean something in component position; `true` `false` `null` are only JSON values inside metadata, and `true` `false` can also be enum member values; a bare `null` in an enum body is an error, see [Enums](#enums) |
 | Reserved | `import` `export` `from` are reserved for multi-file support and are currently errors in component position |
 | Whitespace sensitivity | Insensitive: any whitespace and line breaks may appear between key, label, `?`, `:`, component, metadata and body (but not inside a label); `print` emits the compact form |
@@ -83,7 +83,7 @@ TopEntry = { Marker } Entry ;
 Marker   = "<root/>" | "<default/>" ;
 ```
 
-- Every top-level entry is a type definition and its name must be PascalCase. A lowercase, Chinese or quoted name at the top level is an error ("only types can be declared at the top level; put root properties in the root type's body"); the quick fix wraps consecutive entries of that kind in `Root(根): {...}` and marks it `<root/>`.
+- Every top-level entry is a type definition and its name must be PascalCase. A lowercase, Chinese or quoted name at the top level is an error ("Only types can be declared at the top level and type names must be UpperCamelCase; put root properties in the body of the root type"); the quick fix wraps consecutive entries of that kind in `Root: {...}` (`Root(根): {...}` when the language is Chinese) and marks it `<root/>`.
 - Top-level entries cannot use `?`.
 - A marker goes before a top-level entry (on the same line or the line above) and marks only the entry right after it; one entry can carry both markers; a marker inside a body is an error; each marker appears at most once per file.
 - Root and default export:
@@ -126,7 +126,7 @@ The grammar is shared with the Chinese edition and keeps its Chinese comments: `
   - Module declaration: an object with a `module` key, `{ base?, module, export? }`, which also names the ES module implementing the widget. `base` is the underlying type described above and defaults to `object`; `module` is a non-empty module specifier, kept verbatim, and relative paths are resolved by the consumer against the directory of the file containing the declaration; `export` is the export name and defaults to `default`; no other keys are allowed. An object without `module` is always treated as a schema.
   - PascalCase names are extension components; other names are registered only as widget names (module declarations still apply).
 - Metadata allowed on extension components: the keys marked "any" in the [Metadata keys](#metadata-keys) table, plus constraint keys permitted by the underlying schema, following the same rules as the matching built-in components. When the underlying `type` (unique after removing `"null"`) is `string`, `minLength` `maxLength` `pattern` `format` are allowed; for `number`, `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`; for `integer`, the four bound keys; for `array`, `minItems` `maxItems` `uniqueItems`; for `object`, `minProperties` `maxProperties`; for a `money` or `bigint` shaped base, the four bound keys (written as strings and compiled to `x-decimalRange`). When the base has no `type` (for example only `anyOf` or `$ref`) or several types, no constraint keys are allowed. Any other key reports JOTL1007. Example: after registering `Rating: {base: 'integer', module: '...'}` you can write `score: Rating[minimum: 0, maximum: 5]`.
-  - Constraints are merged into the underlying schema, and metadata wins for keywords of the same name (for example, the safe-integer bounds of an `integer` base get overridden). A `format` that differs from the base reports JOTL1048 (warning), as with built-in components; conflicting bounds where one side comes from metadata and the other from the base report JOTL1020. `default` is validated against the merged schema. `EXTENSION_CONSTRAINT_KEYS` in `packages/core/src/syntax/shapes.ts` is authoritative for the allowed keys.
+  - Constraints are merged into the underlying schema, and metadata wins for keywords of the same name (for example, with the base `{type: 'integer', minimum: 1}`, `minimum: 0` in metadata replaces the base's `minimum`). A `format` that differs from the base reports JOTL1048 (warning), as with built-in components; conflicting bounds where one side comes from metadata and the other from the base report JOTL1020. `default` is validated against the merged schema. `EXTENSION_CONSTRAINT_KEYS` in `packages/core/src/syntax/shapes.ts` is authoritative for the allowed keys.
 - Where to register:
   - Project config `jotl.config.json`: shaped like `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`; only the `widgets` and `$schema` keys exist; invalid items are skipped and reported as config issues. In the result of `readJotlConfig`, `config.widgets` maps name → underlying schema and `config.modules` maps the names of module-declaration items → `{ module, export? }`; module declarations from the config are not written into compile output, and the consumer loads them from `config.modules`. Each source file uses the nearest config found by walking up from its directory, stopping at the git top level (the directory containing `.git`) or the filesystem root. The JSON Schema of the config file itself is generated by `createJotlConfigJsonSchema()` in `@jotl/core`.
   - Root entry metadata `widgets`: shaped like `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`, allowed only on the root entry. The compiler handles it, so it works in every entry point that calls `compile` (including the Playground); the extension components are usable within this file, merged with other sources, and the in-file declaration wins on name clashes. Module declarations in it compile into the root `x-ui.widgets` (name → `{ base?, module, export? }`, carrying `base` verbatim when it is declared as anything other than `object`; see the [x-ui specification](x-ui.md)). A type name that clashes with an extension component declared in the file reports JOTL1028; invalid values report JOTL1020.
@@ -192,7 +192,7 @@ Inner type keys:
 | `key_meta` | `map` | Key constraints, only `pattern` `minLength` `maxLength`, compiled to `propertyNames` |
 | `discriminator` | `union` | Name of the discriminator field |
 
-A type string has the form `name { "|" name }`, where each name is a built-in component name or a PascalCase type name. It never contains `null` (use `nullable` for that); the choice component `enum` cannot appear in it (use `multiple` for multiple choice); duplicate names are errors; with more than one name it is checked by the JSON-type rules of [union](#union).
+A type string has the form `name { "|" name }`, where each name is a built-in component name or a PascalCase type name. It never contains `null` (use `nullable` for that); the choice component `enum` cannot appear in it (use `multiple` for multiple choice); duplicate names are errors; `tuple` may only appear alone as `array_item`; with more than one name it is checked by the JSON-type rules of [union](#union).
 
 Bodies by component:
 
@@ -237,7 +237,7 @@ Only two forms are accepted:
    - The compiler adds the discriminator field as `const`, so branches do not declare it; compiles to `oneOf`.
    - Data: `{ "kind": "text", "content": "..." }`.
 2. Distinguished by JSON type: `union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
-   - Each branch has a different JSON type (string number boolean array object), at most one per type; `money` and `bigint` are told apart by their own `type` field and do not use up the object slot.
+   - Each branch has a different JSON type (string number boolean array object), at most one per type; `money` and `bigint` are told apart by their own `type` field and do not use up the object slot; `any` matches every type and cannot be combined with other names.
    - Branches of the same JSON type (`email|url`) are a compile error suggesting a discriminated union instead.
    - Compiles to `anyOf`.
 
@@ -274,7 +274,7 @@ Only two forms are accepted:
 | `errorMessage` | String, or keyword → message | `errorMessage` | All but type references |
 | `comment` | String | `$comment` | All but type references |
 | `closed` | Boolean | `additionalProperties: false` | `object` |
-| `nullable` | Boolean | Adds `null` to the type | Any |
+| `nullable` | Boolean | Adds `null` to `type` for string-based components, `number` `integer` `boolean` and extension components with such a base; anything else becomes `anyOf: [T, {type: "null"}]` | Any |
 | `multiple` | Boolean | See [Enums](#enums) | `enum`, references to enums |
 | `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | See [Bodies and inner types](#bodies-and-inner-types), [union](#union) | - | See [Bodies and inner types](#bodies-and-inner-types) |
 | `currency` `unit` | See [Numbers, money and big integers](#numbers-money-and-big-integers) | Property schemas of `money` | `money` |
@@ -294,7 +294,7 @@ Only two forms are accepted:
 | `id` | URI string | Root `$id` | Root entry only |
 | `widgets` | Name → underlying type or module declaration, see extension components in [Entries](#entries) | Registers extension components for this file; module declarations go into the root `x-ui.widgets` | Root entry only |
 | `schema` | JSON object | Merged as is; on conflict it wins, with a warning | Any |
-| `x_*` | JSON value | `x-` plus camelCase (`x_biz_code` → `x-bizCode`) | Any |
+| `x_*` | JSON value | `x-` plus camelCase (`x_biz_code` → `x-bizCode`); the part after `x_` is lowercase snake_case, other spellings are unknown keys (JOTL1011); keys mapping to keywords the compiler generates (`x_ui` `x_deprecated_reason` `x_decimals` `x_decimal_range` `x_value_format`) report JOTL1012 | Any |
 
 - Titles are not metadata; they come only from labels.
 - Override objects in `variants` and the `ui` of each rule in `rules` use `x-ui` field names; conditions in them are written as `root_if` / `node_if` (compiled to `visibleIf`; writing `visibleIf` directly is also accepted).
@@ -306,11 +306,11 @@ Only two forms are accepted:
 - `number` / `integer` share a numeric input. `decimals` sets the number of decimal places: fixed at 0 for `integer`, unlimited by default for `number`; the input uses it as `step` and rounds on blur. Validation compiles to `x-decimals`, which an ajv custom keyword checks by counting decimal digits, not with `multipleOf`.
 - Exact number string: `^-?\d+(\.\d+)?$`; only exponents, thousands separators and whitespace are forbidden.
 - `money` value: `{ type: 'money', value, currency, unit? }`
-  - `value` is an exact number string. Without `unit` it is in the major unit with a fixed number of decimal places, defaulting to the ISO 4217 digits (2 for CNY and USD, 0 for JPY); with `unit` it is unlimited by default; `decimals` overrides both.
+  - `value` is an exact number string. Without `unit` it is in the major unit with a fixed number of decimal places, defaulting to the ISO 4217 digits (2 for CNY and USD, 0 for JPY); this needs the `currency` metadata, and every listed currency must be known with the same digits, otherwise it is unlimited; with `unit` it is unlimited by default; `decimals` overrides both.
   - `currency` is an ISO 4217 code and is always stored in the data; metadata `currency: 'CNY'` fixes it (compiled to `const`), `currency: ['CNY', 'USD']` makes it selectable (compiled to `enum`, first one default).
   - `unit` is defined by your business logic, only validated as a string, and passed through unchanged; metadata `unit: 'fen'` fixes it, `unit: ['yuan', 'fen']` makes it selectable, and without it no unit selector is shown.
 - `bigint` value: `{ type: 'bigint', value }`, where `value` matches `^-?\d+$`.
-- Ranges: `minimum` `maximum` on `money` `bigint` are written as strings, compile to `x-decimalRange` applied to `value`, and compare as exact numbers; no sign restriction by default.
+- Ranges: `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` on `money` `bigint` are written as strings, compile to `x-decimalRange` applied to `value`, and compare as exact numbers; no sign restriction by default.
 - Arithmetic: `@jotl/form/core` depends on `big.js` and provides `toBig(x): Big` and `fromBig(b, template, decimals?)`; there is no unit conversion.
 - Thousands separators: stored values never contain them. The raw value shows while focused, and the separated value shows on blur and when read-only; separators are not inserted while typing. On typing and paste, `,` `，` spaces and `_` are stripped before validation, and an invalid value stays as a draft with a hint. A `,` is inserted every 3 digits of the integer part of the string, without going through `Number` / `Intl`; grouping is always `,` and the decimal point always `.`. The switch is `thousands`: on by default for `money`, off for `number` `integer` `bigint`. `money` `bigint` and `number` `integer` with separators enabled use `<input type="text">`, with `inputmode="numeric"` when there are 0 decimal places (`integer` `bigint` or `decimals: 0`) and `decimal` otherwise.
 - TS output: `{ type: 'money'; value: string; currency: 'CNY'; unit?: string }`, `{ type: 'bigint'; value: string }`.
@@ -384,7 +384,7 @@ d?: string[node_if: 'href']
 ## Compiling and printing
 
 - Compile output satisfies the [Normalization rules](#normalization-rules) below.
-- `print` emits the canonical form: single-quoted strings, keys unquoted where possible, segments packed together, one entry per line, no separators; a default `widget` is omitted; keywords Jotl cannot express go out through `schema: {...}`; component names are restored from JSON Schema and `widget` (`string` + `widget: 'textarea'` becomes `text`); `$ref`s written through `schema` are retargeted when types are renamed or an inline root moves into `$defs/<root name>`; the root `x-ui.widgets` is written back to the root entry's `widgets` (in module-declaration form, including `base` when present; entries that clash with type names or have invalid values report JOTL1032 and are ignored); when output nesting exceeds 256 levels or input JSON nesting exceeds 1024 levels, no source is emitted and JOTL1029 is reported.
+- `print` emits the canonical form: single-quoted strings, keys unquoted where possible, segments packed together, one entry per line, no separators; a default `widget` is omitted; keywords Jotl cannot express go out through `schema: {...}`; component names are restored from JSON Schema and `widget` (`string` + `widget: 'textarea'` becomes `text`); `$ref`s written through `schema` are retargeted when types are renamed or an inline root moves into `$defs/<root name>`; the root `x-ui.widgets` is written back to the root entry's `widgets` (in module-declaration form, including `base` when present; if any item clashes with a type name or has an invalid value, the whole `widgets` is ignored and JOTL1032 is reported for `x-ui`); when output nesting exceeds 256 levels or input JSON nesting exceeds 1024 levels, no source is emitted and JOTL1029 is reported.
 - v0 syntax (`export type X = ...`, `@annotations`, `= v`, capitalized semantic types such as `Enum` `Image`) is no longer accepted; to get v1 source, compile v0 source with the old compiler, then run `print` on the result.
 
 ## Diagnostics

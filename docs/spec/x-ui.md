@@ -57,7 +57,8 @@ interface UiRule {
 
 - A rule matches only when every condition in `match` holds.
 - `pointer` matches a pointer inside the schema document; `*` matches a single segment.
-- `type` requires the node's `type` to be exactly that single type (`["string", "null"]` does not match `"string"`); `format` matches the node's keyword of the same name; `enum: true` matches enum nodes.
+- `type` requires the node's `type` to be exactly that single type (`["string", "null"]` does not match `"string"`); `format` matches the node's keyword of the same name; `enum: true` matches enum nodes and `enum: false` matches non-enum nodes.
+- A rule with `pointer` never matches nodes synthesized by splitting a `type` array, since they share the pointer of the node they were split from.
 - `widget` matches the widget name chosen for the node without the rule layer.
 - When several rules match, they are merged in array order, and later ones override earlier ones.
 
@@ -80,18 +81,19 @@ A node's effective `x-ui` is merged from the following layers in order, each ove
 Candidate order (highest priority first): scene variant at the node → scene variant of the referenced type → the node itself or the reference site → the referenced type → the root rule table (later rules in the array come first). Duplicate names keep only the earliest candidate, and a scene variant counts as coming from the layer it sits in.
 
 - The candidate list is followed by registry matchers (registrations whose `match` returns a value greater than 0, higher scores first), then the built-in matching rules, and finally the fallback widget `json`.
-- `plan()` takes the first usable candidate in order: an unregistered widget name records F1 and moves on, and a widget whose `accepts` rejects the data shape records F2 and moves on.
+- `plan()` takes the first usable candidate in order: an unregistered widget name records F1 and moves on; a built-in name that does not accept the data shape (see `builtinAccepts` below), or a registration whose `accepts` rejects it, records F2 and moves on.
 - When the schema uses a feature the renderer does not support (`JOTL5004`), or the node's `$ref` cannot be resolved (`JOTL5005`), the node uses `json` and records F7.
-- Candidates after the selected widget that are still usable (registered and passing `accepts`) go into `RenderPlanNode.fallbackChain`, ending with `json`; it is empty when the selected widget is `json` itself. When a widget throws during rendering (F4), replacements are taken from this chain in order.
+- Candidates after the selected widget that are still usable (registered and passing the shape check) go into `RenderPlanNode.fallbackChain`, ending with `json`; it is empty when the selected widget is `json` itself. When a widget throws during rendering (F4), replacements are taken from this chain in order.
 - When the selected widget is in the `view`, `layout` or `composite` level and its registration has `claims(schema)`, child nodes at the relative data paths it returns (such as `"img"`) stay out of the render plan; the widget renders them itself, and they are planned on demand when handed back through `renderChild`. Returning `"all"` plans no child nodes at all.
 - `RenderPlanNode.source` records where the selected widget came from: `node` the node itself or the reference site, `ref` the referenced type, `rule` the root rule table, `matcher` a registry matcher, `builtin` the built-in matching rules, `fallback` the fallback.
+- On a nullable node (`T | null`), a built-in non-`nullable` widget name in `x-ui.widget`, together with `thousands` and `summary`, describes the content: it is carried to the non-null branch and is neither a candidate for the nullable node itself nor recorded as F2. The rest of `x-ui` (such as `hidden`) applies to the nullable node.
 
 ## Invalid x-ui
 
 When a node's `x-ui` does not conform to the meta-schema, the node is treated as having no `x-ui` and F3 is recorded in `degraded`; other nodes are unaffected.
 
 The meta-schema is `xUiMetaSchema` exported by `@jotl/core` ([`packages/core/src/schema/x-ui-meta-schema.ts`](../../packages/core/src/schema/x-ui-meta-schema.ts)) with `$id` `https://jotl.dev/schema/x-ui/v1`; validation and editor completion use it. `@jotl/form/core` does not depend on Ajv and decides F3 with `checkXUi`, a hand-written structural check following the same rules. When the root node's `x-ui` is invalid, the root rule table is discarded as well.
-The meta-schema is stricter than the TS type: it rejects unknown fields, empty widget names, `columns` that are not integers or are less than 1, and leaf conditions with more than one comparison.
+The meta-schema is stricter than the TS type: it rejects unknown fields, empty strings in `widget` `decorator` `summary`, `columns` that are not integers or are less than 1, and leaf conditions with more than one comparison.
 
 ## Built-in widget names
 
@@ -99,7 +101,7 @@ The meta-schema is stricter than the TS type: it rejects unknown fields, empty w
 
 | Widget name | Level | Priority | Accepted shapes | Default for |
 |---|---|---|---|---|
-| `form` | view | P0 | Root | Root |
+| `form` | view | P0 | Any | Root |
 | `field` | decorator | P0 | - | Field wrapper |
 | `page` | layout | P0 | object | object |
 | `inline` | layout | P0 | object | - |
@@ -107,26 +109,26 @@ The meta-schema is stricter than the TS type: it rejects unknown fields, empty w
 | `textarea` `password` | field | P0 | string | - |
 | `richtext` | field | P1 | string | `contentMediaType: text/html` |
 | `number` | field | P0 | number, integer | number, integer |
-| `range` | field | P0 | number, integer | - |
+| `range` | field | P0 | number, integer with both `minimum` and `maximum` | - |
 | `money` / `bigint` | field | P0 | money / bigint object (`properties.type.const` is `"money"` / `"bigint"`) | Same |
 | `switch` | field | P0 | boolean | boolean |
 | `checkbox` | field | P0 | boolean; enum array | - |
 | `select` | field | P0 | enum; enum array | Enum with at least 2 options; enum array |
 | `radio` | field | P0 | enum | - |
-| `output` | field | P0 | Any, read-only display | Single-value `const` |
-| `date` `time` `datetime` | field | P0 | string with the matching `format`; string or integer with `x-valueFormat` | The matching `format`; with `x-valueFormat`, by `x-ui.widget` or the format's content |
+| `output` | field | P0 | Any, read-only display | `const`; enum with a single option; `type: "null"` |
+| `date` `time` `datetime` | field | P0 | string with the matching `format`; with `x-valueFormat` and no `format`: a string, or an integer when the storage format is the timestamp `x` / `X` (not accepted by `time`) | The matching `format`; with `x-valueFormat`, by `x-ui.widget` or the format's content |
 | `url` `email` `color` | field | P0 | string with the matching `format` | The matching `format` |
 | `image` `file` | field | P0 | string with `format: uri` | - |
 | `json` | field | P0 | Any; for a string, edits the raw JSON text | `{}`; `contentMediaType: application/json`; fallback |
-| `list` | composite | P0 | array | array |
+| `list` | composite | P0 | array; enum array | array |
 | `kv` | composite | P1 | map | map |
-| `union` | composite | P1 | `oneOf` / `anyOf` | Union |
+| `union` | composite | P1 | `oneOf` / `anyOf`; `type` array with at least two non-null types | Union |
 | `nullable` | composite | P1 | Nullable | Nullable |
-| `tree` | composite | P1 | Recursive reference | Recursive reference |
+| `tree` | composite | P1 | Any | Recursive reference |
 | `tuple` | composite | P2 | Tuple | Tuple |
 
 - The mapping from `format` to widget name is `FORMAT_WIDGETS`.
-- `@jotl/form/core` checks shapes for all built-in widget names in one place (`builtinAccepts`): when the built-in widget named by `widget` does not accept the shape, it degrades to the default widget as F2. Nothing is shown in the UI; the degradation is reported to developers through `onDegrade`.
+- `@jotl/form/core` checks shapes for all built-in widget names in one place (`builtinAccepts`): when the built-in widget named by `widget` does not accept the shape, it is skipped as F2 and the next candidate is used, usually the default widget for the shape. Nothing is shown in the UI; the degradation is reported to developers through `onDegrade`.
 
 ## Drill-down rendering
 
@@ -135,10 +137,10 @@ The meta-schema is stricter than the TS type: it rejects unknown fields, empty w
 - One page per level: scalar fields on the current page are edited in place. Composite fields that are not the page root (`page` objects, `list`, `kv`, `tree`, `union` with object branches) appear as entry rows with a label, a summary, the number of errors below them and an open button. `inline` objects expand inside the parent page; nullable nodes are judged by their content.
 - While drilling, every page has breadcrumbs at the top (the root page has a single level), and the title of the page's root object is no longer shown. Fields show their `title` or key, array elements show their summary or `Item n`, and map values show their key.
 - The summary is the value of the field named by `x-ui.summary`. Without it, the first non-empty string field is used (first in schema property order, then in data key order). Failing that, a fill status is shown (`Empty`, `n items`, `n filled`). The list shows array element numbers itself; in breadcrumbs, an array element without a summary shows `Item n`.
-- The current page path (a JSON Pointer) comes from the controlled props `path` / `onPathChange`; without them the form tracks it internally. When an array index in the path is out of range (the element was removed), the form returns to the level of the array and notifies `onPathChange`.
+- The current page path (a JSON Pointer) comes from the controlled props `path` / `onPathChange`; without them the form tracks it internally. When an array index in the path is out of range (the element was removed), or a map key in it no longer exists (removed or renamed), the form returns to the level of that array or map and notifies `onPathChange`; an invalid path returns to the root.
 - When validation fails on submit, the form jumps to the deepest page on the path of the first error.
 - Optional base styles for breadcrumbs and entry rows are in `@jotl/form/style.css`; breadcrumbs stay on one line and scroll horizontally when too wide.
-- In a union discriminated by JSON type, branches without a `title` are shown in the dropdown by type name in the form's locale (in English: Text, Number, Integer, Yes/No, List, Object).
+- In a union discriminated by JSON type, branches without a `title` are shown in the dropdown by type name in the form's locale (in English: Text, Number, Integer, Yes/No, List, Object, and Empty for `null`).
 
 ## Widget props by level
 
@@ -162,7 +164,7 @@ The meta-schema is stricter than the TS type: it rejects unknown fields, empty w
 - In the render plan, an object node that has both `properties` and a schema-form `additionalProperties` gets one more child after the property children: a value template for the remaining keys (data segment `*`, schema location `additionalProperties`). A tuple node has one child per `prefixItems` position, plus a rest element template at the end when `items` allows rest elements (data segment `*`, schema location `items`).
 - `Adapters<N>` are pluggable external capabilities, each optional: `upload(file, ctx)` uploads and returns a URL, where `ctx` is an `UploadContext` (`dataPath` the actual path, `schema` the field's schema); `loadOptions(source)` returns remote options `{ value, label }[]`; `richText(props)` renders a rich text editor (you can pass `richTextEditor` from `@jotl/form` directly).
 - Every widget is a stateless controlled widget: the value comes only from `value`, and changes go only through `onChange`.
-- The only local state allowed is draft text that is not yet valid while typing (such as `-` in a number box or an unclosed bracket in the JSON editor); call `onChange` as soon as it becomes valid. The exception: `number` `money` `bigint` use focus state to switch between the raw value and the thousands-separated display.
+- Apart from UI state that is not data (such as upload status or the selected tab), the only local state allowed is draft text that is not yet valid while typing (such as `-` in a number box or an unclosed bracket in the JSON editor); call `onChange` as soon as it becomes valid. The exception: `number` `money` `bigint` use focus state to switch between the raw value and the thousands-separated display.
 
 ## Fallback ownership
 
@@ -171,6 +173,6 @@ The meta-schema is stricter than the TS type: it rejects unknown fields, empty w
 | F1 F2 F3 F7 | Widget not registered, data shape not matched, invalid `x-ui`, unsupported schema feature or unresolvable `$ref` | `plan()`, recorded in `degraded`; exceptions: an unregistered wrapper widget name, and a registry without `json`, are handled by `@jotl/form` at render time as F1 |
 | F4 | Widget throws while rendering | The `@jotl/form` error boundary, replacing it from `fallbackChain` in order |
 | F5 | Composite widget throws | `@jotl/form`, which splits it up and renders each child node separately |
-| F6 | Fallback widget `json` | The default widget implementation in `@jotl/form`; the renderer also carries a minimal fallback (read-only `<pre>` + JSON `<textarea>`) so the page is never blank without a widget package |
+| F6 | Fallback widget `json` | The default widget implementation in `@jotl/form`; the renderer also carries a minimal fallback (a read-only `<pre>` in `view` mode, otherwise a JSON `<textarea>`) so the page is never blank without a widget package |
 | F8 | Data does not match the schema | `@jotl/form`, which keeps the original value, marks an error and uses `json` for the node |
-| F9 | Lazy loading fails | `@jotl/form`, which shows a placeholder with retry and also degrades as F4 |
+| F9 | Lazy loading fails | `@jotl/form`, which shows a load-failure message with a retry button and meanwhile renders the next widget from `fallbackChain`, as with F4 |

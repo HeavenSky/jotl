@@ -55,9 +55,9 @@ Home(首页): [layout: 'tabs', groups: [{title: '外观', fields: ['theme', 'mod
 | 字符串 | JSON5：`'...'` 与 `"..."`，JSON5 转义，允许 `\` 续行；未知转义报错并保留反斜杠，快速修复为 `\\` |
 | 数字 | JSON5 数字（含 `+1` `.5` `0x10`）；`Infinity` `NaN` 报错 |
 | 标签 | 从 `(` 到与之配对的 `)`，允许成对嵌套（`价格(元)`）；转义 `\(` `\)` `\\`；不跨行；去掉首尾空白后不能为空 |
-| 标点 | `{ } [ ] ( ) , ; : ?` |
+| 标点 | `{ } [ ] ( ) , ; : ? *` |
 | 标识记号 | `<root/>` `<default/>` 各为一个整体记号；其他以 `<` 开头的写法报错 |
-| 非法字符 | `\|` `<` `>` `.` `@` `=` `#` 出现在字符串外即报错（`\|` 只出现在类型串字符串里） |
+| 非法字符 | 字符串与注释之外，不能作为记号开头的字符一律报错，如 `\|` `<` `>` `.` `@` `=` `#` `!` `%`（`\|` 只出现在类型串字符串里） |
 | 关键字 | 没有保留关键字：内置组件名只在组件位置有含义；`true` `false` `null` 只作为元数据中的 JSON 值，`true` `false` 另可作枚举成员值；枚举体中的裸 `null` 报错，见[枚举](#枚举) |
 | 保留 | `import` `export` `from` 留给多文件，目前写在组件位置即报错 |
 | 空白敏感 | 不敏感：键、标签、`?`、`:`、组件、元数据、体之间可以有任意空白与换行（标签内部除外）；`print` 输出紧贴形式 |
@@ -81,7 +81,7 @@ TopEntry = { Marker } Entry ;
 Marker   = "<root/>" | "<default/>" ;
 ```
 
-- 顶层条目一律是类型定义，名字必须是大驼峰。小写、中文或引号名写在顶层会报错：「顶层只能声明类型，根的属性写进根类型的体里」；快速修复会把连续的这类条目包进 `Root(根): {...}` 并标上 `<root/>`。
+- 顶层条目一律是类型定义，名字必须是大驼峰。小写、中文或引号名写在顶层会报错：「顶层只能声明类型，类型名应为大驼峰；根的属性写进根类型的体里」；快速修复会把连续的这类条目包进 `Root(根): {...}`（英文界面为 `Root: {...}`）并标上 `<root/>`。
 - 顶层条目不能写 `?`。
 - 标识写在顶层条目之前（同一行或上一行），只标记紧随其后的那一条；同一条可以同时带两个标识；写在体内报错；每个标识在整个文件中至多出现一次。
 - 根与默认导出：
@@ -122,7 +122,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
   - 模块声明：带 `module` 键的对象 `{ base?, module, export? }`，同时给出实现该 widget 的 ES 模块。`base` 是上一条所说的底层类型，缺省为 `object`；`module` 是非空的模块地址，原样保留，相对路径由使用方按声明所在文件的目录解析；`export` 是导出名，缺省为 `default`；只能有这三个键。不带 `module` 的对象一律当作 schema。
   - 大驼峰名是扩展组件，其余名字只登记为 widget 名（模块声明仍然有效）。
 - 扩展组件可带的元数据：[元数据键](#元数据键)表中适用于「任意」的键，以及按底层 schema 放行的约束键，规则与同类内置组件一致。底层 `type`（去掉 `"null"` 后唯一）为 `string` 时放行 `minLength` `maxLength` `pattern` `format`；为 `number` 时放行 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`；为 `integer` 时放行上下界四键；为 `array` 时放行 `minItems` `maxItems` `uniqueItems`；为 `object` 时放行 `minProperties` `maxProperties`；底层为 `money` `bigint` 形态时放行上下界四键（写成字符串，编译到 `x-decimalRange`）。底层没有 `type`（如只有 `anyOf` `$ref`）或有多个类型时，不放行任何约束键。其余键报 JOTL1007。例：登记 `Rating: {base: 'integer', module: '...'}` 后可以写 `score: Rating[minimum: 0, maximum: 5]`。
-  - 约束合并进底层 schema，同名关键字以元数据为准（如 `integer` 底层自带的安全整数上下界会被覆盖）。`format` 与底层不同时，与内置组件一样报 JOTL1048 warning；上下界一端来自元数据、另一端来自底层且互相冲突时报 JOTL1020。`default` 按合并后的 schema 校验。放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准。
+  - 约束合并进底层 schema，同名关键字以元数据为准（如底层为 `{type: 'integer', minimum: 1}` 时，元数据 `minimum: 0` 取代底层的 `minimum`）。`format` 与底层不同时，与内置组件一样报 JOTL1048 warning；上下界一端来自元数据、另一端来自底层且互相冲突时报 JOTL1020。`default` 按合并后的 schema 校验。放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准。
 - 登记入口：
   - 项目配置 `jotl.config.json`：形如 `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`；只有 `widgets` 与 `$schema` 两个键；不合法的项跳过并报配置问题。`readJotlConfig` 的结果中，`config.widgets` 为名字 → 底层 schema，`config.modules` 为模块声明项的名字 → `{ module, export? }`；配置中的模块声明不写进编译产物，由使用方按 `config.modules` 加载。每个源文件使用从所在目录向上找到的最近一个配置，查找到 git 顶层（含 `.git` 的目录）或文件系统根为止。配置文件自身的 JSON Schema 由 `@jotl/core` 的 `createJotlConfigJsonSchema()` 生成。
   - 根条目元数据 `widgets`：形如 `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`，只能写在根条目上。它由编译器处理，任何调用 `compile` 的入口（含 Playground）都生效；本文件内即可使用这些扩展组件，与其他入口合并，同名时以文件内为准。其中的模块声明编译进根 `x-ui.widgets`（名字 → `{ base?, module, export? }`，声明了 `object` 以外的 `base` 时原样带上，见 [x-ui 规范](x-ui.md)）。类型名与文件内声明的扩展组件重名报 JOTL1028，取值不合法报 JOTL1020。
@@ -188,7 +188,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 | `key_meta` | `map` | 键的约束，只接受 `pattern` `minLength` `maxLength`，编译为 `propertyNames` |
 | `discriminator` | `union` | 区分字段名 |
 
-类型串的形式是 `名字 { "|" 名字 }`，名字为内置组件名或大驼峰类型名。类型串不含 `null`（可空写 `nullable`）；选择族 `enum` 不能出现在类型串中（多选写 `multiple`）；名字重复报错；多于一个名字时按 [union](#union) 的 JSON 类型区分规则校验。
+类型串的形式是 `名字 { "|" 名字 }`，名字为内置组件名或大驼峰类型名。类型串不含 `null`（可空写 `nullable`）；选择族 `enum` 不能出现在类型串中（多选写 `multiple`）；名字重复报错；`tuple` 只能单独写在 `array_item` 中；多于一个名字时按 [union](#union) 的 JSON 类型区分规则校验。
 
 各组件的体：
 
@@ -233,7 +233,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
    - 区分字段由编译器补为 `const`，分支里不写；编译为 `oneOf`。
    - 数据：`{ "kind": "text", "content": "..." }`。
 2. 按 JSON 类型区分：`union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
-   - 各分支的 JSON 类型（string number boolean array object）互不相同，每种至多一个；`money` `bigint` 按自身的 `type` 字段区分，不占 object 的名额。
+   - 各分支的 JSON 类型（string number boolean array object）互不相同，每种至多一个；`money` `bigint` 按自身的 `type` 字段区分，不占 object 的名额；`any` 匹配所有类型，不能与其他名字并列。
    - 同属一种 JSON 类型的分支（`email|url`）编译报错，提示改用可区分联合。
    - 编译为 `anyOf`。
 
@@ -270,7 +270,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 | `errorMessage` | 字符串，或关键字 → 文案 | `errorMessage` | 引用类型以外 |
 | `comment` | 字符串 | `$comment` | 引用类型以外 |
 | `closed` | 布尔 | `additionalProperties: false` | `object` |
-| `nullable` | 布尔 | 类型加 `null` | 任意 |
+| `nullable` | 布尔 | 字符串类、`number` `integer` `boolean` 以及底层为这些类型的扩展组件在 `type` 中加 `null`；其余包成 `anyOf: [T, {type: "null"}]` | 任意 |
 | `multiple` | 布尔 | 见[枚举](#枚举) | `enum`，指向枚举的引用 |
 | `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | 见[体与内部类型](#体与内部类型)、[union](#union) | - | 见[体与内部类型](#体与内部类型) |
 | `currency` `unit` | 见[数值, 金额与大整数](#数值-金额与大整数) | `money` 的属性 schema | `money` |
@@ -290,7 +290,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 | `id` | URI 字符串 | 根 `$id` | 只在根条目 |
 | `widgets` | 名字 → 底层类型或模块声明，见[条目](#条目)中的扩展组件 | 在本文件登记扩展组件；模块声明写入根 `x-ui.widgets` | 只在根条目 |
 | `schema` | JSON 对象 | 原样合并，冲突时以它为准并报 warning | 任意 |
-| `x_*` | JSON 值 | `x-` 加驼峰（`x_biz_code` → `x-bizCode`） | 任意 |
+| `x_*` | JSON 值 | `x-` 加驼峰（`x_biz_code` → `x-bizCode`）；`x_` 之后为小写 snake_case，其他写法按未知键报 JOTL1011；对应编译器自己生成的关键字的键（`x_ui` `x_deprecated_reason` `x_decimals` `x_decimal_range` `x_value_format`）报 JOTL1012 | 任意 |
 
 - 标题不进元数据，只由标签表达。
 - `variants` 内的覆盖对象与 `rules` 各规则的 `ui` 使用 `x-ui` 的字段名；其中的条件写 `root_if` / `node_if`（编译为 `visibleIf`，也接受直接写 `visibleIf`）。
@@ -302,11 +302,11 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `number` / `integer` 共用数字框。`decimals` 指定小数位：`integer` 固定为 0，`number` 默认不限；输入框按它设 `step`，失焦时舍入。校验编译为 `x-decimals`，由 ajv 自定义关键字按十进制位数检查，不用 `multipleOf`。
 - 精确数字符串：`^-?\d+(\.\d+)?$`，只禁止指数、千分位与空白。
 - `money` 的值：`{ type: 'money', value, currency, unit? }`
-  - `value` 为精确数字符串。没有 `unit` 时表示主单位，小数位定长，默认取 ISO 4217 位数（CNY USD 为 2，JPY 为 0）；有 `unit` 时默认不限；两种情况都可用 `decimals` 覆盖。
+  - `value` 为精确数字符串。没有 `unit` 时表示主单位，小数位定长，默认取 ISO 4217 位数（CNY USD 为 2，JPY 为 0），前提是写了元数据 `currency`，且所列币种都已知、位数相同，否则不限；有 `unit` 时默认不限；两种情况都可用 `decimals` 覆盖。
   - `currency` 为 ISO 4217 代码，总是存入数据；元数据 `currency: 'CNY'` 表示固定（编译为 `const`），`currency: ['CNY', 'USD']` 表示可选（编译为 `enum`，首个为默认）。
   - `unit` 由业务定义，只校验为字符串，原样透传；元数据 `unit: 'fen'` 表示固定，`unit: ['yuan', 'fen']` 表示可选，不写则不显示单位选择。
 - `bigint` 的值：`{ type: 'bigint', value }`，`value` 满足 `^-?\d+$`。
-- 范围：`money` `bigint` 上的 `minimum` `maximum` 写成字符串，编译为作用于 `value` 的 `x-decimalRange`，按精确数比较；默认不限正负。
+- 范围：`money` `bigint` 上的 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` 写成字符串，编译为作用于 `value` 的 `x-decimalRange`，按精确数比较；默认不限正负。
 - 运算：`@jotl/form/core` 依赖 `big.js`，提供 `toBig(x): Big` 与 `fromBig(b, template, decimals?)`；不提供单位换算。
 - 千分位：存储值永远不含千分位。聚焦时显示原值，失焦与只读时显示带千分位的值，输入时不实时插入；键入与粘贴时先去掉 `,` `，` 空格 `_` 再校验，不合法时保留草稿并提示。插入方式是对字符串的整数部分每 3 位插一个 `,`，不经过 `Number` / `Intl`；分组符固定为 `,`，小数点固定为 `.`。开关是 `thousands`：`money` 默认开，`number` `integer` `bigint` 默认关。`money` `bigint` 与开了千分位的 `number` `integer` 使用 `<input type="text">`；小数位为 0 时（`integer` `bigint` 或 `decimals: 0`）设 `inputmode="numeric"`，否则设 `decimal`。
 - TS 输出：`{ type: 'money'; value: string; currency: 'CNY'; unit?: string }`，`{ type: 'bigint'; value: string }`。
@@ -380,7 +380,7 @@ d?: string[node_if: 'href']
 ## 编译与打印
 
 - 编译结果满足下文的[规范化规则](#规范化规则)。
-- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；默认的 `widget` 不写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；与类型名重名或取值不合法时报 JOTL1032 并忽略）；输出嵌套超过 256 层或输入 JSON 嵌套超过 1024 层时不输出源码，报 JOTL1029。
+- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；默认的 `widget` 不写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；输出嵌套超过 256 层或输入 JSON 嵌套超过 1024 层时不输出源码，报 JOTL1029。
 - v0 写法（`export type X = ...`、`@注解`、`= v`、`Enum` `Image` 等大写语义类型）不再接受；v0 源码先用旧版编译器编译，再用 `print` 打印，即得到 v1 源码。
 
 ## 诊断

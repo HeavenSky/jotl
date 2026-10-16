@@ -20,7 +20,7 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | ᴾ | Jotl 协议标签 | 在 [`packages/convert/tsdoc.json`](../../../packages/convert/tsdoc.json) 中声明，约束类标签与 JSON Schema 关键字同名；不加载该预设时 TSDoc 工具会报未知标签 |
 | ᵀ | TS 类型本身 | 不用标签，由类型写法表达 |
 
-「—」表示该写法中没有对应：Jotl 列为「—」时只能用元数据 `schema: {...}` 原样写入；TS 列为「—」时 `schemaToTs` 不写出，除固定方言的 `$schema` 外都报 `JOTL2002` warning。
+「—」表示该写法中没有对应：Jotl 列为「—」时只能用元数据 `schema: {...}` 原样写入；TS 列为「—」时 `schemaToTs` 不写出，除固定方言的 `$schema`，以及 `money` `bigint` 值对象上的 `additionalProperties: false` / `x-decimalRange` 静默丢弃外，都报 `JOTL2002` warning。
 
 ## 文档结构
 
@@ -32,7 +32,7 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | `$ref` | 引用另一个 schema | 在类型位置写类型名 `X`，编译为 `#/$defs/X` | ᵀ 类型名 `X` | 根与默认导出由 `<root/>` `<default/>` 决定，见 [文件结构](jotl.md#文件结构)；默认导出对应 `export default X;`，与根不同时在根类型的注释上写 ᴾ `@root`；`tsToSchema` 以带 `@root` 的声明为根，没有时以默认导出为根 |
 | `$comment` | 给维护者看的注释，不参与校验 | `comment: '...'` | `@privateRemarks 文本` | 读取时也接受 `@comment` |
 | `$anchor` | 锚点 | — | — | 校验、默认数据与 `#名` 引用都支持；Jotl 语法里不写，经 `schema` 元数据透传 |
-| `$dynamicRef` `$dynamicAnchor` `$vocabulary` | 动态引用与词汇表 | — | — | Ajv 支持不完整 |
+| `$dynamicRef` `$dynamicAnchor` `$vocabulary` | 动态引用与词汇表 | — | — | Ajv 支持不完整；`$dynamicRef` 还会使节点降级为 `json` |
 
 ## 元数据
 
@@ -52,9 +52,9 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 |---|---|---|---|---|
 | `type: "string"` | 字符串 | `string`，或省略组件 | ᵀ `string` | `text` `url` `image` 等组件也以它为底层类型，见 [Jotl 语法规范](jotl.md#内置组件) |
 | `type: "number"` | 数值 | `number` | ᵀ `number` | |
-| `type: "integer"` | 整数 | `integer` | ᵀ `number` + ᴾ `@asType integer` | 数组元素与 `Map` 值上的 `integer` 没有地方挂标签，在 TS 中丢弃 |
+| `type: "integer"` | 整数 | `integer` | ᵀ `number` + ᴾ `@asType integer` | 不能挂注释的位置（数组元素、`Map` 值、元组位置、联合分支）上的 `integer` 在 TS 中丢弃并报 `JOTL2002`，开启 `typiaTags` 时除外 |
 | `type: "boolean"` | 布尔 | `boolean` | ᵀ `boolean` | |
-| `type: "null"` | null | `nullable: true` | ᵀ `null` | 基础类型上合并为 `type: [T, "null"]` |
+| `type: "null"` | null | `nullable: true` | ᵀ `null` | 基础类型上合并为 `type: [T, "null"]`，其余为 `anyOf: [T, {type: "null"}]` |
 | `type: "object"` | 对象 | `{ ... }` 或 `map` | ᵀ `interface` / `{ ... }` | |
 | `type: "array"` | 数组 | `array[...]` | ᵀ `T[]` / `[A, B]` | |
 | `{}`（无约束） | 任意值 | `any` | ᵀ `unknown` | |
@@ -65,12 +65,13 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | `items` | 数组元素 | `array_item` 或体；元组没有 `*` 时为 `false` | ᵀ `T[]` | 元素自身的元数据写在 `item_meta` |
 | `prefixItems` | 按位置的元素 | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ 元组 `[A, B]` | |
 | `const` | 固定值 | 单成员枚举 `enum{ a }`；可区分联合的区分字段 | ᵀ 字面量类型 | 外层带 `type`（规范化规则 4） |
-| `enum` | 取值集合 | 无标签的 `enum{ a b }` | ᵀ 字面量联合 | 枚举数组自动加 `uniqueItems: true` |
+| `enum` | 取值集合 | 无标签的 `enum{ a b }` | ᵀ 字面量联合 | 多选（`enum[multiple: true]`）自动加 `uniqueItems: true` |
 | `oneOf: [{ const, title }]` | 带标签的枚举 | `enum{ a(甲) b(乙) }`，成员可带 `description` | ᵀ 字面量联合 + ᴾ `@enumTitles {"a":"甲"}`，成员说明为 ᴾ `@enumDescriptions` | 至少一个成员有标签或说明时使用这种形式 |
 | `oneOf` | 恰好匹配一支 | `union[discriminator: 'kind'] {...}` | ᵀ 联合 `A \| B`，分支标题为 ᴾ `@branchTitles` | 见 [Jotl 语法规范](jotl.md#union) |
 | `anyOf` | 至少匹配一支 | `union[union_item: 'A\|B']` | ᵀ 联合 `A \| B` | TS 中与 `oneOf` 写法相同，读回时按可区分条件重新判定 |
 | `allOf` `not` `if` `then` `else` | 组合与条件 | 可区分联合的引用分支编译为 `allOf: [{$ref}]`，其余为 — | 引用分支为 ᵀ 交叉类型 `X & {...}`，其余为 — | 照常校验；`allOf` 的成员都是 schema 对象时与本节点合并后渲染（见 [`packages/form/src/core/schema-node.ts`](../../../packages/form/src/core/schema-node.ts) 的 `mergeAllOf`），否则该节点与 `not` `if` 一样降级为 `json` widget（F7，判定表见 [`packages/form/src/core/schema-shape.ts`](../../../packages/form/src/core/schema-shape.ts) 的 `UNSUPPORTED_KEYWORDS`） |
-| `patternProperties` `propertyNames` `dependentRequired` `dependentSchemas` `contains` `minContains` `maxContains` `unevaluatedItems` `unevaluatedProperties` | 其余结构关键字 | — | — | 照常校验；其中 `patternProperties` `dependentSchemas` 同样使节点降级为 `json` |
+| `propertyNames` | 键名约束 | `map[key_meta: {...}]`，只支持 `pattern` `minLength` `maxLength` | — | |
+| `patternProperties` `dependentRequired` `dependentSchemas` `contains` `minContains` `maxContains` `unevaluatedItems` `unevaluatedProperties` | 其余结构关键字 | — | — | 照常校验；其中 `patternProperties` `dependentSchemas` 同样使节点降级为 `json` |
 
 ## 约束
 
@@ -103,7 +104,7 @@ TS 中都是与关键字同名的 ᴾ 协议标签。
 
 | 关键字 | 来源 | Jotl | TS / TSDoc |
 |---|---|---|---|
-| `x-ui` | Jotl，见 [x-ui 规范](x-ui.md) | 元数据 `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands` `rules` | 只有 `widget` 时为 ᴾ `@widget 名字`，否则为 ᴾ `` @ui `{...}` ``；数组元素的写成数组属性上的 ᴾ `@itemWidget` / `@itemUi`；根的 `rules` 写成根类型上的 ᴾ `` @rules `[...]` ``，根的 `widgets`（扩展组件模块）写成 ᴾ `` @widgets `{...}` `` |
+| `x-ui` | Jotl，见 [x-ui 规范](x-ui.md) | 元数据 `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands`，根条目另有 `rules` `widgets` | 只有 `widget` 时为 ᴾ `@widget 名字`，否则为 ᴾ `` @ui `{...}` ``；数组元素的写成数组属性上的 ᴾ `@itemWidget` / `@itemUi`；根的 `rules` 写成根类型上的 ᴾ `` @rules `[...]` ``，根的 `widgets`（扩展组件模块）写成 ᴾ `` @widgets `{...}` `` |
 | `x-deprecatedReason` | Jotl | `deprecated: '原因'` 中的原因 | `@deprecated 原因` 的正文 |
 | `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl，小数位数上限 | `decimals: n` | — |
