@@ -81,7 +81,7 @@ Each package is released on its own by pushing a tag: `<directory>@<version>` re
    git tag core@0.0.2 && git push origin core@0.0.2
    ```
 
-Packages depend on each other through `workspace:~`, which is packed as `~<dependency's current version>` (for example `~0.0.2`, matching `>=0.0.2 <0.1.0`), so a patch release of a dependency does not require republishing its dependents. Release the dependency first when a dependent needs its new version, and bump the minor version for a breaking change.
+Packages depend on each other through `workspace:~`, which is packed as `~<dependency's current version>` (for example `~0.0.2`, matching `>=0.0.2 <0.1.0`), so a patch release of a dependency does not require republishing its dependents. Release the dependency first when a dependent needs its new version, and bump the minor version for a breaking change. Before publishing, the workflow installs the packed tarball with npm in an empty directory, together with its peer dependencies, and imports it (and runs `--version` for packages with a `bin`). This install pulls `@jotl/*` dependencies from npm, so a release fails until the versions it depends on are published.
 
 npm publishing uses Trusted Publishing, so the repository holds no npm token. Each package needs a one-time trust entry, and a new package must be published once by hand before it can get one. Register all packages in one go; confirm 2FA on the first one and tick "skip two-factor authentication for the next 5 minutes" so the rest go through without prompts:
 

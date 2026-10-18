@@ -121,6 +121,29 @@ jobs:
           fi
           ls -l "$RUNNER_TEMP/pack"
 
+      # 按多数用户的安装方式验证包能装能用: 在空目录用 npm 安装 tarball, 导入入口, 带 bin 的再跑一次 --version.
+      # @jotl/* 依赖从 npm 安装, 须已发布(按依赖顺序推 tag); peerDependencies 全部显式安装(含可选的, 例: @jotl/form 主入口要 react),
+      # 取声明范围内的最新版; 不执行依赖的安装脚本.
+      - name: Smoke test with npm install
+        if: steps.pkg.outputs.skip != 'true'
+        env:
+          NAME: ${{ steps.pkg.outputs.name }}
+        run: |
+          dir="$RUNNER_TEMP/smoke"
+          mkdir -p "$dir"
+          cd "$dir"
+          npm init -y >/dev/null
+          npm install --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/pack/*.tgz
+          node -e '
+            const peers = require(`./node_modules/${process.env.NAME}/package.json`).peerDependencies ?? {};
+            const specs = Object.entries(peers).map(([name, range]) => `${name}@${range}`);
+            if (specs.length) require("node:child_process").execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...specs], { stdio: "inherit" });
+          '
+          node --input-type=module -e 'await import(process.env.NAME); console.log(`导入成功: ${process.env.NAME}`)'
+          for bin in $(node -p "Object.keys(require('./node_modules/$NAME/package.json').bin ?? {}).join(' ')"); do
+            npm exec --no -- "$bin" --version
+          done
+
       - uses: actions/upload-artifact@v7
         if: steps.pkg.outputs.skip != 'true'
         with:
@@ -147,7 +170,8 @@ jobs:
           node-version: 24.x
           registry-url: https://registry.npmjs.org
           package-manager-cache: false
-      - run: npm i -g npm@11
+      # 钉死版本, 发布工具也由提交锁定; 升级时改这一处
+      - run: npm i -g npm@11.21.1
       # 只发布 build 产出的 tarball, 不安装依赖也不执行任何脚本
       # 必须带 ./: 写成 pack/x.tgz 会被 npm 当成 GitHub 简写 <用户>/<仓库> 去 git 拉取
       - name: Publish
