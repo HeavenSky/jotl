@@ -72,7 +72,7 @@
 
 ## 发布
 
-每个包推送各自的标签单独发布：`<包目录名>@<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/<包目录名>`，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过 npm 上已有的版本，所以失败后重跑是安全的。
+每个包推送各自的标签单独发布：`<包目录名>@<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/<包目录名>`，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过已发布的版本（npm 包查 npm，插件查 VS Code Marketplace），所以失败后重跑是安全的。自上一个 `vscode-v*` 标签以来，打包进插件的源码有改动时，CI 会给出警告。插件在构建时把 `@jotl/language-server`、`@jotl/form` 及其依赖的工作区源码打进包里，运行时不从 npm 加载，所以发布 npm 包从不要求重发插件；想让插件用户拿到这些包的改动时再发插件。
 
 1. 改该包 `package.json` 的 `version`，提交并推送到 `main`。
 2. 推送标签，以 `packages/core` 为例：
@@ -81,7 +81,7 @@
    git tag core@0.0.2 && git push origin core@0.0.2
    ```
 
-经 `workspace:*` 依赖其他包的包，打包时写入的是依赖包当前的版本；两个包都有改动时先发布被依赖的那个。
+包之间经 `workspace:~` 互相依赖，打包时写成 `~<依赖包当前版本>`（例如 `~0.0.2`，匹配 `>=0.0.2 <0.1.0`），所以依赖包发布补丁版本时不必重发依赖它的包。依赖方要用到新版本时先发布被依赖的包；有破坏性变更时升 minor 版本。
 
 npm 发布走 Trusted Publishing，仓库里不存 npm token。每个包需要登记一次信任关系，新包要先手动发布一次才能登记。一次性登记全部包：第一个包做 2FA 时勾选「5 分钟内跳过两步验证」，其余包不再确认：
 

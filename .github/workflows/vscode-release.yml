@@ -28,6 +28,7 @@ jobs:
   release:
     runs-on: ubuntu-latest
     permissions:
+      actions: read # 查询 CI 结果
       contents: write
     outputs:
       version: ${{ steps.version.outputs.version }}
@@ -37,6 +38,28 @@ jobs:
       has_ovsx_pat: ${{ steps.secrets.outputs.has_ovsx_pat }}
     steps:
       - uses: actions/checkout@v7
+
+      # 与 npm-release.yml 相同: 等待同一提交在 main 上的 CI 结束, 通过才发布.
+      - name: Wait for CI
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          started=$SECONDS
+          while :; do
+            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=1" \
+              --jq '.workflow_runs[0] | if . == null then "missing" else "\(.status)/\(.conclusion // "")" end')"
+            case "$state" in
+              completed/success) echo "CI 已通过"; exit 0 ;;
+              completed/*) echo "::error::CI 未通过($state), 不发布"; exit 1 ;;
+              missing)
+                if [ $((SECONDS - started)) -gt 300 ]; then
+                  echo "::error::提交 $GITHUB_SHA 没有 CI 运行记录, 先把它推送到 main"
+                  exit 1
+                fi ;;
+            esac
+            echo "CI 状态: $state, 30 秒后重试"
+            sleep 30
+          done
 
       # pnpm 版本取仓库根 package.json 的 packageManager. 必须在 setup-node 之前:
       # cache: pnpm 需要 pnpm 已在 PATH 上才能算出 store 路径.
@@ -159,7 +182,24 @@ jobs:
         with:
           name: ${{ needs.release.outputs.vsix_name }}
 
+      # 市场上已有该版本时跳过, 重跑失败的运行或补发 Open VSX 都安全; 扩展从未发布过时 vsce show 失败, 按未发布处理.
+      - name: Check published version
+        id: published
+        working-directory: ${{ env.EXT_DIR }}
+        env:
+          VERSION: ${{ needs.release.outputs.version }}
+        run: |
+          id="$(node -p "const p=require('./package.json'); p.publisher + '.' + p.name")"
+          versions="$(pnpm exec vsce show "$id" --json 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{try{console.log(JSON.parse(s).versions.map(v=>v.version).join("\n"))}catch{}})' || true)"
+          if printf '%s\n' "$versions" | grep -qxF "$VERSION"; then
+            echo "$id@$VERSION 已在 Marketplace 上, 跳过发布"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Publish to VS Code Marketplace
+        if: steps.published.outputs.skip != 'true'
         working-directory: ${{ env.EXT_DIR }}
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}

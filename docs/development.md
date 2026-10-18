@@ -72,7 +72,7 @@ Other directories:
 
 ## Release
 
-Each package is released on its own by pushing a tag: `<directory>@<version>` releases `packages/<directory>` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published, so rerunning a failed run is safe.
+Each package is released on its own by pushing a tag: `<directory>@<version>` releases `packages/<directory>` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published (on npm, or on the VS Code Marketplace for the extension), so rerunning a failed run is safe. CI warns when the sources bundled into the extension changed since the last `vscode-v*` tag. The extension bundles the workspace sources of `@jotl/language-server`, `@jotl/form` and their dependencies at build time and never loads them from npm, so publishing an npm package never requires a new extension release; release the extension when you want its users to get changes in those bundled packages.
 
 1. Bump `version` in the package's `package.json`, commit and push to `main`.
 2. Push the tag, for example for `packages/core`:
@@ -81,7 +81,7 @@ Each package is released on its own by pushing a tag: `<directory>@<version>` re
    git tag core@0.0.2 && git push origin core@0.0.2
    ```
 
-A package that depends on another one through `workspace:*` is packed with that dependency's current version, so release the dependency first when both changed.
+Packages depend on each other through `workspace:~`, which is packed as `~<dependency's current version>` (for example `~0.0.2`, matching `>=0.0.2 <0.1.0`), so a patch release of a dependency does not require republishing its dependents. Release the dependency first when a dependent needs its new version, and bump the minor version for a breaking change.
 
 npm publishing uses Trusted Publishing, so the repository holds no npm token. Each package needs a one-time trust entry, and a new package must be published once by hand before it can get one. Register all packages in one go; confirm 2FA on the first one and tick "skip two-factor authentication for the next 5 minutes" so the rest go through without prompts:
 
