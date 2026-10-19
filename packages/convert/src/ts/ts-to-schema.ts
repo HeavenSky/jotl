@@ -645,15 +645,18 @@ class Converter {
         }
         return;
       }
-      case "closed":
-        if (schema.type === "object" && schema.additionalProperties === undefined) schema.additionalProperties = false;
+      case "closed": {
+        const target = valueObjectTarget(schema);
+        if (target !== undefined && target.additionalProperties === undefined) target.additionalProperties = false;
         else this.report("JOTL2115", tag, { tag: tag.name });
         return;
+      }
       case "decimalRange": {
         const value = decodeJson(tag.text);
+        const target = value.ok && isDecimalRange(value.value) ? valueObjectTarget(schema) : undefined;
         if (!value.ok || !isDecimalRange(value.value)) this.invalid(tag, l10n("值为字符串的 JSON 对象", "a JSON object with string values"));
-        else if (schema.type !== "object") this.report("JOTL2115", tag, { tag: tag.name });
-        else schema["x-decimalRange"] = value.value;
+        else if (target === undefined) this.report("JOTL2115", tag, { tag: tag.name });
+        else target["x-decimalRange"] = value.value;
         return;
       }
       case "root":
@@ -778,6 +781,26 @@ function nullableUnionTarget(schema: JsonSchemaObject): JsonSchemaObject | undef
   const [inner, tail] = schema.anyOf;
   const nullTail = isSchemaObject(tail) && Object.keys(tail).length === 1 && tail.type === "null";
   return nullTail && isSchemaObject(inner) && (Array.isArray(inner.oneOf) || Array.isArray(inner.anyOf)) ? inner : undefined;
+}
+
+/**
+ * `@closed` `@decimalRange` 作用的对象: 节点本身, 或依次经过数组(逐层)元素与一层可空包装 `anyOf [X, null]` 找到的对象,
+ * 与 schemaToTs 上提的位置一一对应; 途经的节点换成副本后再写入. 找不到对象时返回 undefined.
+ */
+function valueObjectTarget(schema: JsonSchemaObject): JsonSchemaObject | undefined {
+  let target = schema;
+  while (target.type === "array" && isSchemaObject(target.items)) {
+    const items: JsonSchemaObject = { ...target.items };
+    target.items = items;
+    target = items;
+  }
+  const [inner, tail] = Array.isArray(target.anyOf) && target.anyOf.length === 2 ? target.anyOf : [];
+  if (isSchemaObject(inner) && isSchemaObject(tail) && Object.keys(tail).length === 1 && tail.type === "null") {
+    const copy: JsonSchemaObject = { ...inner };
+    target.anyOf = [copy, tail];
+    target = copy;
+  }
+  return target.type === "object" ? target : undefined;
 }
 
 function flattenUnion(node: ts.TypeNode): ts.TypeNode[] {

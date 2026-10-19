@@ -80,6 +80,8 @@ interface Rendered {
   ui?: JsonSchemaObject | undefined;
   /** 数组(逐层)元素的 x-ui, 下标为层级; 写成数组属性上的 `@itemUi` `@itemWidget`. */
   itemUis?: (JsonSchemaObject | undefined)[] | undefined;
+  /** 数组(逐层)元素或可空包装内层对象的 `@closed` `@decimalRange`, 上提到所在属性. */
+  valueTags?: DocTag[] | undefined;
 }
 
 interface Context {
@@ -127,7 +129,7 @@ function isLabeledEnum(schema: JsonSchemaObject): boolean {
     && oneOf.every((b) => isSchemaObject(b) && "const" in b && Object.keys(b).every((k) => ["const", "title", "description"].includes(k)));
 }
 
-/** 编译器为 money/bigint 生成的封闭值对象; 能写注释时 additionalProperties 与 x-decimalRange 写成 `@closed` `@decimalRange`. */
+/** 编译器为 money/bigint 生成的封闭值对象; 只有它的 x-decimalRange 写成 `@decimalRange`. */
 function isBuiltinValue(schema: JsonSchemaObject): boolean {
   const props = schema.properties;
   if (schema.additionalProperties !== false || !isSchemaObject(props) || !isSchemaObject(props.value)) return false;
@@ -145,6 +147,17 @@ function nullableUnionInner(branches: JsonSchema[]): JsonSchemaObject | undefine
   if (Object.keys(tail).length !== 1 || tail.type !== "null") return undefined;
   if (["$ref", "const", "enum", "allOf"].some((k) => k in inner)) return undefined;
   return Array.isArray(inner.anyOf) || (Array.isArray(inner.oneOf) && !isLabeledEnum(inner)) ? inner : undefined;
+}
+
+/** 写成 `@closed` 的封闭对象; tsToSchema 读回的对象总带 `type: "object"`, 缺 type 的写出后不能往返. */
+function isClosedObject(schema: JsonSchemaObject): boolean {
+  return schema.additionalProperties === false && schema.type === "object";
+}
+
+/** 可空包装 `anyOf: [X, {type: "null"}]`; X 为对象时它的 `@closed` `@decimalRange` 上提到包装节点. */
+function isNullableWrapper(branches: JsonSchema[]): boolean {
+  const tail = branches[1];
+  return branches.length === 2 && isSchemaObject(branches[0]) && isSchemaObject(tail) && Object.keys(tail).length === 1 && tail.type === "null";
 }
 
 /** 可区分联合各分支的 title, 没有 title 的为 null; 不是可区分联合或全无 title 时为 undefined. */
@@ -203,8 +216,18 @@ class Generator {
     return description === undefined ? { type, tags } : { type, tags, description };
   }
 
-  /** 不能写注释的节点: 只输出类型; typia 模式下约束改写为类型标签, 其余关键字告警丢弃. */
-  renderNested(schema: JsonSchema, pointer: JsonPointer, indent: string, position: "nested" | "lift", silent: readonly string[] = []): Rendered {
+  /**
+   * 不能写注释的节点: 只输出类型; typia 模式下约束改写为类型标签, 其余关键字告警丢弃.
+   * carrier 为真时节点自身的 `@closed` `@decimalRange` 交给上层属性写出.
+   */
+  renderNested(
+    schema: JsonSchema,
+    pointer: JsonPointer,
+    indent: string,
+    position: "nested" | "lift",
+    silent: readonly string[] = [],
+    carrier = position === "lift",
+  ): Rendered {
     if (!isSchemaObject(schema)) return { type: this.renderBoolean(schema, pointer), titles: undefined, integer: false };
     const consumed = new Set<string>(silent);
     const rendered = this.renderCore(schema, pointer, indent, position, consumed);
@@ -213,8 +236,10 @@ class Generator {
     const xUi = schema["x-ui"];
     const ui = position === "lift" && !consumed.has("x-ui") && isSchemaObject(xUi) && Object.keys(xUi).length > 0 ? xUi : undefined;
     if (ui !== undefined) consumed.add("x-ui");
+    const own = carrier ? valueObjectTags(schema, consumed) : [];
     this.reportLeftovers(schema, pointer, consumed);
-    return { ...rendered, type: this.applyTypia(rendered.type, typia), ui };
+    const valueTags = own.length > 0 ? own : rendered.valueTags;
+    return { ...rendered, type: this.applyTypia(rendered.type, typia), ui, valueTags };
   }
 
   private renderBoolean(schema: JsonSchema, pointer: JsonPointer): TypeText {
@@ -236,7 +261,8 @@ class Generator {
       integer = false,
       descriptions?: Record<string, string>,
       itemUis?: (JsonSchemaObject | undefined)[],
-    ): Rendered => ({ type, titles, integer, descriptions, itemUis });
+      valueTags?: DocTag[],
+    ): Rendered => ({ type, titles, integer, descriptions, itemUis, valueTags });
 
     const refs = refsOfAllOf(schema.allOf);
     if (refs !== undefined) {
@@ -294,10 +320,12 @@ class Generator {
       }
       const discriminated = branchesKey === "oneOf" && isDiscriminatedUnion(branches);
       const silent = discriminated ? ["title"] : [];
-      const type = union(branches.map((b, i) => this.renderNested(b, appendPointer(pointer, branchesKey, i), indent, "nested", silent).type));
+      const carrier = branchesKey === "anyOf" && position !== "nested" && isNullableWrapper(branches);
+      const rendered = branches.map((b, i) => this.renderNested(b, appendPointer(pointer, branchesKey, i), indent, "nested", silent, carrier && i === 0));
+      const type = union(rendered.map((r) => r.type));
       const branchTitles = branches.map((b) => (isSchemaObject(b) && typeof b.title === "string" ? b.title : null));
       const tagged = discriminated && position === "tag" && branchTitles.some((t) => t !== null);
-      return { ...result(type), branchTitles: tagged ? branchTitles : undefined };
+      return { ...result(type), branchTitles: tagged ? branchTitles : undefined, valueTags: carrier ? rendered[0]?.valueTags : undefined };
     }
 
     const declared = schema.type;
@@ -313,6 +341,7 @@ class Generator {
     let titles: Record<string, string> | undefined;
     let descriptions: Record<string, string> | undefined;
     let itemUis: (JsonSchemaObject | undefined)[] | undefined;
+    let valueTags: DocTag[] | undefined;
     const members = types.map((t): TypeText => {
       switch (t) {
         case "string":
@@ -327,6 +356,7 @@ class Generator {
           titles = array.titles;
           descriptions = array.descriptions;
           itemUis = array.itemUis;
+          valueTags = array.valueTags;
           return array.type;
         }
         case "object":
@@ -336,7 +366,7 @@ class Generator {
           return atom("unknown");
       }
     });
-    return result(union(members), titles, types.includes("integer"), descriptions, itemUis);
+    return result(union(members), titles, types.includes("integer"), descriptions, itemUis, valueTags);
   }
 
   private renderRef(ref: string, pointer: JsonPointer): TypeText {
@@ -385,6 +415,7 @@ class Generator {
       descriptions: element.descriptions,
       integer: false,
       itemUis: itemUis.some((u) => u !== undefined) ? itemUis : undefined,
+      valueTags: element.valueTags,
     };
   }
 
@@ -396,9 +427,9 @@ class Generator {
   /** 对象的属性与索引签名, 每项一行或多行(含注释); 返回的行已带缩进. */
   renderMembers(schema: JsonSchemaObject, pointer: JsonPointer, indent: string, consumed: Set<string>): string[] {
     consumed.add("properties").add("required");
-    // money/bigint 的 additionalProperties: false 留给 docTags 写成 @closed; 不能写注释的位置由 reportLeftovers 告警.
-    const builtinClosed = schema.additionalProperties === false && isBuiltinValue(schema);
-    if (!builtinClosed) consumed.add("additionalProperties");
+    // additionalProperties: false 留给 docTags 或上层属性写成 @closed; 都写不出时由 reportLeftovers 告警.
+    const closed = schema.additionalProperties === false;
+    if (!closed) consumed.add("additionalProperties");
     const lines: string[] = [];
     const propertyTypes: TypeText[] = [];
     const required = Array.isArray(schema.required) ? schema.required : [];
@@ -416,9 +447,9 @@ class Generator {
       if (!(key in properties)) this.dropped(appendPointer(pointer, "required"), `required: ${key}`);
     }
     const additional = schema.additionalProperties;
-    if (additional !== undefined) {
+    if (additional !== undefined && !closed) {
       if (typeof additional === "boolean") {
-        if (!builtinClosed) this.dropped(pointer, `additionalProperties: ${String(additional)}`);
+        this.dropped(pointer, `additionalProperties: ${String(additional)}`);
       } else {
         const value = this.renderNested(additional, appendPointer(pointer, "additionalProperties"), indent, "nested").type;
         lines.push(`${indent}[key: string]: ${indexSignatureType(value, propertyTypes)};`);
@@ -519,10 +550,6 @@ class Generator {
       if (typeof schema.pattern === "string") add("pattern", [`@pattern ${encodePattern(schema.pattern)}`]);
       else this.dropped(pointer, "pattern");
     }
-    if (isBuiltinValue(schema) && !consumed.has("additionalProperties")) {
-      consumed.add("additionalProperties");
-      add("additionalProperties", ["@closed"]);
-    }
     flag("uniqueItems", "uniqueItems");
     if ("default" in schema && !consumed.has("default")) {
       consumed.add("default");
@@ -558,11 +585,7 @@ class Generator {
       else add("x-ui", [uiTag(xUi)]);
     }
     for (const ui of rendered.itemUis ?? []) add("x-ui", [uiTag(ui ?? {}, "item")]);
-    const range = schema["x-decimalRange"];
-    if (range !== undefined && !consumed.has("x-decimalRange") && isBuiltinValue(schema) && isDecimalRange(range)) {
-      consumed.add("x-decimalRange");
-      add("x-decimalRange", [`@decimalRange ${encodeJson(range)}`]);
-    }
+    tags.push(...valueObjectTags(schema, consumed), ...(rendered.valueTags ?? []));
     if (schema.errorMessage !== undefined) {
       consumed.add("errorMessage");
       add("errorMessage", [`@errorMessage ${encodeJson(schema.errorMessage)}`]);
@@ -583,6 +606,20 @@ class Generator {
     const description = typeof schema.description === "string" ? schema.description : undefined;
     return { members, doc: renderDoc("", description, [...tags, ...documentTags]) };
   }
+}
+
+/** 封闭对象的 `@closed`, 以及 money/bigint 值对象的 `@decimalRange`; 写出的关键字记入 consumed. */
+function valueObjectTags(schema: JsonSchemaObject, consumed: Set<string>): DocTag[] {
+  const tags: DocTag[] = [];
+  if (!isClosedObject(schema) || consumed.has("additionalProperties")) return tags;
+  consumed.add("additionalProperties");
+  tags.push({ key: "additionalProperties", lines: ["@closed"] });
+  const range = schema["x-decimalRange"];
+  if (range !== undefined && !consumed.has("x-decimalRange") && isBuiltinValue(schema) && isDecimalRange(range)) {
+    consumed.add("x-decimalRange");
+    tags.push({ key: "x-decimalRange", lines: [`@decimalRange ${encodeJson(range)}`] });
+  }
+  return tags;
 }
 
 /** 每项只含 `$ref` 的 allOf 写成交叉类型 `X & {...}`; 其余返回 undefined. */

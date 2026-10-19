@@ -140,7 +140,7 @@ export interface my_type {
 
   it("无法表达的关键字给出 JOTL2002 并指向节点", () => {
     const schema = wrap({
-      T: { type: "object", properties: { a: { type: "string", not: { const: "x" } } }, additionalProperties: false },
+      T: { type: "object", properties: { a: { type: "string", not: { const: "x" } } }, propertyNames: { pattern: "^a" } },
     });
     const result = schemaToTs(schema);
     expect(result.diagnostics.map((d) => [d.code, d.location])).toEqual([
@@ -420,7 +420,7 @@ describe("编译器固定形态与往返", () => {
     expect(text).toContain("/**\n * @title 价格\n * @closed\n * @decimalRange");
   });
 
-  it("不能写注释的位置上, money 值对象的 x-decimalRange 与 additionalProperties: false 告警", () => {
+  it("不能写注释也不能上提的位置上, 值对象的 x-decimalRange 与 additionalProperties: false 告警", () => {
     const money = {
       type: "object",
       properties: { type: { type: "string", const: "money" }, value: { type: "string" } },
@@ -428,11 +428,80 @@ describe("编译器固定形态与往返", () => {
       additionalProperties: false,
       "x-decimalRange": { minimum: "0" },
     };
-    const result = schemaToTs(wrap({ T: { type: "array", items: money } }));
+    const result = schemaToTs(wrap({ T: { anyOf: [money, { type: "string" }] } }));
     expect(result.diagnostics.map((d) => [d.code, d.location])).toEqual([
-      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/items" }],
-      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/items" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/anyOf/0" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/anyOf/0" }],
     ]);
     expect(result.diagnostics.map((d) => d.message).join("\n")).toMatch(/additionalProperties[\s\S]*x-decimalRange/);
+    const closed = { type: "object", properties: { x: { type: "number" } }, additionalProperties: false };
+    const others = schemaToTs(wrap({
+      T: {
+        type: "object",
+        properties: {
+          map: { type: "object", additionalProperties: closed },
+          pair: { type: "array", prefixItems: [closed], items: false },
+          wrapped: { anyOf: [{ type: "array", items: closed }, { type: "null" }] },
+          bare: { properties: { x: { type: "number" } }, additionalProperties: false },
+        },
+      },
+    }));
+    expect(others.diagnostics.map((d) => [d.code, d.location])).toEqual([
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/properties/map/additionalProperties" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/properties/pair/prefixItems/0" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/properties/wrapped/anyOf/0/items" }],
+      ["JOTL2002", { kind: "pointer", pointer: "/$defs/T/properties/bare" }],
+    ]);
+  });
+
+  it("普通对象的 additionalProperties: false 写成 @closed 并往返还原", () => {
+    const point = { type: "object", properties: { x: { type: "number" } }, required: ["x"], additionalProperties: false };
+    const schema = wrap({
+      T: {
+        type: "object",
+        properties: { geo: { title: "坐标", ...point }, extra: { type: "object", additionalProperties: { type: "string" } } },
+        additionalProperties: false,
+      },
+      P: point,
+      U: { anyOf: [{ type: "string" }, { $ref: "#/$defs/P" }] },
+    });
+    const text = roundTrip(schema);
+    expect(text).toContain("/**\n * @closed\n */\nexport interface T {");
+    expect(text).toContain("   * @title 坐标\n   * @closed\n   */\n  geo?: {");
+    expect(text).toContain("/**\n * @closed\n */\nexport interface P {");
+    expect(typecheck({ "t.d.ts": text })).toEqual([]);
+  });
+
+  it("数组元素与可空包装内层对象的 @closed @decimalRange 上提到属性, 读回时下放并往返还原", () => {
+    const money = {
+      type: "object",
+      properties: { type: { type: "string", const: "money" }, value: { type: "string" } },
+      required: ["type", "value"],
+      additionalProperties: false,
+      "x-decimalRange": { minimum: "0" },
+    };
+    const point = { type: "object", properties: { x: { type: "number" } }, required: ["x"], additionalProperties: false };
+    const nullable = (inner: unknown) => ({ anyOf: [inner, { type: "null" }] });
+    const schema = wrap({
+      T: {
+        type: "object",
+        properties: {
+          price: { title: "价格", ...nullable(money) },
+          prices: { type: "array", items: money },
+          grid: { type: "array", items: { type: "array", items: point } },
+          points: { type: "array", items: nullable(point) },
+        },
+      },
+      L: { type: "array", items: money },
+    });
+    const result = schemaToTs(schema);
+    expect(result.diagnostics).toEqual([]);
+    const text = roundTrip(schema);
+    expect(text).toContain("   * @title 价格\n   * @closed\n   * @decimalRange `{\"minimum\":\"0\"}`\n   */\n  price?: {");
+    expect(text).toContain("   * @closed\n   * @decimalRange `{\"minimum\":\"0\"}`\n   */\n  prices?: {");
+    expect(text).toContain("   * @closed\n   */\n  grid?: {");
+    expect(text).toContain("   * @closed\n   */\n  points?: ({");
+    expect(text).toContain("/**\n * @closed\n * @decimalRange `{\"minimum\":\"0\"}`\n */\nexport type L = {");
+    expect(typecheck({ "t.d.ts": text })).toEqual([]);
   });
 });

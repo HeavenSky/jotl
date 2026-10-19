@@ -156,6 +156,18 @@ export interface B { kind: "b" }`;
     expect(codes(invalid.diagnostics)).toEqual(["JOTL2116"]);
   });
 
+  it("@closed 与 @decimalRange 经数组元素与可空包装下放到内层对象; 找不到对象时告警", () => {
+    const point = { type: "object", properties: { x: { type: "number" } }, required: ["x"] };
+    const closed = { ...point, additionalProperties: false, "x-decimalRange": { minimum: "0" } };
+    const doc = "/**\n * @closed\n * @decimalRange `{\"minimum\":\"0\"}`\n */\n";
+    expect(defOf(`${doc}export type T = { x: number }[][];`)).toEqual({ type: "array", items: { type: "array", items: closed } });
+    expect(defOf(`${doc}export type T = { x: number } | null;`)).toEqual({ anyOf: [closed, { type: "null" }] });
+    expect(defOf(`${doc}export type T = ({ x: number } | null)[];`)).toEqual({ type: "array", items: { anyOf: [closed, { type: "null" }] } });
+    const misplaced = tsToSchema(`${doc}export type T = { x: number }[] | null;\n${doc}export type U = string[];\n${doc}export type V = ({ x: number } | string)[];`);
+    expect(codes(misplaced.diagnostics)).toEqual(["JOTL2115", "JOTL2115", "JOTL2115", "JOTL2115", "JOTL2115", "JOTL2115"]);
+    expect(misplaced.value?.$defs?.T).toEqual({ anyOf: [{ type: "array", items: point }, { type: "null" }] });
+  });
+
   it("Array, Record, 元组, readonly 修饰与带引号的属性名", () => {
     expect(defOf(`export interface T {
   readonly "a-b": Array<string>;

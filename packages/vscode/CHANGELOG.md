@@ -4,7 +4,7 @@
 
 - New diagnostics: an empty discriminated union, string constraints on a timestamp `value_format` field, and a `node_if` path starting with `$.` (use `root_if` to read from the root).
 - The preview form reports an empty widget name in `x-ui` widgets, and a read-only number field keeps its thousands separators when focused.
-- The TypeScript declarations in the preview keep nullable unions as `(A | B) | null`, and `money` and `bigint` value objects carry `@closed` and `@decimalRange` tags, so converting back yields the same schema.
+- The TypeScript declarations in the preview keep nullable unions as `(A | B) | null` and mark every closed object with `@closed` (`money` and `bigint` ranges with `@decimalRange`), on the holding property for array elements and nullable objects, so converting back yields the same schema.
 
 ## v0.0.1 2026-10-16 Initial release
 

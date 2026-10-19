@@ -55,5 +55,5 @@ fixtures/
 样例含有 `@jotl/convert` 无法表达的内容时，转换会丢弃这些内容并报 `JOTL2002`，此类样例用 `meta.skip` 跳过 `types.d.ts`：
 
 - 元素级约束或注解：数组元素、`map` 值、联合分支、元组位置上的约束、`title` 与 `x-ui`（数组元素的 `x-ui` 除外）：`007` `109` `110`。
-- `additionalProperties: false`（`closed`；`money` `bigint` 值对象上写成 `@closed`，只在数组元素、联合分支等不能写注释的位置才报）：`101` `109`。
+- 联合分支上的 `additionalProperties: false`（`closed`；其他位置写成 `@closed`，数组元素与可空对象的上提到所在属性）：`109`。
 - Jotl 扩展关键字 `x-decimals` 与 `contentSchema` `propertyNames`：`108` `110`。

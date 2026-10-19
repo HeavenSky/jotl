@@ -26,8 +26,8 @@
 | 可区分联合分支的 `title` | `@branchTitles` JSON 数组，按分支顺序，无 `title` 的分支为 `null`；只在联合节点可写注释时输出 |
 | 同时有 `properties` 与 `additionalProperties` | 索引签名写 `(额外类型) \| 属性类型...`，可选属性另加 `undefined`；读取时只取括号中的额外类型 |
 | `x-valueFormat`（日期组件的存储格式） | `@valueFormat 格式`，取值为文本 |
-| `money` / `bigint` 值对象（`properties.type` 为 `money` 或 `bigint` 常量）上的 `additionalProperties: false` | `@closed`（修饰标签，无取值） |
-| `money` / `bigint` 值对象上的 `x-decimalRange` | `@decimalRange`，取值为值是精确数字串的 JSON 对象，如 `` @decimalRange `{"minimum":"0"}` `` |
+| `type: "object"` 的对象上的 `additionalProperties: false` | `@closed`（修饰标签，无取值）；数组（逐层）元素与可空包装 `anyOf: [对象, { type: "null" }]`（如可空 `money`）中的对象，写在所在的属性或类型上 |
+| `money` / `bigint` 值对象（`properties.type` 为 `money` 或 `bigint` 常量）上的 `x-decimalRange` | `@decimalRange`，取值为值是精确数字串的 JSON 对象，如 `` @decimalRange `{"minimum":"0"}` ``；位置同 `@closed` |
 | 可空的联合 `anyOf: [{ oneOf 或 anyOf }, { type: "null" }]`（Jotl `union` 加 `nullable: true` 的编译结果） | `(A \| B) \| null`；括号保留两层结构，不加括号的 `A \| B \| null` 读回为一层 `anyOf`。这种节点上的 `@branchTitles` 作用于内层 `oneOf` |
 | 根 `$ref` 指向的类型与默认导出不同 | 根类型注释加 `@root`（修饰标签，无取值） |
 | 根 `$id`（只在根类型上） | `@id URI`，取值为文本 |
@@ -45,7 +45,7 @@
 
 - 元素级约束与注解（如数组元素上的 `maxLength`）没有可挂注释的位置，数组元素的 `x-ui` 除外。非 typia 模式下丢弃；typia 模式可以表达。
 - Jotl 扩展关键字 `x-decimals`、`money` / `bigint` 值对象以外的 `x-decimalRange`，以及 `contentSchema`、`propertyNames` 与含非引用成员的 `allOf`，没有对应写法。
-- `money` / `bigint` 值对象的 `additionalProperties: false` 与 `x-decimalRange` 要写在注释里；值对象所在位置不能写注释时（如数组元素、联合分支，包括可空 `money` 的 `anyOf` 分支）丢弃并报 `JOTL2002`。
+- 对象本身与上表所列的所在位置都不能写注释时（如联合分支、`map` 值、元组各位置、可空包装中的数组），`additionalProperties: false` 与 `money` / `bigint` 值对象的 `x-decimalRange` 丢弃并报 `JOTL2002`；没有 `type: "object"` 的对象也是如此。
 - 不能写注释的位置（如数组元素、联合分支）上，可区分联合分支的 `title` 丢弃且不报，因为它由编译器按分支标签生成。
 
 ## 写根级标签
@@ -73,5 +73,5 @@
 - 不是合法 JSON 的取值按字符串处理，报 `JOTL2113` warning。
 - TSDoc 标准标签（如 `@remarks` `@see`）静默忽略；未知标签报 `JOTL2114` warning。
 - 标签用在不适用的类型上报 `JOTL2115` warning。
-- `@closed` 与 `@decimalRange` 可用于任意对象类型，不限于 `money` / `bigint` 值对象；`@closed` 用在带索引签名的对象上报 `JOTL2115`。
+- `@closed` 与 `@decimalRange` 可用于任意对象类型，不限于 `money` / `bigint` 值对象。用在数组或可空类型上时，作用于依次经过数组（逐层）元素、至多一层 `| null` 找到的对象；`@closed` 用在带索引签名的对象上，或找不到这样的对象时，报 `JOTL2115`。
 - `@asType` 只接受 `integer`，其余值报 `JOTL2118` warning。
