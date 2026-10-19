@@ -61,7 +61,7 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | `properties` | Object fields | The fields in `{ key: T }` | ᵀ Interface members | For key naming rules see the [Jotl syntax specification](jotl.md#names) |
 | `required` | Names of required fields | Required when written with `:` and without `?`; `key?: T` and a bare `key(label)` are optional | ᵀ Whether the member has `?` | In declaration order; omitted when empty |
 | `additionalProperties` (schema) | Value of extra keys | `map` | ᵀ Index signature `[key: string]: T` | |
-| `additionalProperties: false` | No extra keys allowed | `closed: true` | ᴾ `@closed` on `money` `bigint` value objects; otherwise — | Only on the object type itself, not at a reference site |
+| `additionalProperties: false` | No extra keys allowed | `closed: true` | ᴾ `@closed` on the object; for array elements and nullable objects, on the holding property; otherwise — | Only on the object type itself, not at a reference site |
 | `items` | Array elements | `array_item` or a body; `false` for a tuple without `*` | ᵀ `T[]` | Metadata of the element itself goes in `item_meta` |
 | `prefixItems` | Positional elements | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ Tuple `[A, B]` | |
 | `const` | Fixed value | Single-member enum `enum{ a }`; the discriminator of a discriminated union | ᵀ Literal type | The outer schema carries `type` (normalization rule 4) |
@@ -106,7 +106,7 @@ The following keywords appear in generated schemas but are not part of the JSON 
 |---|---|---|---|
 | `x-ui` | Jotl, see the [x-ui specification](x-ui.md) | Metadata `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands`, plus `rules` `widgets` on the root entry only | ᴾ `@widget name` when there is only `widget`, otherwise ᴾ `` @ui `{...}` ``; for array elements, ᴾ `@itemWidget` / `@itemUi` on the array property; the root's `rules` become ᴾ `` @rules `[...]` `` on the root type, and the root's `widgets` (extension component modules) become ᴾ `` @widgets `{...}` `` |
 | `x-deprecatedReason` | Jotl | The reason in `deprecated: 'reason'` | The body of `@deprecated reason` |
-| `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
+| `errorMessage` | Jotl; same name as the ajv-errors keyword, but interpreted by `@jotl/data` itself, see [Metadata keys](jotl.md#metadata-keys) | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl, maximum number of decimal places | `decimals: n` | — |
 | `x-valueFormat` | Jotl, storage format of dates and times | `value_format` | ᴾ `@valueFormat` |
-| `x-decimalRange` | Jotl, range for `money` and `bigint` `value`s compared as exact decimals | `minimum` `maximum` and the like (as strings) on `money` `bigint` | ᴾ `@decimalRange {"minimum":"0"}` on `money` `bigint` value objects |
+| `x-decimalRange` | Jotl, range for `money` and `bigint` `value`s compared as exact decimals | `minimum` `maximum` and the like (as strings) on `money` `bigint` | ᴾ `@decimalRange {"minimum":"0"}` on `money` `bigint` value objects, placed like `@closed` |

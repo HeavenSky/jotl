@@ -165,7 +165,7 @@ Terms: a "component" is the name written in component position (built-in or exte
 | `color` | `string` + `format: color` | `color` | None |
 | `image` | `string` + `format: uri` | `image` (upload + preview) `input` | None |
 | `file` | `string` + `format: uri` | `file` (upload) `input` | None |
-| `object` | `type: object` | `page` (drill-down) `inline` `json`; the root is always `page` | Fields |
+| `object` | `type: object` | `page` (drill-down) `inline` `json`; the root is always the first page: `widget: 'inline'` on the root entry reports no diagnostic and is still written to `x-ui.widget`, and the root renders the same as with `page` | Fields |
 | `array` | `type: array` | `list` `json`; with `array_item: 'tuple'`, `tuple` `json` | [Bodies and inner types](#bodies-and-inner-types) |
 | `map` | `object` + `additionalProperties` | `kv` `json` | [Bodies and inner types](#bodies-and-inner-types) |
 | `union` | `oneOf` / `anyOf` | `union` (branch dropdown; segmented buttons with `props: {selector: 'buttons'}` and at most 4 branches) | [Bodies and inner types](#bodies-and-inner-types) |
@@ -301,6 +301,7 @@ Only two forms are accepted:
 - Override objects in `variants` and the `ui` of each rule in `rules` use `x-ui` field names; conditions in them are written as `root_if` / `node_if` (compiled to `visibleIf`; writing `visibleIf` directly is also accepted).
 - The compiler writes `x-ui.version` on the root automatically; authors do not write it.
 - v1 (Fengdie) aliases (`min` `max` `regExp` `errorMsg` ...) are not accepted by the parser; the migration tool converts them.
+- `errorMessage` is interpreted by `@jotl/data` itself, not by ajv-errors. A string replaces the message of every error reported on that node; an object replaces only the errors of the keywords it names. The keys Jotl accepts are `ERROR_MESSAGE_KEYWORDS` in [`packages/core/src/syntax/builtins.ts`](../../packages/core/src/syntax/builtins.ts), and other keys report JOTL1020. Only the message changes: the diagnostic code and location stay the same; `{label}` and the other parameters of that diagnostic's message are substituted, and unknown placeholders stay as written. For a missing required field, the field's own node is checked first, then the parent object; for other errors, the node holding the violated keyword comes first, then the field node. ajv-errors forms such as the `properties` / `items` / `_` keys and `${...}` interpolation are not supported.
 
 ## Numbers, money and big integers
 
@@ -350,10 +351,10 @@ Compilation:
 | `x` / `X` | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` set to the component name |
 | Others (including the `time` default `HH:mm:ss`) | `{type: string, x-valueFormat}` + `x-ui.widget` set to the component name |
 
-- The standard `format: time` requires a time zone, so `time` no longer compiles to it by default; an existing `format: time` prints as a plain string, `string[format: 'time']`.
+- The `time` default `HH:mm:ss` is not the RFC 3339 `full-time` behind the standard `format: time`: it has no time zone and no fractional seconds, while `format: time` requires a time zone and allows fractional seconds. So `time` no longer compiles to `format: time` by default; an existing `format: time` prints as a plain string, `string[format: 'time']`. When a schema has `format: time` without `x-valueFormat`, the `time` widget still uses `HH:mm:ss`: values such as `09:30:15Z` show in the raw-value text box, and the values it writes back, such as `09:30:15`, fail `format: time` validation.
 - A format string containing `Z` accepts any offset, displays in the local time zone after reading, and writes back with the local offset.
 - `value_format` on other components reports `JOTL1007`; `x` / `X` on `time` reports `JOTL1020`; under `x` / `X` the string constraints `minLength` `maxLength` `pattern` `format` report `JOTL1007`; data not matching the storage format reports `JOTL4025`.
-- At compile time `default` is checked against `value_format` and mismatches report `JOTL1008`: timestamps must be integers, aliases follow RFC 3339, and format strings must match position by position with a valid calendar date. Format strings are only checked for `YYYY MM DD HH mm ss SSS Z ZZ A a` and `[..]` escapes; those with other tokens are not checked.
+- At compile time `default` is checked against `value_format` and mismatches report `JOTL1008`: timestamps must be integers; aliases on `date` `time` follow RFC 3339, while aliases on `datetime` compile to `format: date-time` and get the looser compile-time `date-time` check instead: the date and time are separated by `T`, `t` or a space, seconds are required (`60` allowed), fractional seconds are optional, and the time zone is optional (`Z`, `±HH`, `±HHmm` or `±HH:mm`), so a default without a time zone passes compilation but fails `format: date-time` validation in `@jotl/data`; format strings must match position by position with a valid calendar date. Format strings are only checked for `YYYY MM DD HH mm ss SSS Z ZZ A a` and `[..]` escapes; those with other tokens are not checked.
 
 ## Conditions
 
@@ -385,7 +386,7 @@ d?: string[node_if: 'href']
 ## Compiling and printing
 
 - Compile output satisfies the [Normalization rules](#normalization-rules) below.
-- `print` emits the canonical form: single-quoted strings, keys unquoted where possible, segments packed together, one entry per line, no separators; a default `widget` is omitted; keywords Jotl cannot express go out through `schema: {...}`; component names are restored from JSON Schema and `widget` (`string` + `widget: 'textarea'` becomes `text`); `$ref`s written through `schema` are retargeted when types are renamed or an inline root moves into `$defs/<root name>`; the root `x-ui.widgets` is written back to the root entry's `widgets` (in module-declaration form, including `base` when present; if any item clashes with a type name or has an invalid value, the whole `widgets` is ignored and JOTL1032 is reported for `x-ui`); when output nesting exceeds 256 levels or input JSON nesting exceeds 1024 levels, no source is emitted and JOTL1029 is reported.
+- `print` emits the canonical form: single-quoted strings, keys unquoted where possible, segments packed together, one entry per line, no separators; an `x-ui.widget` equal to the default widget is not dropped: the node's whole `x-ui` goes out through `schema: {'x-ui': {...}}`; keywords Jotl cannot express go out through `schema: {...}`; component names are restored from JSON Schema and `widget` (`string` + `widget: 'textarea'` becomes `text`); `$ref`s written through `schema` are retargeted when types are renamed or an inline root moves into `$defs/<root name>`; the root `x-ui.widgets` is written back to the root entry's `widgets` (in module-declaration form, including `base` when present; if any item clashes with a type name or has an invalid value, the whole `widgets` is ignored and JOTL1032 is reported for `x-ui`); when output nesting exceeds 256 levels or input JSON nesting exceeds 1024 levels, no source is emitted and JOTL1029 is reported.
 - v0 syntax (`export type X = ...`, `@annotations`, `= v`, capitalized semantic types such as `Enum` `Image`) is no longer accepted; to get v1 source, compile v0 source with the old compiler, then run `print` on the result.
 
 ## Diagnostics

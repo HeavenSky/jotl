@@ -15,7 +15,7 @@
 | `textarea` | `<textarea>` | - |
 | `password` | `<input type="password">` | 只改变显示方式 |
 | `url` / `email` | `<input type="url">` / `<input type="email">` | - |
-| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | 读写时用 dayjs 在原生值与存储格式（`x-valueFormat`，没有时取组件默认值 `YYYY-MM-DD` / `HH:mm:ss` / `iso`，与 `format: date` / `date-time` 一致）之间转换，使用本地时区；存量值不符合存储格式时显示原值文本框和提示，不改写数据；规则见 [Jotl 语法规范](jotl.md#日期与时间) |
+| `date` `time` `datetime` | `<input type="date">` / `"time"` / `"datetime-local"` | 读写时用 dayjs 在原生值与存储格式（`x-valueFormat`，没有时取组件默认值 `YYYY-MM-DD` / `HH:mm:ss` / `iso`，与 `format: date` / `date-time` 一致；`HH:mm:ss` 不带时区，与 `format: time` 不一致）之间转换，使用本地时区；存量值不符合存储格式时显示原值文本框和提示，不改写数据；规则见 [Jotl 语法规范](jotl.md#日期与时间) |
 | `color` | `<input type="color">` + 文本框 | 原生取色器只支持 `#rrggbb`，值不符合时只显示文本框 |
 | `number` | `<input type="number">`；开启 `thousands` 时为 `<input type="text">`；integer 的 `inputmode` 为 `numeric`，其余为 `decimal` | 空串写回 `undefined`；按 `x-decimals` 设置 `step`（没有时为 `any`，integer 为 `1`）并在失焦时舍入；`minimum` `maximum` 同步为 `min` `max`；开启 `thousands` 时不设 `step` `min` `max`，只保留失焦舍入 |
 | `range` | `<input type="range">` + 显示当前值的 `<output>` | `minimum` / `maximum` 作为 `min` / `max`（缺省时为 0 / 100）；`step` 跟随 `x-decimals`；`view` 与 `disabled` 模式下都禁用 |

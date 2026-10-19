@@ -161,7 +161,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 | `color` | `string` + `format: color` | `color` | 无 |
 | `image` | `string` + `format: uri` | `image`（上传 + 预览） `input` | 无 |
 | `file` | `string` + `format: uri` | `file`（上传） `input` | 无 |
-| `object` | `type: object` | `page`（钻取） `inline` `json`；根总是 `page` | 字段 |
+| `object` | `type: object` | `page`（钻取） `inline` `json`；根总是第一页：根条目写 `widget: 'inline'` 不报诊断，照常写入 `x-ui.widget`，渲染与 `page` 相同 | 字段 |
 | `array` | `type: array` | `list` `json`；`array_item: 'tuple'` 时为 `tuple` `json` | [体与内部类型](#体与内部类型) |
 | `map` | `object` + `additionalProperties` | `kv` `json` | [体与内部类型](#体与内部类型) |
 | `union` | `oneOf` / `anyOf` | `union`（分支下拉；`props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮） | [体与内部类型](#体与内部类型) |
@@ -297,6 +297,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `variants` 内的覆盖对象与 `rules` 各规则的 `ui` 使用 `x-ui` 的字段名；其中的条件写 `root_if` / `node_if`（编译为 `visibleIf`，也接受直接写 `visibleIf`）。
 - `x-ui.version` 由编译器自动写在根上，作者不写。
 - v1（凤蝶）的别名（`min` `max` `regExp` `errorMsg` ...）不进解析器，由迁移工具转换。
+- `errorMessage` 由 `@jotl/data` 自行解释，不经过 ajv-errors。字符串替换该节点上报出的全部错误的文案；对象只替换其中列出的关键字的错误。Jotl 接受的键见 [`packages/core/src/syntax/builtins.ts`](../../../packages/core/src/syntax/builtins.ts) 的 `ERROR_MESSAGE_KEYWORDS`，其他键报 JOTL1020。只替换文案，诊断代码与位置不变；文案中的 `{label}` 及该诊断文案的其他参数会被代入，未知占位符原样保留。缺少必填字段时先看该字段自身的节点，再看父对象；其他错误先看违反的关键字所在节点，再看字段节点。ajv-errors 的 `properties` / `items` / `_` 键与 `${...}` 插值等写法不支持。
 
 ## 数值, 金额与大整数
 
@@ -346,10 +347,10 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 | `x` / `X` | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` 为组件名 |
 | 其他（含 `time` 默认的 `HH:mm:ss`） | `{type: string, x-valueFormat}` + `x-ui.widget` 为组件名 |
 
-- 标准的 `format: time` 要求带时区，所以 `time` 默认不再编译为它；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。
+- `time` 默认的 `HH:mm:ss` 不是标准 `format: time` 所依据的 RFC 3339 `full-time`：它不带时区，也没有小数秒；`format: time` 要求带时区，并允许小数秒。所以 `time` 默认不再编译为 `format: time`；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。schema 中有 `format: time` 而没有 `x-valueFormat` 时，`time` 组件仍按 `HH:mm:ss` 读写：`09:30:15Z` 这类值显示在原值文本框中，组件写回的 `09:30:15` 这类值通不过 `format: time` 校验。
 - 格式串含 `Z` 时接受任意偏移，读入后按本地时区显示，写回时用本地偏移。
 - `value_format` 用在其他组件上报 `JOTL1007`；`time` 用 `x` / `X` 报 `JOTL1020`；`x` / `X` 下写字符串约束 `minLength` `maxLength` `pattern` `format` 报 `JOTL1007`；数据不符合存储格式报 `JOTL4025`。
-- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数，别名按 RFC 3339 检查，格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义，含其他记号时不检查。
+- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数；`date` `time` 上的别名按 RFC 3339 检查，`datetime` 上的别名编译为 `format: date-time`，改用编译期更宽松的 `date-time` 检查：日期与时间之间用 `T`、`t` 或空格分隔，秒必填（允许 `60`），小数秒可选，时区可选（`Z`、`±HH`、`±HHmm` 或 `±HH:mm`），因此不带时区的默认值能通过编译，但通不过 `@jotl/data` 的 `format: date-time` 校验；格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义，含其他记号时不检查。
 
 ## 条件
 
@@ -381,7 +382,7 @@ d?: string[node_if: 'href']
 ## 编译与打印
 
 - 编译结果满足下文的[规范化规则](#规范化规则)。
-- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；默认的 `widget` 不写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；输出嵌套超过 256 层或输入 JSON 嵌套超过 1024 层时不输出源码，报 JOTL1029。
+- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；等于默认组件的 `x-ui.widget` 不会丢弃，该节点的整个 `x-ui` 经 `schema: {'x-ui': {...}}` 写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；输出嵌套超过 256 层或输入 JSON 嵌套超过 1024 层时不输出源码，报 JOTL1029。
 - v0 写法（`export type X = ...`、`@注解`、`= v`、`Enum` `Image` 等大写语义类型）不再接受；v0 源码先用旧版编译器编译，再用 `print` 打印，即得到 v1 源码。
 
 ## 诊断

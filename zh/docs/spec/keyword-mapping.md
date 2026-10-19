@@ -61,7 +61,7 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | `properties` | 对象字段 | `{ key: T }` 中的各字段 | ᵀ 接口成员 | 键名规则见 [Jotl 语法规范](jotl.md#名字) |
 | `required` | 必填字段名 | 写了 `:` 且没有 `?` 为必填；`key?: T` 与不带内容的 `key(标签)` 为选填 | ᵀ 成员是否带 `?` | 按声明顺序排列，为空时省略 |
 | `additionalProperties`（schema） | 额外键的取值 | `map` | ᵀ 索引签名 `[key: string]: T` | |
-| `additionalProperties: false` | 禁止额外键 | `closed: true` | `money` `bigint` 值对象上为 ᴾ `@closed`，其余为 — | 只能写在对象类型本身，不能写在引用处 |
+| `additionalProperties: false` | 禁止额外键 | `closed: true` | 对象上为 ᴾ `@closed`，数组元素与可空对象的写在所在属性上，其余为 — | 只能写在对象类型本身，不能写在引用处 |
 | `items` | 数组元素 | `array_item` 或体；元组没有 `*` 时为 `false` | ᵀ `T[]` | 元素自身的元数据写在 `item_meta` |
 | `prefixItems` | 按位置的元素 | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ 元组 `[A, B]` | |
 | `const` | 固定值 | 单成员枚举 `enum{ a }`；可区分联合的区分字段 | ᵀ 字面量类型 | 外层带 `type`（规范化规则 4） |
@@ -106,7 +106,7 @@ TS 中都是与关键字同名的 ᴾ 协议标签。
 |---|---|---|---|
 | `x-ui` | Jotl，见 [x-ui 规范](x-ui.md) | 元数据 `widget` `props` `hidden` `order` `groups` `layout` `columns` `root_if` `node_if` `variants` `decorator` `summary` `thousands`，根条目另有 `rules` `widgets` | 只有 `widget` 时为 ᴾ `@widget 名字`，否则为 ᴾ `` @ui `{...}` ``；数组元素的写成数组属性上的 ᴾ `@itemWidget` / `@itemUi`；根的 `rules` 写成根类型上的 ᴾ `` @rules `[...]` ``，根的 `widgets`（扩展组件模块）写成 ᴾ `` @widgets `{...}` `` |
 | `x-deprecatedReason` | Jotl | `deprecated: '原因'` 中的原因 | `@deprecated 原因` 的正文 |
-| `errorMessage` | ajv-errors | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
+| `errorMessage` | Jotl；与 ajv-errors 的关键字同名，但由 `@jotl/data` 自行解释，见 [元数据键](jotl.md#元数据键) | `errorMessage: '...'` / `errorMessage: {...}` | ᴾ `@errorMessage JSON` |
 | `x-decimals` | Jotl，小数位数上限 | `decimals: n` | — |
 | `x-valueFormat` | Jotl，日期时间的存储格式 | `value_format` | ᴾ `@valueFormat` |
-| `x-decimalRange` | Jotl，`money` `bigint` 的 `value` 按精确十进制比较的范围 | `money` `bigint` 上的 `minimum` `maximum` 等（字符串） | `money` `bigint` 值对象上为 ᴾ `@decimalRange {"minimum":"0"}` |
+| `x-decimalRange` | Jotl，`money` `bigint` 的 `value` 按精确十进制比较的范围 | `money` `bigint` 上的 `minimum` `maximum` 等（字符串） | `money` `bigint` 值对象上为 ᴾ `@decimalRange {"minimum":"0"}`，位置同 `@closed` |
