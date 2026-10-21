@@ -221,6 +221,9 @@ function foldVariants(char: string, unicode: boolean): string[] | undefined {
 
 const CODE_ESCAPE = /^(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]+\}|c[A-Za-z])/;
 
+/** 逐码点补折叠写法的区间上限; 更大的区间(如 `[\u0100-\uffff]`)不改写. */
+const MAX_FOLD_RANGE = 1000;
+
 interface Atom {
   text: string;
   /** 原子代表的单个字符; `\d` `\w` 等字符集转义没有. */
@@ -229,7 +232,9 @@ interface Atom {
 
 /**
  * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写; 按 {@link foldVariants} 补上特殊折叠(`iu` 下 `[kKK]`, `[ςσΣ]`).
- * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 非 ASCII 区间, `iu` 下的 `\W` `\b` `\B` 时返回 undefined.
+ * 区间逐码点补上区间外的写法(`[à-ç]` → `[à-çÀ-Ç]`); `iu` 下字符类外的 `\W` 改为 `[^\wſK]`.
+ * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 超过 {@link MAX_FOLD_RANGE} 个码点的区间, 不带 `u` 时以补充平面字符为端点的区间,
+ * `iu` 下字符类内的 `\W` 与 `\b` `\B` 时返回 undefined.
  */
 function foldCase(source: string, unicode: boolean): string | undefined {
   const chars = [...source];
@@ -246,6 +251,12 @@ function foldCase(source: string, unicode: boolean): string | undefined {
       const char = code[0].startsWith("c")
         ? String.fromCharCode(code[0].charCodeAt(1) % 32)
         : String.fromCodePoint(parseInt(code[0].slice(1).replace(/[{}]/g, ""), 16));
+      // 带 `u` 时 `\uD801\uDC00` 合成一个码点(`\u{D801}` 不合成).
+      const low = unicode && code[0].length === 5 && /^[\ud800-\udbff]$/.test(char) ? /^\\u[dD][c-fC-F][0-9a-fA-F]{2}/.exec(chars.slice(i, i + 6).join("")) : null;
+      if (low !== null) {
+        i += 6;
+        return { text: `\\${code[0]}${low[0]}`, char: char + String.fromCharCode(parseInt(low[0].slice(2), 16)) };
+      }
       return { text: `\\${code[0]}`, char };
     }
     const next = chars[i + 1];
@@ -256,9 +267,10 @@ function foldCase(source: string, unicode: boolean): string | undefined {
   const foldAtom = (atom: Atom): string | undefined => {
     if (atom.char === undefined) {
       if (!unicode) return atom.text;
-      // `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`; `\W` `\b` `\B` 无法等价改写.
+      // `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`, `\W` 相应不含; `\b` `\B` 无法等价改写.
       if (atom.text === "\\w") return `[\\w${UNICODE_WORD_EXTRA}]`;
-      return /^\\[WbB]$/.test(atom.text) ? undefined : atom.text;
+      if (atom.text === "\\W") return `[^\\w${UNICODE_WORD_EXTRA}]`;
+      return /^\\[bB]$/.test(atom.text) ? undefined : atom.text;
     }
     const variants = foldVariants(atom.char, unicode);
     if (variants === undefined) return atom.text;
@@ -277,17 +289,36 @@ function foldCase(source: string, unicode: boolean): string | undefined {
         i += 1;
         const end = readAtom();
         if (end?.char === undefined || start.char === undefined) return undefined;
-        if (/[^\x00-\x7f]/.test(start.char + end.char)) return undefined;
+        const first = start.char.codePointAt(0)!;
+        const last = end.char.codePointAt(0)!;
+        // 不带 `u` 时字符类按 UTF-16 码元理解, 补充平面字符拆成两个代理码元, 区间含义不同.
+        if (first > last || last - first >= MAX_FOLD_RANGE || (!unicode && last > 0xffff)) return undefined;
         body += `${start.text}-${end.text}`;
+        // ASCII 字母段整段补上另一种大小写(`[a-z]` → `[a-zA-Z]`), 其余写法逐个补上.
+        const covered = new Set<string>();
         for (const [lo, hi] of [["a", "z"], ["A", "Z"]] as const) {
           const from = start.char > lo ? start.char : lo;
           const to = end.char < hi ? end.char : hi;
           if (from > to) continue;
           extra += from === to ? swapCase(from) : `${swapCase(from)}-${swapCase(to)}`;
+          for (let cp = from.charCodeAt(0); cp <= to.charCodeAt(0); cp++) covered.add(swapCase(String.fromCharCode(cp)));
         }
-        // 区间只允许 ASCII, 补上区间内字母的非 ASCII 折叠(`iu` 下 `k` → `K`, `s` → `ſ`).
-        for (let cp = start.char.charCodeAt(0); cp <= end.char.charCodeAt(0); cp++) {
-          for (const v of foldVariants(String.fromCharCode(cp), unicode) ?? []) if (v > "\x7f" && !extra.includes(v)) extra += v;
+        const outside: number[] = [];
+        for (let cp = first; cp <= last; cp++) {
+          for (const v of foldVariants(String.fromCodePoint(cp), unicode) ?? []) {
+            const vp = v.codePointAt(0)!;
+            if ((vp < first || vp > last) && !covered.has(v) && !extra.includes(v) && !outside.includes(vp)) outside.push(vp);
+          }
+        }
+        // 非 ASCII 区间按码点排序, 连续 3 个以上合成区间(`[а-я]` → `[а-яА-Я...]`); ASCII 区间只有 `K` `ſ`, 保持原顺序.
+        if (last > 0x7f) outside.sort((a, b) => a - b);
+        for (let k = 0; k < outside.length; k++) {
+          let run = k;
+          while (outside[run + 1] === outside[run]! + 1) run += 1;
+          if (run - k >= 2) {
+            extra += `${String.fromCodePoint(outside[k]!)}-${String.fromCodePoint(outside[run]!)}`;
+            k = run;
+          } else extra += String.fromCodePoint(outside[k]!);
         }
         continue;
       }

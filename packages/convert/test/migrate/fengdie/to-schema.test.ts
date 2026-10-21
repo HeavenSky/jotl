@@ -280,6 +280,8 @@ describe("元数据表", () => {
     expect(field(`: String[regExp: "/^k$/i"]`).x).toMatchObject({ pattern: "^[kK]$" });
     expect(field(`: String[regExp: "/^σ$/i"]`).x).toMatchObject({ pattern: "^[σΣς]$" });
     expect(field(`: String[regExp: "/^\\w[^\\w]$/iu"]`).x).toMatchObject({ pattern: "^[\\w\u017f\u212a][^\\w\u017f\u212a]$" });
+    expect(field(`: String[regExp: "/^\\W$/iu"]`).x).toMatchObject({ pattern: "^[^\\w\u017f\u212a]$" });
+    expect(field(`: String[regExp: "/^[à-ç]$/i"]`).x).toMatchObject({ pattern: "^[à-çÀ-Ç]$" });
     // 遍历 BMP 字母与部分补充平面字母, 每个写法在全部字母拼成的文本上一次扫完, 比对两边匹配到的字母.
     // 不带 u 时字符类按 UTF-16 码元理解, 补充平面字母只比对非字符类写法.
     const letters: string[] = [];
@@ -293,7 +295,15 @@ describe("元数据表", () => {
     for (const flags of ["i", "iu"]) {
       const escapeChar = (c: string) =>
         flags === "iu" ? `\\u{${c.codePointAt(0)!.toString(16)}}` : [...Array(c.length).keys()].map((k) => `\\u${c.charCodeAt(k).toString(16).padStart(4, "0")}`).join("");
-      const sources = [...letters.map(escapeChar), ...letters.filter((c) => flags === "iu" || c.length === 1).map((c) => `[${escapeChar(c)}]`), "[a-z]", "[A-Z]", "[j-t]", "[^k\\n]", "\\w", "[^\\w\\n]"];
+      // 区间含非 ASCII 字母, 折叠到 ASCII 的开尔文与埃符号, 恰好 1000 个码点的区间; 补充平面区间与代理对转义只在带 u 时成立.
+      const ranges = ["[à-ç]", "[а-я]", "[α-ω]", "[À-ÿ]", "[^Ā-ſ\\n]", "[\\u212a-\\u212b]", "[\\u0100-\\u04e7]"];
+      const unicodeOnly = ["[\\u{10400}-\\u{10427}]", "\\ud801\\udc00", "[\\ud801\\udc00-\\ud801\\udc27]"];
+      const sources = [
+        ...letters.map(escapeChar),
+        ...letters.filter((c) => flags === "iu" || c.length === 1).map((c) => `[${escapeChar(c)}]`),
+        ...["[a-z]", "[A-Z]", "[j-t]", "[^k\\n]", "\\w", "[^\\w\\n]", "\\W", ...ranges],
+        ...(flags === "iu" ? unicodeOnly : []),
+      ];
       for (const source of sources) {
         const { x, diagnostics } = field(`: String[regExp: "/${source}/${flags}"]`);
         expect(codes(diagnostics).filter((c) => c === "JOTL8119"), source).toEqual([]);
@@ -303,12 +313,13 @@ describe("元数据表", () => {
   }, 30_000);
 
   it("i 标志无法安全改写时 pattern 保持原样(JOTL8119); m s u y 报 JOTL8120; 未生效的标志记入 x-fengdie", () => {
-    for (const source of ["\\p{Lu}", "(a)\\1", "[à-ç]"]) {
+    // 超过 1000 个码点的区间; 不带 u 时补充平面字符按两个代理码元理解, 不是码点区间.
+    for (const source of ["\\p{Lu}", "(a)\\1", "[\\u0100-\\u04e8]", "[𐐀-𐐧]"]) {
       const { x, diagnostics } = field(`: String[regExp: "/${source}/gi"]`);
       expect(x).toMatchObject({ "x-fengdie": { regExpFlags: "i" } });
       expect(codes(diagnostics)).toEqual(["JOTL8119"]);
     }
-    for (const source of ["\\W", "\\bk", "[\\W]"]) {
+    for (const source of ["\\bk", "\\B", "[\\W]"]) {
       const { diagnostics } = field(`: String[regExp: "/${source}/iu"]`);
       expect(codes(diagnostics)).toContain("JOTL8119");
     }
