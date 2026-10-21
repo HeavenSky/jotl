@@ -1,3 +1,4 @@
+import dayjs from "dayjs";
 import { describe, expect, it } from "vitest";
 import {
   DEFAULT_VALUE_FORMATS,
@@ -49,12 +50,33 @@ describe("matchesValueFormatText", () => {
     ["[Day] YYYY.MM", "Day 2026-10", false],
     ["YYYY-MM-DDTHH:mm", "2026-10-13T09:30", true],
     ["YYYY YYYY", "2026 2027", false],
+    ["M/D/YYYY", "1/2/2026", true],
+    ["M/D/YYYY", "01/2/2026", false],
+    ["M/D/YYYY", "2/30/2026", false],
+    ["YY-MM-DD", "24-02-29", true],
+    ["YY-MM-DD", "23-02-29", false],
+    ["YYYY YY", "2026 26", true],
+    ["YYYY YY", "2026 25", false],
+    ["H:m:s", "0:5:9", true],
+    ["H:m:s", "00:05:09", false],
+    ["H:m:s", "24:0:0", false],
+    ["h:mm A", "1:30 PM", true],
+    ["hh:mm a", "12:00 am", true],
+    ["hh:mm a", "00:00 am", false],
+    ["hh:mm", "01:00", true],
+    ["h:mm", "13:00", false],
+    ["HH hh A", "13 01 PM", true],
+    ["HH hh A", "13 01 AM", false],
+    ["HH hh", "00 12", true],
+    ["HH hh", "13 02", false],
+    ["A", "PM", true],
   ] as const)("%s %j → %s", (format, text, valid) => expect(matchesValueFormatText(format, text)).toBe(valid));
 
   it("含不支持的记号时无法判定", () => {
-    expect(matchesValueFormatText("M/D/YYYY", "1/2/2026")).toBeUndefined();
-    expect(matchesValueFormatText("hh:mm", "01:00")).toBeUndefined();
-    expect(matchesValueFormat("M/D/YYYY", "anything")).toBe(true);
+    for (const format of ["MMM D, YYYY", "MMMM", "Do MMM", "dd HH:mm", "ddd", "dddd", "YYYY-MM-DD X", "x HH"]) {
+      expect(matchesValueFormatText(format, "anything")).toBeUndefined();
+    }
+    expect(matchesValueFormat("MMM D, YYYY", "anything")).toBe(true);
   });
 });
 
@@ -67,5 +89,31 @@ describe("matchesValueFormat", () => {
     expect(matchesValueFormat("iso", "2026-02-30T09:30:15Z")).toBe(false);
     expect(matchesValueFormat("YYYY", 2026)).toBe(true);
     expect(isRfc3339DateTime("2026-10-13 09:30:15Z")).toBe(false);
+  });
+});
+
+describe("与 dayjs format 往返", () => {
+  const formats = [
+    "YYYY-MM-DD",
+    "YY/M/D",
+    "M/D/YYYY H:m:s",
+    "YYYY-MM-DD HH:mm:ss.SSS",
+    "h:mm A",
+    "hh:mm:ss a",
+    "YYYY-MM-DD hh:mm A HH H h",
+    "[Day] D, YYYY h a",
+    "YYYY-MM-DDTHH:mm:ssZ",
+    "YYYYMMDDHHmmssZZ",
+  ];
+  const moments = [
+    "2000-01-01T00:00:00",
+    "2024-02-29T12:00:00",
+    "1999-12-31T23:59:59.999",
+    "2026-10-05T09:05:07.010",
+    "2068-06-30T11:59:00",
+    "1969-07-20T20:17:40",
+  ].map((t) => dayjs(t));
+  it.each(formats)("%s", (format) => {
+    for (const d of moments) expect([d.toISOString(), matchesValueFormatText(format, d.format(format))]).toEqual([d.toISOString(), true]);
   });
 });

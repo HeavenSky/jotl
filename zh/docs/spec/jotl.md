@@ -350,7 +350,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `time` 默认的 `HH:mm:ss` 不是标准 `format: time` 所依据的 RFC 3339 `full-time`：它不带时区，也没有小数秒；`format: time` 要求带时区，并允许小数秒。所以 `time` 默认不再编译为 `format: time`；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。schema 中有 `format: time` 而没有 `x-valueFormat` 时，`time` 组件仍按 `HH:mm:ss` 读写：`09:30:15Z` 这类值显示在原值文本框中，组件写回的 `09:30:15` 这类值通不过 `format: time` 校验。
 - 格式串含 `Z` 时接受任意偏移，读入后按本地时区显示，写回时用本地偏移。
 - `value_format` 用在其他组件上报 `JOTL1007`；`time` 用 `x` / `X` 报 `JOTL1020`；`x` / `X` 下写字符串约束 `minLength` `maxLength` `pattern` `format` 报 `JOTL1007`；数据不符合存储格式报 `JOTL4025`。
-- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数；`date` `time` 上的别名按 RFC 3339 检查，`datetime` 上的别名编译为 `format: date-time`，按 `date-time` 检查，与 `@jotl/data` 一致：日期与时间之间用 `T`、`t` 或空格分隔，秒必填（允许 `60`），小数秒可选，时区必填（`Z`、`±HH`、`±HHmm` 或 `±HH:mm`），不带时区的默认值报 `JOTL1008`；格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义，含其他记号时不检查。
+- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数；`date` `time` 上的别名按 RFC 3339 检查，`datetime` 上的别名编译为 `format: date-time`，按 `date-time` 检查，与 `@jotl/data` 一致：日期与时间之间用 `T`、`t` 或空格分隔，秒必填（允许 `60`），小数秒可选，时区必填（`Z`、`±HH`、`±HHmm` 或 `±HH:mm`），不带时区的默认值报 `JOTL1008`；格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY YY M MM D DD H HH h hh m mm s ss SSS Z ZZ A a` 与 `[..]` 转义（`h` `hh` 与 `A` `a` 联动换算为 24 小时制），含其他记号（如本地化的 `MMM` `Do` `ddd`）时不检查。
 
 ## 条件
 

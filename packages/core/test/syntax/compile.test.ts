@@ -86,7 +86,8 @@ describe("日期组件的 value_format", () => {
     expect(codes("datetime[value_format: 'x', default: 1.5]")).toEqual(["JOTL1008"]);
     expect(codes("datetime[value_format: 'X', default: 9007199254740992]")).toEqual(["JOTL1008"]);
     // 含不支持的记号时不检查.
-    expect(codes("date[value_format: 'M/D/YYYY', default: 'whatever']")).toEqual([]);
+    expect(codes("date[value_format: 'MMM D, YYYY', default: 'whatever']")).toEqual([]);
+    expect(codes("date[value_format: 'M/D/YYYY', default: '2/30/2026']")).toEqual(["JOTL1008"]);
     const { diagnostics } = compile("A: {\n  x: date[value_format: 'YYYYMMDD', default: '2026-10-13']\n}\n", "a.jotl");
     expect(diagnostics[0]!.message).toContain("x-valueFormat");
   });

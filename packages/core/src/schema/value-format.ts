@@ -52,15 +52,25 @@ export function isRfc3339DateTime(text: string): boolean {
 // dayjs format 的记号; 只支持下表中的记号, 其余记号的格式串不校验.
 const FORMAT_TOKENS = /\[([^\]]*)\]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS|Do|Q|w{1,2}|W{1,2}|k{1,2}|X|x|z{1,2}|S{1,2}/g;
 
-type Field = "year" | "month" | "day" | "hour" | "minute" | "second" | "milli" | "offset" | "meridiem";
+// year2 为两位年份(YY), hour12 为 12 小时制的时(h hh); 与 year hour 的一致性在匹配后换算检查.
+type Field = "year" | "year2" | "month" | "day" | "hour" | "hour12" | "minute" | "second" | "milli" | "offset" | "meridiem";
 
+// 本地化记号(MMM MMMM Do d dd ddd dddd 等)与 X x 混排不在表中, 含它们的格式串不校验.
 const TOKEN_PATTERNS: Readonly<Record<string, [string, Field]>> = {
   YYYY: ["\\d{4}", "year"],
+  YY: ["\\d{2}", "year2"],
   MM: ["0[1-9]|1[0-2]", "month"],
+  M: ["[1-9]|1[0-2]", "month"],
   DD: ["0[1-9]|[12]\\d|3[01]", "day"],
+  D: ["[1-9]|[12]\\d|3[01]", "day"],
   HH: ["[01]\\d|2[0-3]", "hour"],
+  H: ["1?\\d|2[0-3]", "hour"],
+  hh: ["0[1-9]|1[0-2]", "hour12"],
+  h: ["[1-9]|1[0-2]", "hour12"],
   mm: ["[0-5]\\d", "minute"],
+  m: ["[1-5]?\\d", "minute"],
   ss: ["[0-5]\\d", "second"],
+  s: ["[1-5]?\\d", "second"],
   SSS: ["\\d{3}", "milli"],
   Z: ["[+-](?:[01]\\d|2[0-3]):[0-5]\\d", "offset"],
   ZZ: ["[+-](?:[01]\\d|2[0-3])[0-5]\\d", "offset"],
@@ -104,8 +114,9 @@ function compileFormat(format: string): CompiledFormat | undefined {
 }
 
 /**
- * 按 dayjs 格式串严格匹配文本: 逐位匹配记号并校验日历日期, 同一字段多次出现须一致, `A` `a` 须与 `HH` 的上下午一致.
- * 只支持 `YYYY MM DD HH mm ss SSS Z ZZ A a` 与 `[..]` 转义; 含其他记号时返回 undefined(无法判定).
+ * 按 dayjs 格式串严格匹配文本: 逐位匹配记号并校验日历日期, 同一字段多次出现须一致(`YY` 与 `YYYY` 的末两位,
+ * `h` `hh` 与 `H` `HH` 按 `A` `a` 换算), `A` `a` 须与 24 小时制的时一致; `YY` 按 dayjs 解析规则(68 及以下为 20xx)补全年份校验 2 月 29 日.
+ * 只支持 `YYYY YY M MM D DD H HH h hh m mm s ss SSS Z ZZ A a` 与 `[..]` 转义; 含其他记号时返回 undefined(无法判定).
  */
 export function matchesValueFormatText(format: string, text: string): boolean | undefined {
   const c = compileFormat(format);
@@ -115,14 +126,33 @@ export function matchesValueFormatText(format: string, text: string): boolean | 
   const values: Partial<Record<Field, string>> = {};
   for (let i = 0; i < c.fields.length; i++) {
     const field = c.fields[i]!;
-    const value = field === "offset" ? m[i + 1]!.replace(":", "") : field === "meridiem" ? m[i + 1]!.toUpperCase() : m[i + 1]!;
+    const raw = m[i + 1]!;
+    const value =
+      field === "offset" ? raw.replace(":", "") : field === "meridiem" ? raw.toUpperCase() : String(Number(raw));
     if (values[field] !== undefined && values[field] !== value) return false;
     values[field] = value;
   }
   const num = (field: Field) => (values[field] === undefined ? undefined : Number(values[field]));
+  const year2 = num("year2");
+  let year = num("year");
+  if (year2 !== undefined) {
+    if (year !== undefined && year % 100 !== year2) return false;
+    year ??= year2 + (year2 > 68 ? 1900 : 2000);
+  }
   const day = num("day");
-  if (day !== undefined && day > daysInMonth(num("year"), num("month"))) return false;
-  if (values.meridiem !== undefined && values.meridiem !== ((num("hour") ?? 0) >= 12 ? "PM" : "AM")) return false;
+  if (day !== undefined && day > daysInMonth(year, num("month"))) return false;
+  const hour12 = num("hour12");
+  let hour = num("hour");
+  if (hour12 !== undefined) {
+    if (values.meridiem !== undefined) {
+      const h24 = (hour12 % 12) + (values.meridiem === "PM" ? 12 : 0);
+      if (hour !== undefined && hour !== h24) return false;
+      hour = h24;
+    } else if (hour !== undefined && (hour % 12 || 12) !== hour12) {
+      return false;
+    }
+  }
+  if (values.meridiem !== undefined && hour !== undefined && values.meridiem !== (hour >= 12 ? "PM" : "AM")) return false;
   return true;
 }
 

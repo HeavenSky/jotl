@@ -21,5 +21,8 @@
   "scripts": {
     "build": "tsc -b",
     "typecheck:test": "tsc -p tsconfig.test.json"
+  },
+  "devDependencies": {
+    "dayjs": "^1.11.23"
   }
 }
