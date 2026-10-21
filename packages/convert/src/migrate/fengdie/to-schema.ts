@@ -200,6 +200,18 @@ function caseVariants(char: string): [string, string] | undefined | null {
   return char === lower || char === upper ? [lower, upper] : null;
 }
 
+/**
+ * `u` 标志下按 Unicode simple/common 折叠互相匹配, 但不能由 `toLowerCase` / `toUpperCase` 一一对应出的字母组(如 `k` `K` 与开尔文 `K`).
+ * 由 `/x/iu` 穷举 Unicode 得出, 测试里同样穷举校验.
+ */
+const UNICODE_FOLDS = "kKK sſS µμΜ åÅÅ ǆǄǅ ǉǇǈ ǌǊǋ ǳǱǲ ͅιιΙ βϐΒ εϵΕ θϑΘϴ κϰΚ πϖΠ ρϱΡ ςσΣ φϕΦ ωΩΩ вᲀВ дᲁД оᲂО сᲃС тᲄᲅТ ъᲆЪ ѣᲇѢ ᲈꙋꙊ ṡẛṠ ßẞ ᾀᾈ ᾁᾉ ᾂᾊ ᾃᾋ ᾄᾌ ᾅᾍ ᾆᾎ ᾇᾏ ᾐᾘ ᾑᾙ ᾒᾚ ᾓᾛ ᾔᾜ ᾕᾝ ᾖᾞ ᾗᾟ ᾠᾨ ᾡᾩ ᾢᾪ ᾣᾫ ᾤᾬ ᾥᾭ ᾦᾮ ᾧᾯ ᾳᾼ ῃῌ ῳῼ".split(" ");
+
+/** 字母在 `i` 标志下互相匹配的全部写法; 含义同 {@link caseVariants}. */
+function foldVariants(char: string, unicode: boolean): string[] | undefined | null {
+  const group = unicode ? UNICODE_FOLDS.find((g) => [...g].includes(char)) : undefined;
+  return group === undefined ? caseVariants(char) : [...group];
+}
+
 const CODE_ESCAPE = /^(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]+\}|c[A-Za-z])/;
 
 interface Atom {
@@ -209,10 +221,10 @@ interface Atom {
 }
 
 /**
- * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写.
+ * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写; `unicode` 时按 {@link UNICODE_FOLDS} 补上特殊折叠(`[kKK]`).
  * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 非 ASCII 区间与大小写不能一一对应的字母时返回 undefined.
  */
-function foldCase(source: string): string | undefined {
+function foldCase(source: string, unicode: boolean): string | undefined {
   const chars = [...source];
   let i = 0;
   const readAtom = (): Atom | undefined => {
@@ -236,10 +248,10 @@ function foldCase(source: string): string | undefined {
   };
   const foldAtom = (atom: Atom): string | undefined => {
     if (atom.char === undefined) return atom.text;
-    const variants = caseVariants(atom.char);
+    const variants = foldVariants(atom.char, unicode);
     if (variants === null) return undefined;
     if (variants === undefined) return atom.text;
-    return atom.text === atom.char ? `[${variants.join("")}]` : `[${atom.text}${variants.find((v) => v !== atom.char)}]`;
+    return atom.text === atom.char ? `[${variants.join("")}]` : `[${atom.text}${variants.filter((v) => v !== atom.char).join("")}]`;
   };
   const foldClass = (): string | undefined => {
     i += 1;
@@ -262,13 +274,19 @@ function foldCase(source: string): string | undefined {
           if (from > to) continue;
           extra += from === to ? swapCase(from) : `${swapCase(from)}-${swapCase(to)}`;
         }
+        // 区间只允许 ASCII, 补上区间内字母的非 ASCII 折叠(`k` → `K`, `s` → `ſ`).
+        if (unicode) {
+          for (const group of UNICODE_FOLDS) {
+            if ([...group].some((g) => g >= start.char! && g <= end.char!)) extra += [...group].filter((g) => g > "\x7f").join("");
+          }
+        }
         continue;
       }
       body += start.text === "-" ? "\\-" : start.text;
       if (start.char === undefined) continue;
-      const variants = caseVariants(start.char);
+      const variants = foldVariants(start.char, unicode);
       if (variants === null) return undefined;
-      if (variants !== undefined) extra += variants.find((v) => v !== start.char)!;
+      if (variants !== undefined) extra += variants.filter((v) => v !== start.char).join("");
     }
     if (i >= chars.length) return undefined;
     i += 1;
@@ -662,7 +680,7 @@ class Converter {
     let kept = "";
     for (const flag of flags ?? "") {
       if (flag === "g") continue;
-      const folded = flag === "i" ? foldCase(source) : undefined;
+      const folded = flag === "i" ? foldCase(source, flags?.includes("u") === true) : undefined;
       if (folded !== undefined) pattern = folded;
       else {
         this.warn(flag === "i" ? "JOTL8119" : "JOTL8120", { flag }, at);

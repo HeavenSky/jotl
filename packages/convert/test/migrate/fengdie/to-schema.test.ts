@@ -274,6 +274,30 @@ describe("元数据表", () => {
     }
   });
 
+  it("i 与 u 标志: 补上 Unicode 特殊折叠, 穷举 Unicode 字母与 /x/iu 一致", () => {
+    expect(field(`: String[regExp: "/^k[s]$/iu"]`).x).toMatchObject({ pattern: "^[kK\u212a][s\u017fS]$" });
+    expect(field(`: String[regExp: "/^k$/i"]`).x).toMatchObject({ pattern: "^[kK]$" });
+    // 遍历 BMP 字母, 每个写法在全部字母拼成的文本上一次扫完, 比对两边匹配到的字母.
+    const letters: string[] = [];
+    for (let cp = 0; cp < 0x10000; cp++) {
+      const char = String.fromCharCode(cp);
+      if (char.toLowerCase() !== char || char.toUpperCase() !== char) letters.push(char);
+    }
+    const text = letters.join("\n");
+    const matched = (re: RegExp) => [...text.matchAll(re)].map((m) => m[0]).join("");
+    const escapeChar = (c: string) => `\\u{${c.codePointAt(0)!.toString(16)}}`;
+    const sources = [...letters.map(escapeChar), ...letters.map((c) => `[${escapeChar(c)}]`), "[a-z]", "[A-Z]", "[j-t]", "[^k\\n]"];
+    let folded = 0;
+    for (const source of sources) {
+      const pattern = (field(`: String[regExp: "/${source}/iu"]`).x as { pattern: string }).pattern;
+      // 无法改写(如 `ı` `İ`)时保持原样, 由 JOTL8119 兜底.
+      if (pattern === source) continue;
+      folded += 1;
+      expect(matched(new RegExp(pattern, "gu")), pattern).toBe(matched(new RegExp(source, "giu")));
+    }
+    expect(folded).toBeGreaterThan(sources.length * 0.9);
+  });
+
   it("i 标志无法安全改写时 pattern 保持原样(JOTL8119); m s u y 报 JOTL8120; 未生效的标志记入 x-fengdie", () => {
     for (const source of ["\\p{Lu}", "(a)\\1", "ß", "ς"]) {
       const { x, diagnostics } = field(`: String[regExp: "/${source}/gi"]`);
