@@ -1,9 +1,9 @@
 // x-ui 关键字(CT4)的类型.
-import type { JsonPointer } from "./json-pointer.js";
-import type { JsonSchemaObject } from "./json-schema.js";
+import type { JsonPointer } from './json-pointer.js';
+import type { JsonSchemaObject } from './json-schema.js';
 
 /** 对象节点的布局(D42); tabs 时每个 groups 项一个标签页, 未分组字段放第一个标签页. */
-export type XUiLayout = "stack" | "tabs" | "grid";
+export type XUiLayout = 'stack' | 'tabs' | 'grid';
 
 export interface XUiGroup {
   title: string;
@@ -11,7 +11,7 @@ export interface XUiGroup {
 }
 
 /** 叶子条件的基准: 缺省为数据根; "node" 为当前节点所在的对象. */
-export type ConditionBase = "node";
+export type ConditionBase = 'node';
 
 /**
  * 显示条件(D43). field 为从基准起算的指针, 其中的 "*" 取当前节点所在数组的对应下标;
@@ -31,7 +31,7 @@ export type Condition =
   | { any: Condition[] }
   | { not: Condition };
 
-export type XUiVariant = Omit<XUi, "variants" | "rules" | "version" | "widgets">;
+export type XUiVariant = Omit<XUi, 'variants' | 'rules' | 'version' | 'widgets'>;
 
 /** 扩展组件模块: ES 模块地址与导出名, 导出名缺省为 `default`. */
 export interface XUiWidgetModule {
@@ -87,5 +87,5 @@ export interface UiRule {
   ui: XUiVariant;
 }
 
-export const DEFAULT_SCENE = "default";
+export const DEFAULT_SCENE = 'default';
 export const DEFAULT_GRID_COLUMNS = 2;

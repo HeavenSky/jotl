@@ -1,0 +1,13 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "env": {
+    "node": true,
+    "browser": true,
+    "es2022": true
+  },
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", "vendor/**", "fixtures/**", "packages/*/test/fixtures/**"],
+  "rules": {
+    "no-control-regex": "off",
+    "unicorn/no-thenable": "off"
+  }
+}

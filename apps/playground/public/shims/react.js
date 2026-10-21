@@ -1,6 +1,6 @@
 // 远程扩展组件模块的 `react`: index.html 的 import map 指到这里, 取宿主页面挂在 globalThis.__JOTL_REACT__ 上的同一份 React.
 const React = globalThis.__JOTL_REACT__;
-if (React === undefined) throw new Error("Jotl Playground: host React is not installed on globalThis.__JOTL_REACT__");
+if (React === undefined) throw new Error('Jotl Playground: host React is not installed on globalThis.__JOTL_REACT__');
 
 export default React;
 export const {

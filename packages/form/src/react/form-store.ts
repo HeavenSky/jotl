@@ -1,7 +1,7 @@
 // 表单状态仓库: 根数据的不可变更新与字段级订阅, 数组与字典条目的稳定 key, 联合分支的选择与缓存, 触碰记录, 校验与错误分发.
-import { formatPointer, tryParsePointer, type Diagnostic, type JsonPointer } from "@jotl/core";
+import { formatPointer, tryParsePointer, type Diagnostic, type JsonPointer } from '@jotl/core';
 
-export type ValidateTrigger = "change" | "blur" | "submit";
+export type ValidateTrigger = 'change' | 'blur' | 'submit';
 
 export interface ValidationResult {
   valid: boolean;
@@ -31,11 +31,11 @@ const EMPTY: Diagnostic[] = [];
 const INDEX = /^(0|[1-9]\d*)$/;
 
 export function pointerOf(diagnostic: Diagnostic): JsonPointer {
-  return diagnostic.location?.kind === "pointer" ? diagnostic.location.pointer : "";
+  return diagnostic.location?.kind === 'pointer' ? diagnostic.location.pointer : '';
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** 键来自用户数据: 直接赋值 obj["__proto__"] 会改原型而不是写字段. */
@@ -69,7 +69,10 @@ function setIn(root: unknown, tokens: readonly string[], value: unknown): unknow
 }
 
 function sameDiagnostics(a: readonly Diagnostic[], b: readonly Diagnostic[]): boolean {
-  return a.length === b.length && a.every((d, i) => d.code === b[i]!.code && d.message === b[i]!.message && pointerOf(d) === pointerOf(b[i]!));
+  return (
+    a.length === b.length &&
+    a.every((d, i) => d.code === b[i]!.code && d.message === b[i]!.message && pointerOf(d) === pointerOf(b[i]!))
+  );
 }
 
 /** 祖先路径, 由近及远, 含根 "". */
@@ -81,19 +84,27 @@ function ancestors(path: JsonPointer): JsonPointer[] {
 }
 
 /** 把以 arrayPath 下标开头的路径按 mapIndex 改写; mapIndex 返回 undefined 表示该元素已删除. */
-function remapPath(path: JsonPointer, arrayPath: JsonPointer, mapIndex: (index: number) => number | undefined): JsonPointer | null {
+function remapPath(
+  path: JsonPointer,
+  arrayPath: JsonPointer,
+  mapIndex: (index: number) => number | undefined
+): JsonPointer | null {
   const prefix = `${arrayPath}/`;
   if (!path.startsWith(prefix)) return path;
   const rest = path.slice(prefix.length);
-  const slash = rest.indexOf("/");
+  const slash = rest.indexOf('/');
   const token = slash === -1 ? rest : rest.slice(0, slash);
   if (!INDEX.test(token)) return path;
   const next = mapIndex(Number(token));
   if (next === undefined) return null;
-  return `${prefix}${next}${slash === -1 ? "" : rest.slice(slash)}`;
+  return `${prefix}${next}${slash === -1 ? '' : rest.slice(slash)}`;
 }
 
-function remapMap<V>(map: Map<JsonPointer, V>, arrayPath: JsonPointer, mapIndex: (index: number) => number | undefined): Map<JsonPointer, V> {
+function remapMap<V>(
+  map: Map<JsonPointer, V>,
+  arrayPath: JsonPointer,
+  mapIndex: (index: number) => number | undefined
+): Map<JsonPointer, V> {
   const out = new Map<JsonPointer, V>();
   for (const [path, value] of map) {
     const next = remapPath(path, arrayPath, mapIndex);
@@ -112,7 +123,7 @@ export class FormStore {
   #itemKeys = new Map<JsonPointer, string[]>();
   #entryKeys = new Map<JsonPointer, Map<string, string>>();
   #selections = new Map<JsonPointer, number>();
-  #branchCache = new Map<JsonPointer, Map<number | "content", unknown>>();
+  #branchCache = new Map<JsonPointer, Map<number | 'content', unknown>>();
   #expanded = new Map<JsonPointer, boolean>();
   #touched = new Map<JsonPointer, true>();
   #revealAll = false;
@@ -131,7 +142,7 @@ export class FormStore {
     this.#initial = options.initial;
   }
 
-  configure(options: Omit<StoreOptions, "initial">): void {
+  configure(options: Omit<StoreOptions, 'initial'>): void {
     this.#options = { ...this.#options, ...options };
   }
 
@@ -175,11 +186,10 @@ export class FormStore {
     return current;
   }
 
-
   #commit(next: unknown, touched: JsonPointer | undefined): void {
     this.#value = next;
     if (touched !== undefined) this.#touch(touched);
-    if (this.#options.validateOn === "change" || this.#validated) this.#runValidation();
+    if (this.#options.validateOn === 'change' || this.#validated) this.#runValidation();
     else if (touched !== undefined) this.#distribute();
     this.#notify();
     this.onChange?.(next);
@@ -238,7 +248,6 @@ export class FormStore {
     this.#distribute();
   }
 
-
   #remapAll(arrayPath: JsonPointer, mapIndex: (index: number) => number | undefined): void {
     this.#itemKeys = remapMap(this.#itemKeys, arrayPath, mapIndex);
     this.#entryKeys = remapMap(this.#entryKeys, arrayPath, mapIndex);
@@ -272,7 +281,7 @@ export class FormStore {
     const items = this.#array(path);
     const at = Math.max(0, Math.min(index, items.length));
     const keys = [...this.itemKeys(path)];
-    this.#remapAll(path, (i) => (i >= at ? i + 1 : i));
+    this.#remapAll(path, i => (i >= at ? i + 1 : i));
     keys.splice(at, 0, this.#newKey());
     this.#itemKeys.set(path, keys);
     const next = [...items];
@@ -284,7 +293,7 @@ export class FormStore {
     const items = this.#array(path);
     if (index < 0 || index >= items.length) return;
     const keys = [...this.itemKeys(path)];
-    this.#remapAll(path, (i) => (i === index ? undefined : i > index ? i - 1 : i));
+    this.#remapAll(path, i => (i === index ? undefined : i > index ? i - 1 : i));
     keys.splice(index, 1);
     this.#itemKeys.set(path, keys);
     const next = items.filter((_, i) => i !== index);
@@ -298,12 +307,14 @@ export class FormStore {
     order.splice(to, 0, order.splice(from, 1)[0]!);
     const newIndexOf = new Map(order.map((oldIndex, newIndex) => [oldIndex, newIndex]));
     const keys = this.itemKeys(path);
-    this.#remapAll(path, (i) => newIndexOf.get(i));
-    this.#itemKeys.set(path, order.map((i) => keys[i]!));
-    const next = order.map((i) => items[i]);
+    this.#remapAll(path, i => newIndexOf.get(i));
+    this.#itemKeys.set(
+      path,
+      order.map(i => keys[i]!)
+    );
+    const next = order.map(i => items[i]);
     this.#commit(setIn(this.#value, this.#tokens(path) ?? [], next), path);
   }
-
 
   /** 字典条目的稳定 key; 改名时沿用原 key. */
   entryKey(path: JsonPointer, name: string): string {
@@ -332,7 +343,6 @@ export class FormStore {
     this.#commit(setIn(this.#value, this.#tokens(path) ?? [], next), path);
   }
 
-
   selection(path: JsonPointer): number | undefined {
     return this.#selections.get(path);
   }
@@ -359,10 +369,10 @@ export class FormStore {
     }
     if (isNull) {
       const current = this.getAt(path);
-      if (current !== null && current !== undefined) cache.set("content", current);
+      if (current !== null && current !== undefined) cache.set('content', current);
       this.change(path, null);
     } else {
-      this.change(path, cache.has("content") ? cache.get("content") : createValue());
+      this.change(path, cache.has('content') ? cache.get('content') : createValue());
     }
   }
 
@@ -376,7 +386,6 @@ export class FormStore {
     this.#notify();
   }
 
-
   #touch(path: JsonPointer): void {
     if (this.#touched.has(path)) return;
     this.#touched.set(path, true);
@@ -385,14 +394,13 @@ export class FormStore {
   blur(path: JsonPointer): void {
     const wasTouched = this.#touched.has(path);
     this.#touch(path);
-    if (this.#options.validateOn !== "submit" || this.#validated) {
+    if (this.#options.validateOn !== 'submit' || this.#validated) {
       this.#runValidation();
       this.#notify();
     } else if (!wasTouched) {
       this.#distribute();
     }
   }
-
 
   #runValidation(): ValidationResult {
     const result = this.#options.validate(this.#value);
@@ -461,10 +469,14 @@ export class FormStore {
     const next = new Map<string, Diagnostic[]>();
     const form: Diagnostic[] = [];
     const deepest = (list: [string, OwnerInfo][]): [string, OwnerInfo] | undefined =>
-      list.reduce<[string, OwnerInfo] | undefined>((best, entry) => (best === undefined || entry[1].depth > best[1].depth ? entry : best), undefined);
+      list.reduce<[string, OwnerInfo] | undefined>(
+        (best, entry) => (best === undefined || entry[1].depth > best[1].depth ? entry : best),
+        undefined
+      );
     const revealed = (path: JsonPointer): boolean =>
-      this.#revealAll || this.#touched.has(path)
-      || ancestors(path).some((a) => this.#touched.has(a) && (byPath.get(a) ?? []).some(([, info]) => info.takeover));
+      this.#revealAll ||
+      this.#touched.has(path) ||
+      ancestors(path).some(a => this.#touched.has(a) && (byPath.get(a) ?? []).some(([, info]) => info.takeover));
     const assign = (diagnostic: Diagnostic, refineDepth: number): void => {
       const path = pointerOf(diagnostic);
       const exact = byPath.get(path) ?? [];

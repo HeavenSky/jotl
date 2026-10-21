@@ -1,14 +1,21 @@
 // 预览内容(E6): 给定源码返回编译出的 JSON Schema 文本, TS 声明文本与各自的诊断, 经自定义请求 `jotl/preview` 提供给插件的预览面板.
-import { type Diagnostic, type JsonPointer, parentPointer, type Severity, type SourceMap, type XUiWidgetModule } from "@jotl/core";
-import { compile } from "@jotl/core";
-import { schemaToTs } from "@jotl/convert";
-import { collectJotlDiagnostics } from "./document-diagnostics.js";
-import { compileOptions, type LanguageServiceOptions } from "./options.js";
-import type { ProjectConfig } from "./project-config.js";
+import {
+  type Diagnostic,
+  type JsonPointer,
+  parentPointer,
+  type Severity,
+  type SourceMap,
+  type XUiWidgetModule,
+} from '@jotl/core';
+import { compile } from '@jotl/core';
+import { schemaToTs } from '@jotl/convert';
+import { collectJotlDiagnostics } from './document-diagnostics.js';
+import { compileOptions, type LanguageServiceOptions } from './options.js';
+import type { ProjectConfig } from './project-config.js';
 
-export const PREVIEW_REQUEST_METHOD = "jotl/preview";
+export const PREVIEW_REQUEST_METHOD = 'jotl/preview';
 /** 服务端处理完 jotl.config.json 变更后发出的通知(无参数); 预览收到后重新请求. */
-export const PREVIEW_CONFIG_CHANGED_METHOD = "jotl/configChanged";
+export const PREVIEW_CONFIG_CHANGED_METHOD = 'jotl/configChanged';
 
 export interface PreviewParams {
   textDocument: { uri: string };
@@ -51,9 +58,13 @@ function sourceStart(sourceMap: SourceMap, pointer: JsonPointer): { line: number
 
 function toPreviewDiagnostic(d: Diagnostic, sourceMap: SourceMap | undefined): PreviewDiagnostic {
   const location = d.location;
-  const pointer = location?.kind === "pointer" ? location.pointer : undefined;
+  const pointer = location?.kind === 'pointer' ? location.pointer : undefined;
   const start =
-    location?.kind === "source" ? location.range.start : pointer !== undefined && sourceMap ? sourceStart(sourceMap, pointer) : undefined;
+    location?.kind === 'source'
+      ? location.range.start
+      : pointer !== undefined && sourceMap
+        ? sourceStart(sourceMap, pointer)
+        : undefined;
   return { severity: d.severity, code: d.code, message: d.message, line: start?.line, column: start?.column, pointer };
 }
 
@@ -61,19 +72,23 @@ export function getPreview(
   text: string,
   uri: string,
   options: LanguageServiceOptions = {},
-  config?: Pick<ProjectConfig, "file" | "modules">,
+  config?: Pick<ProjectConfig, 'file' | 'modules'>
 ): PreviewContent {
   const compiled = compile(text, uri, compileOptions(options)).value;
-  const diagnostics = collectJotlDiagnostics(text, uri, options).map((d) => toPreviewDiagnostic(d, undefined));
+  const diagnostics = collectJotlDiagnostics(text, uri, options).map(d => toPreviewDiagnostic(d, undefined));
   const project = { configFile: config?.file, modules: config?.modules ?? {} };
-  if (compiled === undefined) return { uri, schema: undefined, diagnostics, typescript: undefined, typescriptDiagnostics: [], ...project };
-  const ts = schemaToTs(compiled.schema, compiled.defaultExport === undefined ? {} : { defaultExport: compiled.defaultExport });
+  if (compiled === undefined)
+    return { uri, schema: undefined, diagnostics, typescript: undefined, typescriptDiagnostics: [], ...project };
+  const ts = schemaToTs(
+    compiled.schema,
+    compiled.defaultExport === undefined ? {} : { defaultExport: compiled.defaultExport }
+  );
   return {
     ...project,
     uri,
     schema: JSON.stringify(compiled.schema, null, 2),
     diagnostics,
     typescript: ts.value,
-    typescriptDiagnostics: ts.diagnostics.map((d) => toPreviewDiagnostic(d, compiled.sourceMap)),
+    typescriptDiagnostics: ts.diagnostics.map(d => toPreviewDiagnostic(d, compiled.sourceMap)),
   };
 }

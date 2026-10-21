@@ -1,6 +1,6 @@
 // LSP 位置(行列从 0 起)与源码偏移, Jotl 源码范围(行列从 1 起)之间的换算.
-import type { SourceRange } from "@jotl/core";
-import type { Position, Range } from "vscode-languageserver";
+import type { SourceRange } from '@jotl/core';
+import type { Position, Range } from 'vscode-languageserver';
 
 /** 各行起始偏移; `\r\n` `\r` `\n` 都算换行, 与编译器和 LSP 一致. */
 function lineStarts(text: string): number[] {
@@ -24,7 +24,7 @@ export function offsetAt(text: string, position: Position): number {
   if (position.line >= starts.length) return text.length;
   const start = starts[position.line]!;
   let end = position.line + 1 < starts.length ? starts[position.line + 1]! : text.length;
-  while (end > start && (text[end - 1] === "\n" || text[end - 1] === "\r")) end--;
+  while (end > start && (text[end - 1] === '\n' || text[end - 1] === '\r')) end--;
   return Math.min(start + Math.max(0, position.character), end);
 }
 

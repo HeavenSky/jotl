@@ -1,15 +1,15 @@
 // 诊断与 Result 的类型, 以及按代码表生成诊断的工具.
-import type { JsonPointer } from "./json-pointer.js";
-import { getLocale } from "./locale.js";
-import type { SourceRange } from "./source.js";
+import type { JsonPointer } from './json-pointer.js';
+import { getLocale } from './locale.js';
+import type { SourceRange } from './source.js';
 
-export type Severity = "error" | "warning" | "info";
+export type Severity = 'error' | 'warning' | 'info';
 
 export type DiagnosticCode = `JOTL${number}`;
 
 export type DiagnosticLocation =
-  | { kind: "source"; range: SourceRange }
-  | { kind: "pointer"; pointer: JsonPointer; document?: string };
+  | { kind: 'source'; range: SourceRange }
+  | { kind: 'pointer'; pointer: JsonPointer; document?: string };
 
 export interface DiagnosticFix {
   title: string;
@@ -41,7 +41,7 @@ export function fail<T>(diagnostics: Diagnostic[]): Result<T> {
 }
 
 export function hasErrors(diagnostics: readonly Diagnostic[]): boolean {
-  return diagnostics.some((d) => d.severity === "error");
+  return diagnostics.some(d => d.severity === 'error');
 }
 
 export interface DiagnosticDefinition {
@@ -56,7 +56,7 @@ export type DiagnosticTable = Readonly<Record<DiagnosticCode, DiagnosticDefiniti
 
 export interface DiagnosticExtras {
   location?: DiagnosticLocation;
-  related?: Diagnostic["related"];
+  related?: Diagnostic['related'];
   fixes?: DiagnosticFix[];
   /** 覆盖代码表中的默认级别. */
   severity?: Severity;
@@ -65,7 +65,7 @@ export interface DiagnosticExtras {
 export type DiagnosticFactory<C extends DiagnosticCode> = (
   code: C,
   params?: Readonly<Record<string, string | number>>,
-  extras?: DiagnosticExtras,
+  extras?: DiagnosticExtras
 ) => Diagnostic;
 
 export function formatMessage(template: string, params: Readonly<Record<string, string | number>> = {}): string {
@@ -80,7 +80,7 @@ export function defineDiagnostics<T extends DiagnosticTable>(table: T): Diagnost
     const diagnostic: Diagnostic = {
       code,
       severity: extras.severity ?? def.severity,
-      message: formatMessage(getLocale() === "en" && def.en !== undefined ? def.en : def.message, params),
+      message: formatMessage(getLocale() === 'en' && def.en !== undefined ? def.en : def.message, params),
     };
     if (extras.location) diagnostic.location = extras.location;
     if (extras.related) diagnostic.related = extras.related;

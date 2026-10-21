@@ -45,33 +45,33 @@ Home(首页): [layout: 'tabs', groups: [{title: '外观', fields: ['theme', 'mod
 
 ## 词法
 
-| 项 | 规则 |
-|---|---|
-| 编码 | UTF-8；忽略文件开头的 BOM |
-| 空白 | JS `WhiteSpace`（TAB VT FF SP NBSP ZWNBSP 与 Zs 类） |
-| 换行 | LF、CR、CRLF；U+2028、U+2029 算作空白，不计行；行、列从 1 起，偏移从 0 起，按 UTF-16 代码单元计（与 LSP 一致） |
-| 注释 | `//` 行注释，`/* */` 块注释（不嵌套）；编译时丢弃。没有文档注释：`///` 就是普通行注释；说明写在元数据 `description` 里 |
-| 标识符 | JS `IdentifierName`（Unicode `ID_Start` `ID_Continue`，以及 `$` `_`），不支持 `\u` 转义 |
-| 字符串 | JSON5：`'...'` 与 `"..."`，JSON5 转义，允许 `\` 续行；未知转义报错并保留反斜杠，快速修复为 `\\` |
-| 数字 | JSON5 数字（含 `+1` `.5` `0x10`）；`Infinity` `NaN` 报错 |
-| 标签 | 从 `(` 到与之配对的 `)`，允许成对嵌套（`价格(元)`）；转义 `\(` `\)` `\\`；不跨行；去掉首尾空白后不能为空 |
-| 标点 | `{ } [ ] ( ) , ; : ? *` |
-| 标识记号 | `<root/>` `<default/>` 各为一个整体记号；其他以 `<` 开头的写法报错 |
-| 非法字符 | 字符串与注释之外，不能作为记号开头的字符一律报错，如 `\|` `<` `>` `.` `@` `=` `#` `!` `%`（`\|` 只出现在类型串字符串里） |
-| 关键字 | 没有保留关键字：内置组件名只在组件位置有含义；`true` `false` `null` 只作为元数据中的 JSON 值，`true` `false` 另可作枚举成员值；枚举体中的裸 `null` 报错，见[枚举](#枚举) |
-| 保留 | `import` `export` `from` 留给多文件，目前写在组件位置即报错 |
-| 空白敏感 | 不敏感：键、标签、`?`、`:`、组件、元数据、体之间可以有任意空白与换行（标签内部除外）；`print` 输出紧贴形式 |
+| 项       | 规则                                                                                                                                                                     |
+| -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 编码     | UTF-8；忽略文件开头的 BOM                                                                                                                                                |
+| 空白     | JS `WhiteSpace`（TAB VT FF SP NBSP ZWNBSP 与 Zs 类）                                                                                                                     |
+| 换行     | LF、CR、CRLF；U+2028、U+2029 算作空白，不计行；行、列从 1 起，偏移从 0 起，按 UTF-16 代码单元计（与 LSP 一致）                                                           |
+| 注释     | `//` 行注释，`/* */` 块注释（不嵌套）；编译时丢弃。没有文档注释：`///` 就是普通行注释；说明写在元数据 `description` 里                                                   |
+| 标识符   | JS `IdentifierName`（Unicode `ID_Start` `ID_Continue`，以及 `$` `_`），不支持 `\u` 转义                                                                                  |
+| 字符串   | JSON5：`'...'` 与 `"..."`，JSON5 转义，允许 `\` 续行；未知转义报错并保留反斜杠，快速修复为 `\\`                                                                          |
+| 数字     | JSON5 数字（含 `+1` `.5` `0x10`）；`Infinity` `NaN` 报错                                                                                                                 |
+| 标签     | 从 `(` 到与之配对的 `)`，允许成对嵌套（`价格(元)`）；转义 `\(` `\)` `\\`；不跨行；去掉首尾空白后不能为空                                                                 |
+| 标点     | `{ } [ ] ( ) , ; : ? *`                                                                                                                                                  |
+| 标识记号 | `<root/>` `<default/>` 各为一个整体记号；其他以 `<` 开头的写法报错                                                                                                       |
+| 非法字符 | 字符串与注释之外，不能作为记号开头的字符一律报错，如 `\|` `<` `>` `.` `@` `=` `#` `!` `%`（`\|` 只出现在类型串字符串里）                                                 |
+| 关键字   | 没有保留关键字：内置组件名只在组件位置有含义；`true` `false` `null` 只作为元数据中的 JSON 值，`true` `false` 另可作枚举成员值；枚举体中的裸 `null` 报错，见[枚举](#枚举) |
+| 保留     | `import` `export` `from` 留给多文件，目前写在组件位置即报错                                                                                                              |
+| 空白敏感 | 不敏感：键、标签、`?`、`:`、组件、元数据、体之间可以有任意空白与换行（标签内部除外）；`print` 输出紧贴形式                                                               |
 
 ## 名字
 
-| 位置 | 规则 |
-|---|---|
-| 顶层类型名 | 大驼峰 `[A-Z][A-Za-z0-9]*`；进入 `$defs`，是引用目标，也是 TS 类型名 |
-| 内置组件名 | 小写纯字母 `[a-z]+`，区分大小写，清单见[内置组件](#内置组件) |
-| 扩展组件名 | 大驼峰，与顶层类型名共用一个命名空间，重名报错；组件位置出现大驼峰名时先查本文件的类型，再查扩展组件清单 |
-| 字段键 | 标识符（含中文等 Unicode），另允许中间带 `-`（`a-b`）与非负整数（`0` `12`）；其余写法加引号（`'x.y'` `"x y"` `'<root/>'`）；引号字符串永远是键 |
-| 枚举成员 | 同字段键；另可直接写数字、布尔、引号字符串作为值 |
-| 元数据键 | JSON5 对象键。命名：JSON Schema 与 ajv-errors 原有的关键字用原名（驼峰），Jotl 自有键用 snake_case，自定义键以 `x_` 开头；未知键报错 |
+| 位置       | 规则                                                                                                                                           |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| 顶层类型名 | 大驼峰 `[A-Z][A-Za-z0-9]*`；进入 `$defs`，是引用目标，也是 TS 类型名                                                                           |
+| 内置组件名 | 小写纯字母 `[a-z]+`，区分大小写，清单见[内置组件](#内置组件)                                                                                   |
+| 扩展组件名 | 大驼峰，与顶层类型名共用一个命名空间，重名报错；组件位置出现大驼峰名时先查本文件的类型，再查扩展组件清单                                       |
+| 字段键     | 标识符（含中文等 Unicode），另允许中间带 `-`（`a-b`）与非负整数（`0` `12`）；其余写法加引号（`'x.y'` `"x y"` `'<root/>'`）；引号字符串永远是键 |
+| 枚举成员   | 同字段键；另可直接写数字、布尔、引号字符串作为值                                                                                               |
+| 元数据键   | JSON5 对象键。命名：JSON Schema 与 ajv-errors 原有的关键字用原名（驼峰），Jotl 自有键用 snake_case，自定义键以 `x_` 开头；未知键报错           |
 
 ## 文件结构
 
@@ -132,41 +132,41 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 
 各类条目能写的部分：
 
-| 条目 | 键 | 标签 | `?` | `:` 与内容 |
-|---|---|---|---|---|
-| 顶层类型 | 大驼峰 | 可 | 否 | 可 |
-| 对象字段 | 字段键 | 可 | 可 | 可 |
-| 元组位置 | `0` `1` ... 或 `*` | 可 | 只在末尾的连续位置；`*` 上不可 | 可 |
-| union 分支 | 区分字段的取值 | 可 | 否 | 必须，内容为对象体或对象类型引用 |
-| 枚举成员 | 成员值 | 可 | 否 | 否；可带只含 `description` 的元数据 |
+| 条目       | 键                 | 标签 | `?`                            | `:` 与内容                          |
+| ---------- | ------------------ | ---- | ------------------------------ | ----------------------------------- |
+| 顶层类型   | 大驼峰             | 可   | 否                             | 可                                  |
+| 对象字段   | 字段键             | 可   | 可                             | 可                                  |
+| 元组位置   | `0` `1` ... 或 `*` | 可   | 只在末尾的连续位置；`*` 上不可 | 可                                  |
+| union 分支 | 区分字段的取值     | 可   | 否                             | 必须，内容为对象体或对象类型引用    |
+| 枚举成员   | 成员值             | 可   | 否                             | 否；可带只含 `description` 的元数据 |
 
 ## 内置组件
 
 术语：「组件」指写在组件位置上的名字（内置组件与扩展组件），只决定数据形态，即编译出的 JSON Schema；「widget」指渲染用的控件名（`input` `select` ...），由元数据 `widget` 选择，下表中首项为默认。`widget` 只在不等于默认值时写入 `x-ui.widget`。
 
-| 组件 | JSON Schema | 默认与常用 `widget`（首个为默认） | 体 |
-|---|---|---|---|
-| `string` | `type: string` | `input` `textarea` `password` | 无 |
-| `text` | 同 `string` | 同 `string`，默认 `textarea` | 无 |
-| `richtext` | `string` + `contentMediaType: text/html` | `richtext`（无适配器时退化为 textarea） | 无 |
-| `number` | `type: number` | `number` `range` | 无 |
-| `integer` | `type: integer`，默认 `±MAX_SAFE_INTEGER` | `number` `range` | 无 |
-| `money` | 对象，见[数值, 金额与大整数](#数值-金额与大整数) | `money` | 无 |
-| `bigint` | 对象，见[数值, 金额与大整数](#数值-金额与大整数) | `bigint` | 无 |
-| `boolean` | `type: boolean` | `switch` `checkbox` | 无 |
-| `enum` 单选 | `enum` / `oneOf` / 单成员为 `const` | `select` `radio`；单成员默认 `output`（只读） | 成员 |
-| `enum` 多选（`multiple: true`） | `array` + `uniqueItems` | `select`（多选下拉） `checkbox` | 成员 |
-| `date` `time` `datetime` | 由 `value_format` 决定，见[日期与时间](#日期与时间) | 与组件同名 | 无 |
-| `url` `email` | `string` + `format` `uri` / `email` | 与组件同名 | 无 |
-| `color` | `string` + `format: color` | `color` | 无 |
-| `image` | `string` + `format: uri` | `image`（上传 + 预览） `input` | 无 |
-| `file` | `string` + `format: uri` | `file`（上传） `input` | 无 |
-| `object` | `type: object` | `page`（钻取） `inline` `json`；根总是第一页：根条目写 `widget: 'inline'` 不报诊断，照常写入 `x-ui.widget`，渲染与 `page` 相同 | 字段 |
-| `array` | `type: array` | `list` `json`；`array_item: 'tuple'` 时为 `tuple` `json` | [体与内部类型](#体与内部类型) |
-| `map` | `object` + `additionalProperties` | `kv` `json` | [体与内部类型](#体与内部类型) |
-| `union` | `oneOf` / `anyOf` | `union`（分支下拉；`props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮） | [体与内部类型](#体与内部类型) |
-| `any` | `{}` | `json` | 无 |
-| `jsontext` | `string` + `contentMediaType: application/json` | `json` | 字段，或无 |
+| 组件                            | JSON Schema                                         | 默认与常用 `widget`（首个为默认）                                                                                              | 体                            |
+| ------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ----------------------------- |
+| `string`                        | `type: string`                                      | `input` `textarea` `password`                                                                                                  | 无                            |
+| `text`                          | 同 `string`                                         | 同 `string`，默认 `textarea`                                                                                                   | 无                            |
+| `richtext`                      | `string` + `contentMediaType: text/html`            | `richtext`（无适配器时退化为 textarea）                                                                                        | 无                            |
+| `number`                        | `type: number`                                      | `number` `range`                                                                                                               | 无                            |
+| `integer`                       | `type: integer`，默认 `±MAX_SAFE_INTEGER`           | `number` `range`                                                                                                               | 无                            |
+| `money`                         | 对象，见[数值, 金额与大整数](#数值-金额与大整数)    | `money`                                                                                                                        | 无                            |
+| `bigint`                        | 对象，见[数值, 金额与大整数](#数值-金额与大整数)    | `bigint`                                                                                                                       | 无                            |
+| `boolean`                       | `type: boolean`                                     | `switch` `checkbox`                                                                                                            | 无                            |
+| `enum` 单选                     | `enum` / `oneOf` / 单成员为 `const`                 | `select` `radio`；单成员默认 `output`（只读）                                                                                  | 成员                          |
+| `enum` 多选（`multiple: true`） | `array` + `uniqueItems`                             | `select`（多选下拉） `checkbox`                                                                                                | 成员                          |
+| `date` `time` `datetime`        | 由 `value_format` 决定，见[日期与时间](#日期与时间) | 与组件同名                                                                                                                     | 无                            |
+| `url` `email`                   | `string` + `format` `uri` / `email`                 | 与组件同名                                                                                                                     | 无                            |
+| `color`                         | `string` + `format: color`                          | `color`                                                                                                                        | 无                            |
+| `image`                         | `string` + `format: uri`                            | `image`（上传 + 预览） `input`                                                                                                 | 无                            |
+| `file`                          | `string` + `format: uri`                            | `file`（上传） `input`                                                                                                         | 无                            |
+| `object`                        | `type: object`                                      | `page`（钻取） `inline` `json`；根总是第一页：根条目写 `widget: 'inline'` 不报诊断，照常写入 `x-ui.widget`，渲染与 `page` 相同 | 字段                          |
+| `array`                         | `type: array`                                       | `list` `json`；`array_item: 'tuple'` 时为 `tuple` `json`                                                                       | [体与内部类型](#体与内部类型) |
+| `map`                           | `object` + `additionalProperties`                   | `kv` `json`                                                                                                                    | [体与内部类型](#体与内部类型) |
+| `union`                         | `oneOf` / `anyOf`                                   | `union`（分支下拉；`props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮）                                              | [体与内部类型](#体与内部类型) |
+| `any`                           | `{}`                                                | `json`                                                                                                                         | 无                            |
+| `jsontext`                      | `string` + `contentMediaType: application/json`     | `json`                                                                                                                         | 字段，或无                    |
 
 - 可选的 widget 按数据形态判定，范围比上表宽：任意组件都可选 `json` 与 `output`；底层为字符串的组件之间 widget 互通，都可选 `input` `textarea` `password` `richtext`，带 `format: uri` 的另可选 `url` `image` `file`（如 `url[widget: 'input']` `jsontext[widget: 'textarea']`）；按 `value_format` 编译出 `x-valueFormat` 的日期组件可在 `date` `time` `datetime` 间互换（时间戳格式不能用 `time`）。判定以 `packages/core/src/syntax/shapes.ts` 的 `acceptsWidget` 为准，语言服务补全的候选与它一致。
 - 非法组合会降级：先确定改变数据形态的键（`multiple` `array_item` `map_item` `union_item` `nullable` ...），再按该形态判定 `widget`；形态不接受该 widget 时取默认值，编译器报 warning（JOTL1045）。未登记的扩展 widget 由语言服务报 warning，运行时沿降级链降级。例：`enum[multiple: true, widget: 'radio']` 保留多选，`widget` 降为 `select`。
@@ -178,34 +178,34 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 
 内部类型的键：
 
-| 键 | 用于 | 取值 |
-|---|---|---|
-| `array_item` | `array` | 类型串；或 `'tuple'` |
-| `map_item` | `map` | 类型串 |
-| `union_item` | `union` | 类型串，至少两个名字 |
-| `json_item` | `jsontext` | 类型串 |
-| `item_meta` | 以上四种 | 内部类型的元数据；类型串含多个名字时按名字分键：`{string: {...}, Link: {...}}` |
-| `key_meta` | `map` | 键的约束，只接受 `pattern` `minLength` `maxLength`，编译为 `propertyNames` |
-| `discriminator` | `union` | 区分字段名 |
+| 键              | 用于       | 取值                                                                           |
+| --------------- | ---------- | ------------------------------------------------------------------------------ |
+| `array_item`    | `array`    | 类型串；或 `'tuple'`                                                           |
+| `map_item`      | `map`      | 类型串                                                                         |
+| `union_item`    | `union`    | 类型串，至少两个名字                                                           |
+| `json_item`     | `jsontext` | 类型串                                                                         |
+| `item_meta`     | 以上四种   | 内部类型的元数据；类型串含多个名字时按名字分键：`{string: {...}, Link: {...}}` |
+| `key_meta`      | `map`      | 键的约束，只接受 `pattern` `minLength` `maxLength`，编译为 `propertyNames`     |
+| `discriminator` | `union`    | 区分字段名                                                                     |
 
 类型串的形式是 `名字 { "|" 名字 }`，名字为内置组件名或大驼峰类型名。类型串不含 `null`（可空写 `nullable`）；选择族 `enum` 不能出现在类型串中（多选写 `multiple`）；名字重复报错；`tuple` 只能单独写在 `array_item` 中；多于一个名字时按 [union](#union) 的 JSON 类型区分规则校验。
 
 各组件的体：
 
-| 组件 | 条件 | 体 |
-|---|---|---|
-| `object` | - | 字段 |
-| `array` | 无 `array_item` | 元素对象的字段（字段名任意，含 `*` `0`）；元素对象自身的元数据写在 `item_meta` |
-| `array` | `array_item: 'tuple'` | 位置条目 `0` `1` ...（从 0 起连续），可另有一个 `*` 表示其余元素；编译为 `prefixItems` + `items`，没有 `*` 时为 `items: false`；`minItems` 取必填位置数 |
-| `array` | `array_item: 类型串` | 无 |
-| `map` | 无 `map_item` | 值对象的字段 |
-| `map` | `map_item: 类型串` | 无 |
-| `union` | 有 `discriminator` | 分支，见 [union](#union) |
-| `union` | `union_item` | 无 |
-| `enum` | - | 成员，见[枚举](#枚举) |
-| `jsontext` | 无 `json_item` | 解析后对象的字段（可为空体或省略体，省略时内容为任意 JSON） |
-| `jsontext` | `json_item: 类型串` | 无 |
-| 其他 | - | 写体报错 |
+| 组件       | 条件                  | 体                                                                                                                                                      |
+| ---------- | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `object`   | -                     | 字段                                                                                                                                                    |
+| `array`    | 无 `array_item`       | 元素对象的字段（字段名任意，含 `*` `0`）；元素对象自身的元数据写在 `item_meta`                                                                          |
+| `array`    | `array_item: 'tuple'` | 位置条目 `0` `1` ...（从 0 起连续），可另有一个 `*` 表示其余元素；编译为 `prefixItems` + `items`，没有 `*` 时为 `items: false`；`minItems` 取必填位置数 |
+| `array`    | `array_item: 类型串`  | 无                                                                                                                                                      |
+| `map`      | 无 `map_item`         | 值对象的字段                                                                                                                                            |
+| `map`      | `map_item: 类型串`    | 无                                                                                                                                                      |
+| `union`    | 有 `discriminator`    | 分支，见 [union](#union)                                                                                                                                |
+| `union`    | `union_item`          | 无                                                                                                                                                      |
+| `enum`     | -                     | 成员，见[枚举](#枚举)                                                                                                                                   |
+| `jsontext` | 无 `json_item`        | 解析后对象的字段（可为空体或省略体，省略时内容为任意 JSON）                                                                                             |
+| `jsontext` | `json_item: 类型串`   | 无                                                                                                                                                      |
+| 其他       | -                     | 写体报错                                                                                                                                                |
 
 - 嵌套数组：`array[array_item: 'array', item_meta: {array_item: 'number'}]`。
 - 只有在 `array_item: 'tuple'` 下，`*` 与数字键才有特殊含义；在其余体中它们是普通字段键。
@@ -243,55 +243,55 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 
 ## 可空, 必填与空值
 
-| 含义 | 写法 |
-|---|---|
+| 含义                      | 写法                             |
+| ------------------------- | -------------------------------- |
 | 可以不存在（`undefined`） | `key?:` 或不带内容的 `key(标签)` |
-| 可以为 `null` | `nullable: true` |
-| 字符串不能为空串 | `minLength: 1`（默认允许空串） |
-| 数组、多选不能为空 | `minItems: 1`（默认允许空数组） |
+| 可以为 `null`             | `nullable: true`                 |
+| 字符串不能为空串          | `minLength: 1`（默认允许空串）   |
+| 数组、多选不能为空        | `minItems: 1`（默认允许空数组）  |
 
 - 默认允许空：字符串类不加 `minLength`，数组与多选不加 `minItems`；要禁止空串或空数组时写 `minLength: 1` / `minItems: 1`。带 `format` 的字符串组件由格式本身拒绝空串。
 - 渲染器：选填字段被清空时删除该键，不写空串或空数组；`nullable` 字段另有置空开关。
 
 ## 元数据键
 
-| 键 | 取值 | 编译到 | 适用 |
-|---|---|---|---|
-| `description` | 字符串 | `description` | 任意条目，枚举成员 |
-| `default` | JSON 值 | `default`；编译期按约束校验，包括 `schema` 写入的约束与常用 `format`（`email` `uri` `date` `date-time` `time` `uuid` `color` `ipv4` `ipv6` `hostname`） | 任意 |
-| `minLength` `maxLength` `pattern` `format` | 同 JSON Schema | 同名 | 字符串类，底层为字符串的扩展组件 |
-| `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` | 数字；`money` `bigint` 上为字符串 | 同名；`money` `bigint` 上为 `x-decimalRange` | 数值，底层为数值的扩展组件 |
-| `decimals` | 非负整数 | `x-decimals` | `number`、`money`，底层为 `number` 的扩展组件 |
-| `minItems` `maxItems` `uniqueItems` | 整数 / 布尔 | 同名 | `array`，多选（含加了 `multiple` 的枚举引用），底层为 `array` 的扩展组件 |
-| `minProperties` `maxProperties` | 整数 | 同名 | `object` `map`，底层为 `object` 的扩展组件 |
-| `examples` | 数组 | `examples` | 引用类型以外 |
-| `deprecated` | `true` 或原因字符串 | `deprecated: true` + `x-deprecatedReason` | 任意 |
-| `readOnly` | 布尔 | 同名 | 任意 |
-| `writeOnly` | 布尔 | 同名 | 引用类型以外 |
-| `errorMessage` | 字符串，或关键字 → 文案 | `errorMessage` | 引用类型以外 |
-| `comment` | 字符串 | `$comment` | 引用类型以外 |
-| `closed` | 布尔 | `additionalProperties: false` | `object` |
-| `nullable` | 布尔 | 字符串类、`number` `integer` `boolean` 以及底层为这些类型的扩展组件在 `type` 中加 `null`；其余包成 `anyOf: [T, {type: "null"}]` | 任意 |
-| `multiple` | 布尔 | 见[枚举](#枚举) | `enum`，指向枚举的引用 |
-| `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | 见[体与内部类型](#体与内部类型)、[union](#union) | - | 见[体与内部类型](#体与内部类型) |
-| `currency` `unit` | 见[数值, 金额与大整数](#数值-金额与大整数) | `money` 的属性 schema | `money` |
-| `value_format` | 见[日期与时间](#日期与时间) | `format` 或 `x-valueFormat` | `date` `time` `datetime` |
-| `thousands` | 布尔 | `x-ui.thousands` | `number` `integer` `money` `bigint` |
-| `widget` | widget 名：[内置组件](#内置组件)中的候选或已登记的扩展 widget | `x-ui.widget` | 任意 |
-| `props` | 对象 | `x-ui.props` | 任意 |
-| `decorator` | 外壳 widget 名或 `false` | `x-ui.decorator` | 任意 |
-| `hidden` | 布尔 | `x-ui.hidden` | 任意 |
-| `order` | 字段名数组 | `x-ui.order` | `object` |
-| `groups` | `[{title, fields}]`，每个字段最多在一个分组中出现一次 | `x-ui.groups` | `object` |
-| `layout` `columns` | `'stack' \| 'tabs' \| 'grid'`；不小于 1 的整数 | `x-ui.layout` `x-ui.columns` | `object`，只在 `widget: 'page'` / `'inline'` 下生效；`columns` 必须与 `layout: 'grid'` 一起写，否则报 JOTL1017 |
-| `summary` | 字段名 | `x-ui.summary` | `object`、指向对象的引用、元素为对象的 `array` / `map`；元素确定不是对象时报 warning（JOTL1049） |
-| `root_if` `node_if` | 条件，见[条件](#条件) | `x-ui.visibleIf` | 任意 |
-| `variants` | 场景名 → 覆盖对象 | `x-ui.variants` | 任意 |
-| `rules` | 规则数组 `[{match, ui}]` | 根 `x-ui.rules` | 只在根条目 |
-| `id` | URI 字符串 | 根 `$id` | 只在根条目 |
-| `widgets` | 名字 → 底层类型或模块声明，见[条目](#条目)中的扩展组件 | 在本文件登记扩展组件；模块声明写入根 `x-ui.widgets` | 只在根条目 |
-| `schema` | JSON 对象 | 原样合并，冲突时以它为准并报 warning | 任意 |
-| `x_*` | JSON 值 | `x-` 加驼峰（`x_biz_code` → `x-bizCode`）；`x_` 之后为小写 snake_case，其他写法按未知键报 JOTL1011；对应编译器自己生成的关键字的键（`x_ui` `x_deprecated_reason` `x_decimals` `x_decimal_range` `x_value_format`）报 JOTL1012 | 任意 |
+| 键                                                                                      | 取值                                                          | 编译到                                                                                                                                                                                                                        | 适用                                                                                                           |
+| --------------------------------------------------------------------------------------- | ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| `description`                                                                           | 字符串                                                        | `description`                                                                                                                                                                                                                 | 任意条目，枚举成员                                                                                             |
+| `default`                                                                               | JSON 值                                                       | `default`；编译期按约束校验，包括 `schema` 写入的约束与常用 `format`（`email` `uri` `date` `date-time` `time` `uuid` `color` `ipv4` `ipv6` `hostname`）                                                                       | 任意                                                                                                           |
+| `minLength` `maxLength` `pattern` `format`                                              | 同 JSON Schema                                                | 同名                                                                                                                                                                                                                          | 字符串类，底层为字符串的扩展组件                                                                               |
+| `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum`                               | 数字；`money` `bigint` 上为字符串                             | 同名；`money` `bigint` 上为 `x-decimalRange`                                                                                                                                                                                  | 数值，底层为数值的扩展组件                                                                                     |
+| `decimals`                                                                              | 非负整数                                                      | `x-decimals`                                                                                                                                                                                                                  | `number`、`money`，底层为 `number` 的扩展组件                                                                  |
+| `minItems` `maxItems` `uniqueItems`                                                     | 整数 / 布尔                                                   | 同名                                                                                                                                                                                                                          | `array`，多选（含加了 `multiple` 的枚举引用），底层为 `array` 的扩展组件                                       |
+| `minProperties` `maxProperties`                                                         | 整数                                                          | 同名                                                                                                                                                                                                                          | `object` `map`，底层为 `object` 的扩展组件                                                                     |
+| `examples`                                                                              | 数组                                                          | `examples`                                                                                                                                                                                                                    | 引用类型以外                                                                                                   |
+| `deprecated`                                                                            | `true` 或原因字符串                                           | `deprecated: true` + `x-deprecatedReason`                                                                                                                                                                                     | 任意                                                                                                           |
+| `readOnly`                                                                              | 布尔                                                          | 同名                                                                                                                                                                                                                          | 任意                                                                                                           |
+| `writeOnly`                                                                             | 布尔                                                          | 同名                                                                                                                                                                                                                          | 引用类型以外                                                                                                   |
+| `errorMessage`                                                                          | 字符串，或关键字 → 文案                                       | `errorMessage`                                                                                                                                                                                                                | 引用类型以外                                                                                                   |
+| `comment`                                                                               | 字符串                                                        | `$comment`                                                                                                                                                                                                                    | 引用类型以外                                                                                                   |
+| `closed`                                                                                | 布尔                                                          | `additionalProperties: false`                                                                                                                                                                                                 | `object`                                                                                                       |
+| `nullable`                                                                              | 布尔                                                          | 字符串类、`number` `integer` `boolean` 以及底层为这些类型的扩展组件在 `type` 中加 `null`；其余包成 `anyOf: [T, {type: "null"}]`                                                                                               | 任意                                                                                                           |
+| `multiple`                                                                              | 布尔                                                          | 见[枚举](#枚举)                                                                                                                                                                                                               | `enum`，指向枚举的引用                                                                                         |
+| `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | 见[体与内部类型](#体与内部类型)、[union](#union)              | -                                                                                                                                                                                                                             | 见[体与内部类型](#体与内部类型)                                                                                |
+| `currency` `unit`                                                                       | 见[数值, 金额与大整数](#数值-金额与大整数)                    | `money` 的属性 schema                                                                                                                                                                                                         | `money`                                                                                                        |
+| `value_format`                                                                          | 见[日期与时间](#日期与时间)                                   | `format` 或 `x-valueFormat`                                                                                                                                                                                                   | `date` `time` `datetime`                                                                                       |
+| `thousands`                                                                             | 布尔                                                          | `x-ui.thousands`                                                                                                                                                                                                              | `number` `integer` `money` `bigint`                                                                            |
+| `widget`                                                                                | widget 名：[内置组件](#内置组件)中的候选或已登记的扩展 widget | `x-ui.widget`                                                                                                                                                                                                                 | 任意                                                                                                           |
+| `props`                                                                                 | 对象                                                          | `x-ui.props`                                                                                                                                                                                                                  | 任意                                                                                                           |
+| `decorator`                                                                             | 外壳 widget 名或 `false`                                      | `x-ui.decorator`                                                                                                                                                                                                              | 任意                                                                                                           |
+| `hidden`                                                                                | 布尔                                                          | `x-ui.hidden`                                                                                                                                                                                                                 | 任意                                                                                                           |
+| `order`                                                                                 | 字段名数组                                                    | `x-ui.order`                                                                                                                                                                                                                  | `object`                                                                                                       |
+| `groups`                                                                                | `[{title, fields}]`，每个字段最多在一个分组中出现一次         | `x-ui.groups`                                                                                                                                                                                                                 | `object`                                                                                                       |
+| `layout` `columns`                                                                      | `'stack' \| 'tabs' \| 'grid'`；不小于 1 的整数                | `x-ui.layout` `x-ui.columns`                                                                                                                                                                                                  | `object`，只在 `widget: 'page'` / `'inline'` 下生效；`columns` 必须与 `layout: 'grid'` 一起写，否则报 JOTL1017 |
+| `summary`                                                                               | 字段名                                                        | `x-ui.summary`                                                                                                                                                                                                                | `object`、指向对象的引用、元素为对象的 `array` / `map`；元素确定不是对象时报 warning（JOTL1049）               |
+| `root_if` `node_if`                                                                     | 条件，见[条件](#条件)                                         | `x-ui.visibleIf`                                                                                                                                                                                                              | 任意                                                                                                           |
+| `variants`                                                                              | 场景名 → 覆盖对象                                             | `x-ui.variants`                                                                                                                                                                                                               | 任意                                                                                                           |
+| `rules`                                                                                 | 规则数组 `[{match, ui}]`                                      | 根 `x-ui.rules`                                                                                                                                                                                                               | 只在根条目                                                                                                     |
+| `id`                                                                                    | URI 字符串                                                    | 根 `$id`                                                                                                                                                                                                                      | 只在根条目                                                                                                     |
+| `widgets`                                                                               | 名字 → 底层类型或模块声明，见[条目](#条目)中的扩展组件        | 在本文件登记扩展组件；模块声明写入根 `x-ui.widgets`                                                                                                                                                                           | 只在根条目                                                                                                     |
+| `schema`                                                                                | JSON 对象                                                     | 原样合并，冲突时以它为准并报 warning                                                                                                                                                                                          | 任意                                                                                                           |
+| `x_*`                                                                                   | JSON 值                                                       | `x-` 加驼峰（`x_biz_code` → `x-bizCode`）；`x_` 之后为小写 snake_case，其他写法按未知键报 JOTL1011；对应编译器自己生成的关键字的键（`x_ui` `x_deprecated_reason` `x_decimals` `x_decimal_range` `x_value_format`）报 JOTL1012 | 任意                                                                                                           |
 
 - 标题不进元数据，只由标签表达。
 - `variants` 内的覆盖对象与 `rules` 各规则的 `ui` 使用 `x-ui` 的字段名；其中的条件写 `root_if` / `node_if`（编译为 `visibleIf`，也接受直接写 `visibleIf`）。
@@ -317,11 +317,11 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 
 `date` `time` `datetime` 分别渲染为 `<input type="date">` `<input type="time">` `<input type="datetime-local">`；存储格式由元数据 `value_format` 决定。
 
-| 组件 | 原生值 | 默认 `value_format` | 默认存储示例 |
-|---|---|---|---|
-| `date` | `2026-10-13` | `YYYY-MM-DD` | `2026-10-13` |
-| `time` | `09:30`，设了 step 时为 `09:30:15` | `HH:mm:ss` | `09:30:15` |
-| `datetime` | `2026-10-13T09:30`（无时区） | `iso` | `2026-10-13T09:30:15+08:00` |
+| 组件       | 原生值                             | 默认 `value_format` | 默认存储示例                |
+| ---------- | ---------------------------------- | ------------------- | --------------------------- |
+| `date`     | `2026-10-13`                       | `YYYY-MM-DD`        | `2026-10-13`                |
+| `time`     | `09:30`，设了 step 时为 `09:30:15` | `HH:mm:ss`          | `09:30:15`                  |
+| `datetime` | `2026-10-13T09:30`（无时区）       | `iso`               | `2026-10-13T09:30:15+08:00` |
 
 `value_format` 的取值：
 
@@ -329,23 +329,23 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `x` 毫秒时间戳，`X` 秒时间戳，值为整数；`time` 不能用；`date` 取当天本地零点。
 - 别名：读取时接受任意合法的 RFC 3339 date-time（带不带毫秒均可，时区为 `Z` 或 `±HH:mm`），写回时统一为下表格式：
 
-| 别名 | 示例（北京时间 09:30:15） | 写回实现 |
-|---|---|---|
-| `iso` | `2026-10-13T09:30:15+08:00` | `dayjs(v).format()` |
+| 别名    | 示例（北京时间 09:30:15）       | 写回实现                                                  |
+| ------- | ------------------------------- | --------------------------------------------------------- |
+| `iso`   | `2026-10-13T09:30:15+08:00`     | `dayjs(v).format()`                                       |
 | `iso-x` | `2026-10-13T09:30:15.000+08:00` | 在 `iso` 结果的偏移前插入 `.` 与 `dayjs(v).format('SSS')` |
-| `utc` | `2026-10-13T01:30:15Z` | `utc-x` 的结果去掉毫秒 |
-| `utc-x` | `2026-10-13T01:30:15.000Z` | `dayjs(v).toISOString()` |
+| `utc`   | `2026-10-13T01:30:15Z`          | `utc-x` 的结果去掉毫秒                                    |
+| `utc-x` | `2026-10-13T01:30:15.000Z`      | `dayjs(v).toISOString()`                                  |
 
 别名也可用于 `date` `time`：值为按别名写回的完整日期时间串，编译时归入下表「其他」一行。
 
 编译结果：
 
-| `value_format` | JSON Schema |
-|---|---|
-| `date` 的 `YYYY-MM-DD`（默认） | `{type: string, format: date}` |
-| `datetime` 的四个别名（默认 `iso`） | `{type: string, format: date-time}`，不是 `iso` 时另写 `x-valueFormat` |
-| `x` / `X` | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` 为组件名 |
-| 其他（含 `time` 默认的 `HH:mm:ss`） | `{type: string, x-valueFormat}` + `x-ui.widget` 为组件名 |
+| `value_format`                      | JSON Schema                                                                                                      |
+| ----------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
+| `date` 的 `YYYY-MM-DD`（默认）      | `{type: string, format: date}`                                                                                   |
+| `datetime` 的四个别名（默认 `iso`） | `{type: string, format: date-time}`，不是 `iso` 时另写 `x-valueFormat`                                           |
+| `x` / `X`                           | `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat}` + `x-ui.widget` 为组件名 |
+| 其他（含 `time` 默认的 `HH:mm:ss`） | `{type: string, x-valueFormat}` + `x-ui.widget` 为组件名                                                         |
 
 - `time` 默认的 `HH:mm:ss` 不是标准 `format: time` 所依据的 RFC 3339 `full-time`：它不带时区，也没有小数秒；`format: time` 要求带时区，并允许小数秒。所以 `time` 默认不再编译为 `format: time`；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。schema 中有 `format: time` 而没有 `x-valueFormat` 时，`time` 组件仍按 `HH:mm:ss` 读写：`09:30:15Z` 这类值显示在原值文本框中，组件写回的 `09:30:15` 这类值通不过 `format: time` 校验。
 - 格式串含 `Z` 时接受任意偏移，读入后按本地时区显示，写回时用本地偏移。
@@ -367,15 +367,15 @@ d?: string[node_if: 'href']
 - 基准：`root_if` 从数据根算起，`node_if` 从字段所在的对象算起；不支持向上引用。
 - 编译为 `x-ui.visibleIf`（[x-ui 规范](x-ui.md)中的条件格式）：
 
-| 写法 | 编译为 |
-|---|---|
-| `left` 路径 | `field`：JSON Pointer（`[*]` 保留为 `*` 片段）；`node_if` 另加 `base: "node"` |
-| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'` | 同名键，值为 `right` |
-| `op: 'not_in'` | `notIn`，值为 `right` |
-| `op: 'truthy'` / 路径字符串 | `truthy: true` |
-| `op: 'falsy'` | `truthy: false` |
-| `{and: [...]}` `{or: [...]}` `{not: 条件}` | `{all: [...]}` `{any: [...]}` `{not: 条件}` |
-| 同时写 `root_if` 与 `node_if` | `{all: [根条件, 节点条件]}` |
+| 写法                                                   | 编译为                                                                        |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| `left` 路径                                            | `field`：JSON Pointer（`[*]` 保留为 `*` 片段）；`node_if` 另加 `base: "node"` |
+| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'` | 同名键，值为 `right`                                                          |
+| `op: 'not_in'`                                         | `notIn`，值为 `right`                                                         |
+| `op: 'truthy'` / 路径字符串                            | `truthy: true`                                                                |
+| `op: 'falsy'`                                          | `truthy: false`                                                               |
+| `{and: [...]}` `{or: [...]}` `{not: 条件}`             | `{all: [...]}` `{any: [...]}` `{not: 条件}`                                   |
+| 同时写 `root_if` 与 `node_if`                          | `{all: [根条件, 节点条件]}`                                                   |
 
 - 条件只控制显示，不控制必填与只读。
 
@@ -389,18 +389,18 @@ d?: string[node_if: 'href']
 
 代码与消息文本见 `packages/core/src/syntax/diagnostics.ts` 的 `SYNTAX_DIAGNOSTICS`；下表按情形归类。
 
-| 级别 | 代码 | 情形 |
-|---|---|---|
-| error | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | 词法：非法字符与未知的 `<...>` 记号；字符串缺结束引号；块注释未闭合；未知转义或字符串中有控制字符；数字写法不合法（含 `Infinity` `NaN`）；标签为空 |
-| error | JOTL1002 JOTL1003 JOTL1040 | 语法：此处应为另一种记号；缺右括号；冒号后有内容却省略了冒号 |
-| error | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层：顶层名不是大驼峰；顶层写了 `?`；标识写在体内；标识重复；类型名重复；类型名与扩展组件（含根元数据 `widgets` 声明的）重名 |
-| error | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`，可区分联合没有分支） |
-| error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等） |
-| error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`） |
-| error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限 |
+| 级别    | 代码                                                  | 情形                                                                                                                                                                                                                                                                                                                                                         |
+| ------- | ----------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| error   | JOTL1001 JOTL1018 JOTL1019 JOTL1022 JOTL1023 JOTL1026 | 词法：非法字符与未知的 `<...>` 记号；字符串缺结束引号；块注释未闭合；未知转义或字符串中有控制字符；数字写法不合法（含 `Infinity` `NaN`）；标签为空                                                                                                                                                                                                           |
+| error   | JOTL1002 JOTL1003 JOTL1040                            | 语法：此处应为另一种记号；缺右括号；冒号后有内容却省略了冒号                                                                                                                                                                                                                                                                                                 |
+| error   | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层：顶层名不是大驼峰；顶层写了 `?`；标识写在体内；标识重复；类型名重复；类型名与扩展组件（含根元数据 `widgets` 声明的）重名                                                                                                                                                                                                                                |
+| error   | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`，可区分联合没有分支）                                                                                                                                                     |
+| error   | JOTL1005 JOTL1024 JOTL1025 JOTL1046                   | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等）                                                                                                                                                                                                               |
+| error   | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017          | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`）                                                                              |
+| error   | JOTL1042 JOTL1043 JOTL1008 JOTL1029                   | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限                                                                                                                                                                                                                                       |
 | warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 JOTL1052 | `widget` 不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断）；字段类型不被非大驼峰 widget 名声明的底层类型接受 |
-| error | JOTL1030 JOTL1031 JOTL1035 | `print`：输入不是 JSON Schema；含非 JSON 值；`rootName` 不是大驼峰 |
-| warning | JOTL1032 JOTL1033 JOTL1034 JOTL1051 | `print`：关键字无法表达，已忽略；布尔 schema 按等价对象打印；类型名不合法，已改名；选项 `defaultExport` 不是 `$defs` 的键，已忽略 |
+| error   | JOTL1030 JOTL1031 JOTL1035                            | `print`：输入不是 JSON Schema；含非 JSON 值；`rootName` 不是大驼峰                                                                                                                                                                                                                                                                                           |
+| warning | JOTL1032 JOTL1033 JOTL1034 JOTL1051                   | `print`：关键字无法表达，已忽略；布尔 schema 按等价对象打印；类型名不合法，已改名；选项 `defaultExport` 不是 `$defs` 的键，已忽略                                                                                                                                                                                                                            |
 
 ## 规范化规则
 

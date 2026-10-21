@@ -729,15 +729,15 @@
     counter-increment: jotl-item;
   }
   :where(.jotl-array-item)::before {
-    content: counter(jotl-item) ".";
+    content: counter(jotl-item) '.';
     flex: none;
     min-width: 1.25rem;
   }
   :where(.jotl-array-add, .jotl-map-add)::before {
-    content: "+ " / "";
+    content: '+ ' / '';
   }
   :where(.jotl-breadcrumb-item + .jotl-breadcrumb-item)::before {
-    content: "/" / "";
+    content: '/' / '';
     padding: 0 0.5rem;
     color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
   }
@@ -748,7 +748,7 @@
     display: none;
   }
   :where(.jotl-panel-header)::before {
-    content: "›" / "";
+    content: '›' / '';
     flex: none;
     width: 1em;
     color: var(--jotl-muted, rgba(0, 0, 0, 0.45));

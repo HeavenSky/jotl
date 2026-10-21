@@ -1,23 +1,27 @@
 {
   "name": "jotl-monorepo",
   "private": true,
+  "license": "MIT",
   "type": "module",
-  "packageManager": "pnpm@12.6.0",
-  "engines": {
-    "node": ">=22"
-  },
   "scripts": {
     "build": "tsc -b",
     "clean": "tsc -b --clean",
     "test": "vitest run",
-    "lint": "biome lint",
-    "check": "biome lint && tsc -b && pnpm -r --if-present run typecheck:test && vitest run && pnpm --filter @jotl/playground run build"
+    "lint": "oxlint --fix",
+    "lint:check": "oxlint",
+    "fmt": "oxfmt --write",
+    "fmt:check": "oxfmt --check",
+    "check": "oxlint && oxfmt --check && tsc -b && pnpm -r --if-present run typecheck:test && vitest run && pnpm --filter @jotl/playground run build"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.15",
     "@types/node": "^26.6.4",
+    "oxfmt": "^0.74.0",
+    "oxlint": "^1.89.0",
     "typescript": "6.0.3",
     "vitest": "^5.0.3"
   },
-  "license": "MIT"
+  "engines": {
+    "node": ">=22"
+  },
+  "packageManager": "pnpm@12.6.0"
 }

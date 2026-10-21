@@ -34,41 +34,42 @@
 
 ## 命令
 
-| 命令 | 作用 |
-|---|---|
-| `pnpm build` | `tsc -b`：构建全部包到各自的 `dist/` |
-| `pnpm test` | 运行 `packages/*/test/` 与 `apps/*/test/` 下的全部用例 |
-| `pnpm lint` | 用 Biome 做 lint |
-| `pnpm check` | lint、构建、各包测试代码的类型检查（`typecheck:test`）、全部测试，最后生产构建 playground |
-| `pnpm clean` | 清除构建产物 |
-| `pnpm --filter @jotl/playground dev` | 启动 playground 开发服务器，需先 `pnpm build`。详见 [playground README](../../apps/playground/zh/README.md) |
+| 命令                                          | 作用                                                                                                                         |
+| --------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm build`                                  | `tsc -b`：构建全部包到各自的 `dist/`                                                                                         |
+| `pnpm test`                                   | 运行 `packages/*/test/` 与 `apps/*/test/` 下的全部用例                                                                       |
+| `pnpm lint`                                   | 用 oxlint 做 lint 并自动修复；`pnpm lint:check` 只检查                                                                       |
+| `pnpm fmt`                                    | 用 oxfmt 格式化；`pnpm fmt:check` 只检查。配置是仓库根目录的 `.oxfmtrc.json`                                                 |
+| `pnpm check`                                  | lint、格式检查、构建、各包测试代码的类型检查（`typecheck:test`）、全部测试，最后生产构建 playground                          |
+| `pnpm clean`                                  | 清除构建产物                                                                                                                 |
+| `pnpm --filter @jotl/playground dev`          | 启动 playground 开发服务器，需先 `pnpm build`。详见 [playground README](../../apps/playground/zh/README.md)                  |
 | `pnpm --filter ./packages/vscode run package` | 把 VS Code 插件打包为 vsix，需先 `pnpm build`。详见 [`packages/vscode/DEVELOPMENT.md`](../../packages/vscode/DEVELOPMENT.md) |
 
 ## 各部分的位置
 
 包目录名即去掉 `@jotl/` 前缀的包名。
 
-| 包 | 目录 | 源码结构 |
-|---|---|---|
-| `@jotl/core` | `packages/core` | `src/schema/`：schema 与 `x-ui` 类型、`Result` 与诊断、JSON Pointer、数据能力接口；`src/syntax/`：Jotl 的解析、编译到 JSON Schema、打印回 Jotl 与格式化 |
-| `@jotl/convert` | `packages/convert` | `src/ts/`：JSON Schema 与 TS 声明互转，TSDoc / ESLint 预设；`src/migrate/`：旧版 JSON Schema 与 OpenAPI 升级，凤蝶迁移。`tsToSchema` 依赖 `typescript`，从子路径 `@jotl/convert/from-ts` 导出 |
-| `@jotl/data` | `packages/data` | 默认数据、校验、迁移与 Mock |
-| `@jotl/form` | `packages/form` | `src/react/`：React 渲染器；`src/html/`：原生 HTML widget 与样式；`src/core/`：与框架无关的 `x-ui` 解析、widget 注册与渲染规划，以 `@jotl/form/core` 导出 |
-| `@jotl/antd` | `packages/antd` | `@jotl/form` 的 Ant Design widget |
-| `@jotl/language-server` | `packages/language-server` | 语言服务（LSP） |
-| `vscode-jotl`（市场 ID `heavensky.vscode-jotl`） | `packages/vscode` | VS Code 插件及其预览面板 |
-| `@jotl/cli` | `packages/cli` | 命令行 |
-| `@jotl/playground` | `apps/playground` | 浏览器 playground |
+| 包                                               | 目录                       | 源码结构                                                                                                                                                                                      |
+| ------------------------------------------------ | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@jotl/core`                                     | `packages/core`            | `src/schema/`：schema 与 `x-ui` 类型、`Result` 与诊断、JSON Pointer、数据能力接口；`src/syntax/`：Jotl 的解析、编译到 JSON Schema、打印回 Jotl 与格式化                                       |
+| `@jotl/convert`                                  | `packages/convert`         | `src/ts/`：JSON Schema 与 TS 声明互转，TSDoc / ESLint 预设；`src/migrate/`：旧版 JSON Schema 与 OpenAPI 升级，凤蝶迁移。`tsToSchema` 依赖 `typescript`，从子路径 `@jotl/convert/from-ts` 导出 |
+| `@jotl/data`                                     | `packages/data`            | 默认数据、校验、迁移与 Mock                                                                                                                                                                   |
+| `@jotl/form`                                     | `packages/form`            | `src/react/`：React 渲染器；`src/html/`：原生 HTML widget 与样式；`src/core/`：与框架无关的 `x-ui` 解析、widget 注册与渲染规划，以 `@jotl/form/core` 导出                                     |
+| `@jotl/antd`                                     | `packages/antd`            | `@jotl/form` 的 Ant Design widget                                                                                                                                                             |
+| `@jotl/language-server`                          | `packages/language-server` | 语言服务（LSP）                                                                                                                                                                               |
+| `vscode-jotl`（市场 ID `heavensky.vscode-jotl`） | `packages/vscode`          | VS Code 插件及其预览面板                                                                                                                                                                      |
+| `@jotl/cli`                                      | `packages/cli`             | 命令行                                                                                                                                                                                        |
+| `@jotl/playground`                               | `apps/playground`          | 浏览器 playground                                                                                                                                                                             |
 
 其他目录：
 
-| 目录 | 内容 |
-|---|---|
-| `docs/spec/` | 对外契约：[Jotl 语法](spec/jotl.md)、[`x-ui`](spec/x-ui.md)、[原生 HTML widget](spec/html-widgets.md)、[关键字对照](spec/keyword-mapping.md)；中文版在 `zh/docs/spec/` |
-| `fixtures/` | 各包测试共用的样例与期望值，约定见 [fixtures/zh/README.md](../../fixtures/zh/README.md) |
-| `test-utils/` | 测试读取样例的工具 |
-| `scripts/` | 仓库脚本 |
-| `vendor/` | JSON-Schema-Test-Suite 的下载位置，不入库 |
+| 目录          | 内容                                                                                                                                                                   |
+| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `docs/spec/`  | 对外契约：[Jotl 语法](spec/jotl.md)、[`x-ui`](spec/x-ui.md)、[原生 HTML widget](spec/html-widgets.md)、[关键字对照](spec/keyword-mapping.md)；中文版在 `zh/docs/spec/` |
+| `fixtures/`   | 各包测试共用的样例与期望值，约定见 [fixtures/zh/README.md](../../fixtures/zh/README.md)                                                                                |
+| `test-utils/` | 测试读取样例的工具                                                                                                                                                     |
+| `scripts/`    | 仓库脚本                                                                                                                                                               |
+| `vendor/`     | JSON-Schema-Test-Suite 的下载位置，不入库                                                                                                                              |
 
 ## 发布
 

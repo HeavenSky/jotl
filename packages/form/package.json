@@ -1,14 +1,21 @@
 {
   "name": "@jotl/form",
   "version": "0.0.2",
-  "license": "MIT",
-  "type": "module",
   "description": "Render a validated React form straight from a JSON Schema, with widgets and layout chosen in the schema itself.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/form"
   },
+  "files": [
+    "dist",
+    "src",
+    "style.css",
+    "tailwind.css",
+    "theme.css"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,13 +37,6 @@
     "./tailwind.css": "./tailwind.css",
     "./theme.css": "./theme.css"
   },
-  "files": [
-    "dist",
-    "src",
-    "style.css",
-    "tailwind.css",
-    "theme.css"
-  ],
   "scripts": {
     "build": "tsc -b",
     "build:css": "tailwindcss -i style.entry.css -o style.css",
@@ -51,14 +51,6 @@
     "dayjs": "^1.11.23",
     "tailwind-merge": "^3.7.0",
     "tailwind-variants": "^3.3.1"
-  },
-  "peerDependencies": {
-    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react": {
-      "optional": true
-    }
   },
   "devDependencies": {
     "@tailwindcss/cli": "^4.3.3",
@@ -76,5 +68,13 @@
     "react-dom-17": "npm:react-dom@17.0.2",
     "react-dom-18": "npm:react-dom@18.3.1",
     "tailwindcss": "^4.3.3"
+  },
+  "peerDependencies": {
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "react": {
+      "optional": true
+    }
   }
 }

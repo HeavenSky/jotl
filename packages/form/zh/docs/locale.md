@@ -15,7 +15,7 @@
 ## 为整个应用设置
 
 ```ts
-import { resolveLocale, setLocale } from "@jotl/form";
+import { resolveLocale, setLocale } from '@jotl/form';
 
 setLocale(resolveLocale(navigator.language));
 ```
@@ -29,11 +29,15 @@ setLocale(resolveLocale(navigator.language));
 - 两者都读 `LocaleContext`，在表单外回落到全局语言。
 
 ```tsx
-import { useL10n } from "@jotl/form";
+import { useL10n } from '@jotl/form';
 
 function ClearButton({ onClick }: { onClick: () => void }) {
   const t = useL10n();
-  return <button type="button" onClick={onClick}>{t("清空", "Clear")}</button>;
+  return (
+    <button type="button" onClick={onClick}>
+      {t('清空', 'Clear')}
+    </button>
+  );
 }
 ```
 

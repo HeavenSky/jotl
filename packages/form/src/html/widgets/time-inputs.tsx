@@ -1,25 +1,39 @@
 // 日期组件 date time datetime: 原生控件按本地时区显示, 写回时按节点的存储格式(x-valueFormat)换算; 不合格式的存量值不改写.
-import type { ChangeEvent } from "react";
-import { useCopy } from "../copy.js";
-import { className, controlAttributes, type HtmlFieldProps } from "../props.js";
-import { styles } from "../styles.js";
-import { controlPrecision, controlStep, formatStored, fromControl, parseStored, storageFormat, textToStored, toControl, type TemporalKind } from "../temporal.js";
-import { useDraft } from "../use-draft.js";
+import type { ChangeEvent } from 'react';
+import { useCopy } from '../copy.js';
+import { className, controlAttributes, type HtmlFieldProps } from '../props.js';
+import { styles } from '../styles.js';
+import {
+  controlPrecision,
+  controlStep,
+  formatStored,
+  fromControl,
+  parseStored,
+  storageFormat,
+  textToStored,
+  toControl,
+  type TemporalKind,
+} from '../temporal.js';
+import { useDraft } from '../use-draft.js';
 
 type TemporalValue = string | number;
 
-const CONTROL_TYPES: Readonly<Record<TemporalKind, string>> = { date: "date", time: "time", datetime: "datetime-local" };
+const CONTROL_TYPES: Readonly<Record<TemporalKind, string>> = {
+  date: 'date',
+  time: 'time',
+  datetime: 'datetime-local',
+};
 
 function rawText(value: unknown): string {
-  if (value === undefined || value === null) return "";
-  return typeof value === "string" ? value : JSON.stringify(value);
+  if (value === undefined || value === null) return '';
+  return typeof value === 'string' ? value : JSON.stringify(value);
 }
 
 function TemporalInput({ kind, ...props }: HtmlFieldProps<TemporalValue> & { kind: TemporalKind }) {
   const COPY = useCopy();
   const format = storageFormat(props.schema, kind);
   const raw = props.value;
-  const empty = raw === undefined || raw === null || raw === "";
+  const empty = raw === undefined || raw === null || raw === '';
   const parsed = empty ? undefined : parseStored(raw, format);
   const draft = useDraft(raw, rawText);
   const hintId = `${props.id}-draft-error`;
@@ -34,11 +48,11 @@ function TemporalInput({ kind, ...props }: HtmlFieldProps<TemporalValue> & { kin
           {...attributes}
           aria-invalid
           type="text"
-          className={className("jotl-input", cssKind, styles.input)}
+          className={className('jotl-input', cssKind, styles.input)}
           value={draft.text}
           onChange={(e: ChangeEvent<HTMLInputElement>) => {
             const text = e.target.value;
-            if (text === "") {
+            if (text === '') {
               draft.accept(text, undefined);
               props.onChange(undefined);
               return;
@@ -58,18 +72,18 @@ function TemporalInput({ kind, ...props }: HtmlFieldProps<TemporalValue> & { kin
     );
   }
 
-  const precision = kind === "date" ? undefined : controlPrecision(format);
-  const control = parsed === undefined ? "" : toControl(parsed, kind, precision);
+  const precision = kind === 'date' ? undefined : controlPrecision(format);
+  const control = parsed === undefined ? '' : toControl(parsed, kind, precision);
   return (
     <input
       {...controlAttributes(props)}
       type={CONTROL_TYPES[kind]}
-      className={className("jotl-input", cssKind, styles.input)}
+      className={className('jotl-input', cssKind, styles.input)}
       value={control}
-      step={controlStep(precision) ?? (kind !== "date" && /:\d{2}:\d{2}/.test(control) ? 1 : undefined)}
+      step={controlStep(precision) ?? (kind !== 'date' && /:\d{2}:\d{2}/.test(control) ? 1 : undefined)}
       onChange={(e: ChangeEvent<HTMLInputElement>) => {
         const next = e.target.value;
-        if (next === "") props.onChange(undefined);
+        if (next === '') props.onChange(undefined);
         else {
           const d = fromControl(next, kind);
           if (d !== undefined) props.onChange(formatStored(d, format));

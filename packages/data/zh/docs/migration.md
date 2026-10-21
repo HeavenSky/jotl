@@ -5,14 +5,14 @@
 读完本页，你会知道 `migrate(schema, data, opts?)` 怎样把按旧 schema 保存的数据修正为符合新 schema。它只接受 `locale` 选项，其他约定见[调用约定](./api.md)。
 
 ```js
-import { migrate } from "@jotl/data";
+import { migrate } from '@jotl/data';
 
 const schema = {
-  type: "object",
-  properties: { title: { type: "string" }, count: { type: "integer" } },
-  required: ["title", "count"],
+  type: 'object',
+  properties: { title: { type: 'string' }, count: { type: 'integer' } },
+  required: ['title', 'count'],
 };
-migrate(schema, { title: 12, count: "3", old: true }).value;
+migrate(schema, { title: 12, count: '3', old: true }).value;
 // { data: { title: "12", count: 3 }, changed: ["/title", "/count", "/old"] }
 ```
 
@@ -28,13 +28,13 @@ migrate(schema, { title: 12, count: "3", old: true }).value;
 
 类型不符时，按 schema 中类型的顺序尝试转换，第一个成功的结果保留：
 
-| 目标类型 | 可转换的值 |
-|---|---|
-| `string` | 数字与布尔 → `String(value)` |
-| `number` | 数字、非空白的数字字符串 |
-| `integer` | 同 `number`，再四舍五入 |
-| `boolean` | 字符串 `"true"` 与 `"false"` |
-| `array` | 任意非 `null` 值 → 单元素数组 |
+| 目标类型       | 可转换的值                               |
+| -------------- | ---------------------------------------- |
+| `string`       | 数字与布尔 → `String(value)`             |
+| `number`       | 数字、非空白的数字字符串                 |
+| `integer`      | 同 `number`，再四舍五入                  |
+| `boolean`      | 字符串 `"true"` 与 `"false"`             |
+| `array`        | 任意非 `null` 值 → 单元素数组            |
 | 任意非数组类型 | 单元素数组先取出该元素，再按上述规则转换 |
 
 联合类型先按数据匹配分支；都不匹配时，依次尝试转换为各分支的类型。

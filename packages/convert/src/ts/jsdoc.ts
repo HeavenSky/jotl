@@ -25,14 +25,14 @@ const TAG_START = /^@([A-Za-z][A-Za-z0-9]*)(?=\s|$)/;
 
 /** `comment` 为含 `/**` 与 `*\/` 的注释原文, `offset` 为它在源码中的起点. */
 export function parseJsDoc(comment: string, offset: number): JsDocComment {
-  const bodyStart = comment.startsWith("/**") ? 3 : 0;
-  const bodyEnd = comment.endsWith("*/") ? comment.length - 2 : comment.length;
+  const bodyStart = comment.startsWith('/**') ? 3 : 0;
+  const bodyEnd = comment.endsWith('*/') ? comment.length - 2 : comment.length;
   const lines: Line[] = [];
   let start = bodyStart;
   while (start <= bodyEnd) {
-    const newline = comment.indexOf("\n", start);
+    const newline = comment.indexOf('\n', start);
     const end = newline === -1 || newline > bodyEnd ? bodyEnd : newline;
-    lines.push(stripLinePrefix(comment.slice(start, end).replace(/\r$/, ""), offset + start, lines.length === 0));
+    lines.push(stripLinePrefix(comment.slice(start, end).replace(/\r$/, ''), offset + start, lines.length === 0));
     start = end + 1;
   }
 
@@ -43,12 +43,17 @@ export function parseJsDoc(comment: string, offset: number): JsDocComment {
     const match = inFence ? null : TAG_START.exec(line.text);
     if (match) {
       const name = match[1] as string;
-      tags.push({ name, lines: [line.text.slice(match[0].length).trimStart()], pos: line.offset, end: line.offset + line.text.length });
+      tags.push({
+        name,
+        lines: [line.text.slice(match[0].length).trimStart()],
+        pos: line.offset,
+        end: line.offset + line.text.length,
+      });
     } else {
       const current = tags.at(-1);
       if (current) {
         current.lines.push(line.text);
-        if (line.text.trim() !== "") current.end = line.offset + line.text.length;
+        if (line.text.trim() !== '') current.end = line.offset + line.text.length;
       } else {
         description.push(line.text);
       }
@@ -57,8 +62,8 @@ export function parseJsDoc(comment: string, offset: number): JsDocComment {
   }
   const descriptionText = joinLines(description);
   return {
-    description: descriptionText === "" ? undefined : descriptionText,
-    tags: tags.map((t) => ({ name: t.name, text: joinLines(t.lines), pos: t.pos, end: t.end })),
+    description: descriptionText === '' ? undefined : descriptionText,
+    tags: tags.map(t => ({ name: t.name, text: joinLines(t.lines), pos: t.pos, end: t.end })),
   };
 }
 
@@ -72,7 +77,7 @@ function stripLinePrefix(raw: string, offset: number, first: boolean): Line {
 function joinLines(lines: string[]): string {
   let start = 0;
   let end = lines.length;
-  while (start < end && lines[start]?.trim() === "") start++;
-  while (end > start && lines[end - 1]?.trim() === "") end--;
-  return lines.slice(start, end).join("\n").trim();
+  while (start < end && lines[start]?.trim() === '') start++;
+  while (end > start && lines[end - 1]?.trim() === '') end--;
+  return lines.slice(start, end).join('\n').trim();
 }

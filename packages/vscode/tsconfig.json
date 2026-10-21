@@ -3,17 +3,10 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "types": [
-      "node",
-      "vscode-types"
-    ]
+    "types": ["node", "vscode-types"]
   },
-  "include": [
-    "src"
-  ],
-  "exclude": [
-    "src/webview"
-  ],
+  "include": ["src"],
+  "exclude": ["src/webview"],
   "references": [
     {
       "path": "../language-server"

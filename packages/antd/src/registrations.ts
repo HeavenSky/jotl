@@ -1,12 +1,12 @@
 // 组件登记: antdWidgets() 给出已用 antd 实现的内置 widget 名, 未覆盖的名字经 createAntdRegistry() 的父注册表回落到 @jotl/form 的原生组件.
-import type { ComponentType } from "react";
-import { createDefaultRegistry, type ReactRegistry } from "@jotl/form";
-import { BUILTIN_WIDGETS, type BuiltinWidgetName, type Registry, type WidgetRegistration } from "@jotl/form/core";
-import { AntdListWidget } from "./widgets/array.js";
-import { AntdCheckboxWidget, AntdRadioWidget, AntdSelectWidget, AntdSwitchWidget } from "./widgets/choice.js";
-import { AntdColorWidget } from "./widgets/color.js";
-import { AntdFieldDecorator } from "./widgets/field.js";
-import { AntdFormWidget } from "./widgets/form.js";
+import type { ComponentType } from 'react';
+import { createDefaultRegistry, type ReactRegistry } from '@jotl/form';
+import { BUILTIN_WIDGETS, type BuiltinWidgetName, type Registry, type WidgetRegistration } from '@jotl/form/core';
+import { AntdListWidget } from './widgets/array.js';
+import { AntdCheckboxWidget, AntdRadioWidget, AntdSelectWidget, AntdSwitchWidget } from './widgets/choice.js';
+import { AntdColorWidget } from './widgets/color.js';
+import { AntdFieldDecorator } from './widgets/field.js';
+import { AntdFormWidget } from './widgets/form.js';
 import {
   AntdEmailWidget,
   AntdInputWidget,
@@ -15,11 +15,11 @@ import {
   AntdRangeWidget,
   AntdTextareaWidget,
   AntdUrlWidget,
-} from "./widgets/inputs.js";
-import { AntdPageWidget } from "./widgets/object.js";
-import { temporalWidgets, type DayjsFactory } from "./widgets/temporal.js";
+} from './widgets/inputs.js';
+import { AntdPageWidget } from './widgets/object.js';
+import { temporalWidgets, type DayjsFactory } from './widgets/temporal.js';
 
-// biome-ignore lint/suspicious/noExplicitAny: 各组件 props 不同, 换成 unknown 会因参数逆变使具体组件无法赋值
+// oxlint-disable-next-line typescript/no-explicit-any -- 各组件 props 不同, 换成 unknown 会因参数逆变使具体组件无法赋值
 export type AntdWidgetComponent = ComponentType<any>;
 
 export interface AntdWidgetOptions {
@@ -53,7 +53,7 @@ export function antdWidgets(options: AntdWidgetOptions = {}): WidgetRegistration
     ...COMPONENTS,
     ...(options.dayjs === undefined ? {} : temporalWidgets(options.dayjs)),
   };
-  return (Object.keys(components) as BuiltinWidgetName[]).map((name) => ({
+  return (Object.keys(components) as BuiltinWidgetName[]).map(name => ({
     name,
     level: BUILTIN_WIDGETS[name].level,
     component: components[name]!,
@@ -61,7 +61,10 @@ export function antdWidgets(options: AntdWidgetOptions = {}): WidgetRegistration
 }
 
 /** 把 antdWidgets(options) 全部登记到给定注册表, 同名覆盖. */
-export function registerAntdWidgets(registry: Pick<Registry<AntdWidgetComponent>, "register">, options: AntdWidgetOptions = {}): void {
+export function registerAntdWidgets(
+  registry: Pick<Registry<AntdWidgetComponent>, 'register'>,
+  options: AntdWidgetOptions = {}
+): void {
   for (const registration of antdWidgets(options)) registry.register(registration);
 }
 

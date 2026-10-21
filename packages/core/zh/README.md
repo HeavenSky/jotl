@@ -13,14 +13,14 @@ Jotl 是一门编写 JSON Schema 2020-12 的简洁语言。`@jotl/core` 是它�
 ## 三行源码，换来一份规范化的 schema
 
 ```ts
-import { compile } from "@jotl/core";
+import { compile } from '@jotl/core';
 
 const result = compile(
   `User: {
   name(Name): string[maxLength: 20]
   role?: enum[default: 'user']{ admin(Admin) user(User) }
 }`,
-  "user.jotl",
+  'user.jotl'
 );
 console.log(JSON.stringify(result.value?.schema, null, 2));
 ```
@@ -83,9 +83,9 @@ console.log(JSON.stringify(result.value?.schema, null, 2));
 2. 把下面的代码保存为 `compile.mjs`：
 
    ```js
-   import { compile } from "@jotl/core";
+   import { compile } from '@jotl/core';
 
-   const result = compile("Todo: {\n  title: string\n  done?: boolean\n}", "todo.jotl");
+   const result = compile('Todo: {\n  title: string\n  done?: boolean\n}', 'todo.jotl');
    console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
    ```
 

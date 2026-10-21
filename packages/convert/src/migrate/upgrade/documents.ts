@@ -1,11 +1,11 @@
 // 跨文件升级(V5): 经调用方的加载回调逐个取回 $ref 指向的文档, 各自识别版本与升级, 再按目标文档的指针映射改写引用.
-import { type Diagnostic, type JsonSchema, type Result, fail, hasErrors, ok } from "@jotl/core";
-import type { VersionSource } from "./detect.js";
-import { upgradeDiagnostic } from "./diagnostics.js";
-import { type ResourceLookup, rewriteRefs, walkRefTargets } from "./refs.js";
-import { type DocumentState, locate } from "./transform.js";
-import { type UpgradeOptions, type UpgradedSchema, finalizeDocument, prepareDocument } from "./upgrade.js";
-import { resolveUri, splitFragment } from "./uri.js";
+import { type Diagnostic, type JsonSchema, type Result, fail, hasErrors, ok } from '@jotl/core';
+import type { VersionSource } from './detect.js';
+import { upgradeDiagnostic } from './diagnostics.js';
+import { type ResourceLookup, rewriteRefs, walkRefTargets } from './refs.js';
+import { type DocumentState, locate } from './transform.js';
+import { type UpgradeOptions, type UpgradedSchema, finalizeDocument, prepareDocument } from './upgrade.js';
+import { resolveUri, splitFragment } from './uri.js';
 
 /**
  * 按绝对 URI 取回文档.
@@ -13,7 +13,7 @@ import { resolveUri, splitFragment } from "./uri.js";
  */
 export type DocumentLoader = (uri: string) => Result<unknown> | Promise<Result<unknown>>;
 
-export interface UpgradeDocumentsOptions extends Omit<UpgradeOptions, "uri"> {
+export interface UpgradeDocumentsOptions extends Omit<UpgradeOptions, 'uri'> {
   load: DocumentLoader;
 }
 
@@ -32,23 +32,27 @@ interface Loaded {
   source: VersionSource;
 }
 
-async function loadDocument(load: DocumentLoader, uri: string, referrer: Diagnostic["location"]): Promise<Result<unknown>> {
+async function loadDocument(
+  load: DocumentLoader,
+  uri: string,
+  referrer: Diagnostic['location']
+): Promise<Result<unknown>> {
   const extras = referrer === undefined ? {} : { location: referrer };
   try {
     const result = await load(uri);
     if (result.value === undefined && hasErrors(result.diagnostics)) {
-      return fail([upgradeDiagnostic("JOTL3401", { uri }, extras), ...result.diagnostics]);
+      return fail([upgradeDiagnostic('JOTL3401', { uri }, extras), ...result.diagnostics]);
     }
     return result;
   } catch {
-    return fail([upgradeDiagnostic("JOTL3402", { uri }, extras)]);
+    return fail([upgradeDiagnostic('JOTL3402', { uri }, extras)]);
   }
 }
 
 /** 从入口文档开始升级它及其 $ref 可达的全部文档; 每个文档按自己的 `$schema` 或特征识别版本. */
 export async function upgradeDocuments(
   entry: string,
-  options: UpgradeDocumentsOptions,
+  options: UpgradeDocumentsOptions
 ): Promise<Result<UpgradedDocuments>> {
   const { load, ...upgradeOptions } = options;
   const entryUri = splitFragment(entry).base;
@@ -57,9 +61,9 @@ export async function upgradeDocuments(
   const diagnostics: Diagnostic[] = [];
   // 该 URI 可能是稍后才加载的文档里嵌入的 $id 资源, 加载失败的诊断要等全部文档加载完再裁决.
   const pendingFailures = new Map<string, Diagnostic[]>();
-  const queue: { uri: string; referrer: Diagnostic["location"] }[] = [{ uri: entryUri, referrer: undefined }];
+  const queue: { uri: string; referrer: Diagnostic['location'] }[] = [{ uri: entryUri, referrer: undefined }];
 
-  const lookup: ResourceLookup = (uri) => {
+  const lookup: ResourceLookup = uri => {
     for (const { state } of loaded.values()) {
       const resource = state.resources.get(uri);
       if (resource !== undefined) return { state, resource };
@@ -94,7 +98,10 @@ export async function upgradeDocuments(
     if (lookup(uri) === undefined) diagnostics.push(...failure);
   }
 
-  walkRefTargets([...loaded.values()].map((d) => d.state), lookup);
+  walkRefTargets(
+    [...loaded.values()].map(d => d.state),
+    lookup
+  );
   const documents = new Map<string, UpgradedDocument>();
   for (const [uri, { state, source }] of loaded) {
     rewriteRefs(state, lookup);

@@ -1,19 +1,19 @@
 // 日期组件的存储格式 x-valueFormat 的公共规则: 别名, 时间戳, 组件推断, 各组件默认格式, 以及不依赖 dayjs 的取值校验.
 
-export type TemporalComponent = "date" | "time" | "datetime";
+export type TemporalComponent = 'date' | 'time' | 'datetime';
 
 /** 日期组件 → 默认的 `value_format`(存储格式). */
 export const DEFAULT_VALUE_FORMATS: Readonly<Record<TemporalComponent, string>> = {
-  date: "YYYY-MM-DD",
-  time: "HH:mm:ss",
-  datetime: "iso",
+  date: 'YYYY-MM-DD',
+  time: 'HH:mm:ss',
+  datetime: 'iso',
 };
 
 /** RFC 3339 日期时间的别名; 读取时放宽为任意 RFC 3339 date-time, 写回时按别名统一. */
-export const VALUE_FORMAT_ALIASES: readonly string[] = ["iso", "iso-x", "utc", "utc-x"];
+export const VALUE_FORMAT_ALIASES: readonly string[] = ['iso', 'iso-x', 'utc', 'utc-x'];
 
 /** 毫秒 / 秒时间戳, 值为整数. */
-export const TIMESTAMP_VALUE_FORMATS: readonly string[] = ["x", "X"];
+export const TIMESTAMP_VALUE_FORMATS: readonly string[] = ['x', 'X'];
 
 export function isValueFormatAlias(format: string): boolean {
   return VALUE_FORMAT_ALIASES.includes(format);
@@ -25,12 +25,12 @@ export function isTimestampValueFormat(format: string): boolean {
 
 /** 按格式内容推断组件(无 `x-ui.widget` 时): 同时有日期与时间记号为 datetime, 只有时间为 time, 其余为 date; 时间戳与别名为 datetime. */
 export function valueFormatComponent(format: string): TemporalComponent {
-  if (isTimestampValueFormat(format) || isValueFormatAlias(format)) return "datetime";
-  const tokens = format.replace(/\[[^\]]*\]/g, "");
+  if (isTimestampValueFormat(format) || isValueFormatAlias(format)) return 'datetime';
+  const tokens = format.replace(/\[[^\]]*\]/g, '');
   const date = /[YMD]/.test(tokens);
   const time = /[Hhms]/.test(tokens);
-  if (date && time) return "datetime";
-  return time ? "time" : "date";
+  if (date && time) return 'datetime';
+  return time ? 'time' : 'date';
 }
 
 function daysInMonth(year: number | undefined, month: number | undefined): number {
@@ -39,7 +39,8 @@ function daysInMonth(year: number | undefined, month: number | undefined): numbe
   return year === undefined || (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28;
 }
 
-const RFC3339 = /^(\d{4})-(\d{2})-(\d{2})[Tt](?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:[Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
+const RFC3339 =
+  /^(\d{4})-(\d{2})-(\d{2})[Tt](?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d(?:\.\d+)?(?:[Zz]|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/;
 
 /** 任意合法 RFC 3339 date-time(带不带小数秒, Z 或 ±HH:mm), 日期按日历检查. */
 export function isRfc3339DateTime(text: string): boolean {
@@ -50,32 +51,44 @@ export function isRfc3339DateTime(text: string): boolean {
 }
 
 // dayjs format 的记号; 只支持下表中的记号, 其余记号的格式串不校验.
-const FORMAT_TOKENS = /\[([^\]]*)\]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS|Do|Q|w{1,2}|W{1,2}|k{1,2}|X|x|z{1,2}|S{1,2}/g;
+const FORMAT_TOKENS =
+  /\[([^\]]*)\]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS|Do|Q|w{1,2}|W{1,2}|k{1,2}|X|x|z{1,2}|S{1,2}/g;
 
 // year2 为两位年份(YY), hour12 为 12 小时制的时(h hh); 与 year hour 的一致性在匹配后换算检查.
-type Field = "year" | "year2" | "month" | "day" | "hour" | "hour12" | "minute" | "second" | "milli" | "offset" | "meridiem";
+type Field =
+  | 'year'
+  | 'year2'
+  | 'month'
+  | 'day'
+  | 'hour'
+  | 'hour12'
+  | 'minute'
+  | 'second'
+  | 'milli'
+  | 'offset'
+  | 'meridiem';
 
 // 本地化记号(MMM MMMM Do d dd ddd dddd 等)与 X x 混排不在表中, 含它们的格式串不校验.
 const TOKEN_PATTERNS: Readonly<Record<string, [string, Field]>> = {
-  YYYY: ["\\d{4}", "year"],
-  YY: ["\\d{2}", "year2"],
-  MM: ["0[1-9]|1[0-2]", "month"],
-  M: ["[1-9]|1[0-2]", "month"],
-  DD: ["0[1-9]|[12]\\d|3[01]", "day"],
-  D: ["[1-9]|[12]\\d|3[01]", "day"],
-  HH: ["[01]\\d|2[0-3]", "hour"],
-  H: ["1?\\d|2[0-3]", "hour"],
-  hh: ["0[1-9]|1[0-2]", "hour12"],
-  h: ["[1-9]|1[0-2]", "hour12"],
-  mm: ["[0-5]\\d", "minute"],
-  m: ["[1-5]?\\d", "minute"],
-  ss: ["[0-5]\\d", "second"],
-  s: ["[1-5]?\\d", "second"],
-  SSS: ["\\d{3}", "milli"],
-  Z: ["[+-](?:[01]\\d|2[0-3]):[0-5]\\d", "offset"],
-  ZZ: ["[+-](?:[01]\\d|2[0-3])[0-5]\\d", "offset"],
-  A: ["AM|PM", "meridiem"],
-  a: ["am|pm", "meridiem"],
+  YYYY: ['\\d{4}', 'year'],
+  YY: ['\\d{2}', 'year2'],
+  MM: ['0[1-9]|1[0-2]', 'month'],
+  M: ['[1-9]|1[0-2]', 'month'],
+  DD: ['0[1-9]|[12]\\d|3[01]', 'day'],
+  D: ['[1-9]|[12]\\d|3[01]', 'day'],
+  HH: ['[01]\\d|2[0-3]', 'hour'],
+  H: ['1?\\d|2[0-3]', 'hour'],
+  hh: ['0[1-9]|1[0-2]', 'hour12'],
+  h: ['[1-9]|1[0-2]', 'hour12'],
+  mm: ['[0-5]\\d', 'minute'],
+  m: ['[1-5]?\\d', 'minute'],
+  ss: ['[0-5]\\d', 'second'],
+  s: ['[1-5]?\\d', 'second'],
+  SSS: ['\\d{3}', 'milli'],
+  Z: ['[+-](?:[01]\\d|2[0-3]):[0-5]\\d', 'offset'],
+  ZZ: ['[+-](?:[01]\\d|2[0-3])[0-5]\\d', 'offset'],
+  A: ['AM|PM', 'meridiem'],
+  a: ['am|pm', 'meridiem'],
 };
 
 interface CompiledFormat {
@@ -87,11 +100,11 @@ const compiled = new Map<string, CompiledFormat | undefined>();
 
 function compileFormat(format: string): CompiledFormat | undefined {
   if (compiled.has(format)) return compiled.get(format);
-  let source = "";
+  let source = '';
   const fields: Field[] = [];
   let last = 0;
   let supported = true;
-  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   for (const m of format.matchAll(FORMAT_TOKENS)) {
     source += escapeRegExp(format.slice(last, m.index));
     last = m.index + m[0].length;
@@ -128,31 +141,32 @@ export function matchesValueFormatText(format: string, text: string): boolean | 
     const field = c.fields[i]!;
     const raw = m[i + 1]!;
     const value =
-      field === "offset" ? raw.replace(":", "") : field === "meridiem" ? raw.toUpperCase() : String(Number(raw));
+      field === 'offset' ? raw.replace(':', '') : field === 'meridiem' ? raw.toUpperCase() : String(Number(raw));
     if (values[field] !== undefined && values[field] !== value) return false;
     values[field] = value;
   }
   const num = (field: Field) => (values[field] === undefined ? undefined : Number(values[field]));
-  const year2 = num("year2");
-  let year = num("year");
+  const year2 = num('year2');
+  let year = num('year');
   if (year2 !== undefined) {
     if (year !== undefined && year % 100 !== year2) return false;
     year ??= year2 + (year2 > 68 ? 1900 : 2000);
   }
-  const day = num("day");
-  if (day !== undefined && day > daysInMonth(year, num("month"))) return false;
-  const hour12 = num("hour12");
-  let hour = num("hour");
+  const day = num('day');
+  if (day !== undefined && day > daysInMonth(year, num('month'))) return false;
+  const hour12 = num('hour12');
+  let hour = num('hour');
   if (hour12 !== undefined) {
     if (values.meridiem !== undefined) {
-      const h24 = (hour12 % 12) + (values.meridiem === "PM" ? 12 : 0);
+      const h24 = (hour12 % 12) + (values.meridiem === 'PM' ? 12 : 0);
       if (hour !== undefined && hour !== h24) return false;
       hour = h24;
     } else if (hour !== undefined && (hour % 12 || 12) !== hour12) {
       return false;
     }
   }
-  if (values.meridiem !== undefined && hour !== undefined && values.meridiem !== (hour >= 12 ? "PM" : "AM")) return false;
+  if (values.meridiem !== undefined && hour !== undefined && values.meridiem !== (hour >= 12 ? 'PM' : 'AM'))
+    return false;
   return true;
 }
 
@@ -161,8 +175,8 @@ export function matchesValueFormatText(format: string, text: string): boolean | 
  * 类型不对(交给 type 关键字)或格式串含不支持的记号时返回 true.
  */
 export function matchesValueFormat(format: string, value: unknown): boolean {
-  if (isTimestampValueFormat(format)) return typeof value !== "number" || Number.isInteger(value);
-  if (typeof value !== "string") return true;
+  if (isTimestampValueFormat(format)) return typeof value !== 'number' || Number.isInteger(value);
+  if (typeof value !== 'string') return true;
   if (isValueFormatAlias(format)) return isRfc3339DateTime(value);
   return matchesValueFormatText(format, value) ?? true;
 }

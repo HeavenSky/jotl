@@ -1,20 +1,20 @@
 // 命令行入口逻辑: 确定输出语言, 分派子命令, 处理全局 --help / --version / --lang, 把结果折算为退出码.
-import { type Locale, formatMessage, getLocale, resolveLocale, setLocale } from "@jotl/core";
-import { SCHEMA_VERSIONS } from "@jotl/convert";
-import { parseCommandArgs } from "./args.js";
-import type { Command } from "./command.js";
-import { checkCommand } from "./commands/check.js";
-import { compileCommand } from "./commands/compile.js";
-import { convertCommand } from "./commands/convert.js";
-import { defaultsCommand } from "./commands/defaults.js";
-import { formatCommand } from "./commands/format.js";
-import { migrateSchemaCommand } from "./commands/migrate-schema.js";
-import { validateCommand } from "./commands/validate.js";
-import { cliDiagnostic } from "./diagnostics.js";
-import type { CliIo } from "./io.js";
-import { type CommandName, LOCALES, commandHelpTemplate, globalHelp, cliText } from "./messages.js";
-import { UsageError, createReporter, formatDiagnostic } from "./report.js";
-import { cliVersion } from "./version.js";
+import { type Locale, formatMessage, getLocale, resolveLocale, setLocale } from '@jotl/core';
+import { SCHEMA_VERSIONS } from '@jotl/convert';
+import { parseCommandArgs } from './args.js';
+import type { Command } from './command.js';
+import { checkCommand } from './commands/check.js';
+import { compileCommand } from './commands/compile.js';
+import { convertCommand } from './commands/convert.js';
+import { defaultsCommand } from './commands/defaults.js';
+import { formatCommand } from './commands/format.js';
+import { migrateSchemaCommand } from './commands/migrate-schema.js';
+import { validateCommand } from './commands/validate.js';
+import { cliDiagnostic } from './diagnostics.js';
+import type { CliIo } from './io.js';
+import { type CommandName, LOCALES, commandHelpTemplate, globalHelp, cliText } from './messages.js';
+import { UsageError, createReporter, formatDiagnostic } from './report.js';
+import { cliVersion } from './version.js';
 
 export const EXIT_CODES = { ok: 0, error: 1, usage: 2 } as const;
 
@@ -31,21 +31,21 @@ const COMMANDS: Readonly<Record<CommandName, Command>> = {
   check: checkCommand,
   validate: validateCommand,
   defaults: defaultsCommand,
-  "migrate-schema": migrateSchemaCommand,
+  'migrate-schema': migrateSchemaCommand,
   format: formatCommand,
 };
 
-const PROGRAM = "jotl";
-const HELP_FLAGS = new Set(["-h", "--help"]);
-const VERSION_FLAGS = new Set(["-v", "--version"]);
-const LANG_FLAG = "--lang";
-const END_OF_OPTIONS = "--";
+const PROGRAM = 'jotl';
+const HELP_FLAGS = new Set(['-h', '--help']);
+const VERSION_FLAGS = new Set(['-v', '--version']);
+const LANG_FLAG = '--lang';
+const END_OF_OPTIONS = '--';
 /** JOTL_LANG 之后按 POSIX 优先级取语言环境变量. */
-const POSIX_LOCALE_VARS = ["LC_ALL", "LC_MESSAGES", "LANG"] as const;
+const POSIX_LOCALE_VARS = ['LC_ALL', 'LC_MESSAGES', 'LANG'] as const;
 
 /** 依次取 JOTL_LANG, LC_ALL, LC_MESSAGES, LANG 中第一个非空值交给 resolveLocale; `C` 与 `POSIX` 不以 zh 开头, 得到 en. */
 export function localeFromEnv(env: CliEnv): Locale {
-  for (const name of ["JOTL_LANG", ...POSIX_LOCALE_VARS]) {
+  for (const name of ['JOTL_LANG', ...POSIX_LOCALE_VARS]) {
     const value = env[name]?.trim();
     if (value) return resolveLocale(value);
   }
@@ -62,7 +62,7 @@ function extractLang(argv: readonly string[]): { rest: string[]; lang: Locale | 
   const rest: string[] = [];
   let lang: Locale | undefined;
   for (let i = 0; i < argv.length; i += 1) {
-    const arg = argv[i] ?? "";
+    const arg = argv[i] ?? '';
     if (arg === END_OF_OPTIONS) {
       rest.push(...argv.slice(i));
       break;
@@ -70,10 +70,11 @@ function extractLang(argv: readonly string[]): { rest: string[]; lang: Locale | 
     let value: string | undefined;
     if (arg === LANG_FLAG) {
       const next = argv[i + 1];
-      if (next === undefined || next.startsWith("-")) throw new UsageError(cliDiagnostic("JOTL9003", { option: LANG_FLAG }), undefined);
+      if (next === undefined || next.startsWith('-'))
+        throw new UsageError(cliDiagnostic('JOTL9003', { option: LANG_FLAG }), undefined);
       value = next;
       i += 1;
-    } else if (arg.startsWith(LANG_FLAG + "=")) {
+    } else if (arg.startsWith(LANG_FLAG + '=')) {
       value = arg.slice(LANG_FLAG.length + 1);
     } else {
       rest.push(arg);
@@ -81,7 +82,10 @@ function extractLang(argv: readonly string[]): { rest: string[]; lang: Locale | 
     }
     const locale = parseLangOption(value);
     if (locale === undefined) {
-      throw new UsageError(cliDiagnostic("JOTL9005", { option: LANG_FLAG, value, choices: LOCALES.join(", ") }), undefined);
+      throw new UsageError(
+        cliDiagnostic('JOTL9005', { option: LANG_FLAG, value, choices: LOCALES.join(', ') }),
+        undefined
+      );
     }
     lang = locale;
   }
@@ -93,13 +97,16 @@ function isCommandName(name: string): name is CommandName {
 }
 
 function commandHelp(name: CommandName): string {
-  return formatMessage(commandHelpTemplate(name), { versions: SCHEMA_VERSIONS.join(", ") });
+  return formatMessage(commandHelpTemplate(name), { versions: SCHEMA_VERSIONS.join(', ') });
 }
 
 function reportUsage(io: CliIo, error: UsageError): number {
-  io.stderr(formatDiagnostic(error.diagnostic, { file: PROGRAM }) + "\n");
-  const hint = error.command === undefined ? cliText().globalUsageHint : formatMessage(cliText().usageHint, { command: error.command });
-  io.stderr(hint + "\n");
+  io.stderr(formatDiagnostic(error.diagnostic, { file: PROGRAM }) + '\n');
+  const hint =
+    error.command === undefined
+      ? cliText().globalUsageHint
+      : formatMessage(cliText().usageHint, { command: error.command });
+  io.stderr(hint + '\n');
   return EXIT_CODES.usage;
 }
 
@@ -107,28 +114,28 @@ function dispatch(argv: readonly string[], io: CliIo): number {
   const [first, ...rest] = argv;
   if (first === undefined) {
     io.stderr(formatMessage(globalHelp(), { version: cliVersion() }));
-    throw new UsageError(cliDiagnostic("JOTL9012"), undefined);
+    throw new UsageError(cliDiagnostic('JOTL9012'), undefined);
   }
   if (HELP_FLAGS.has(first)) {
     io.stdout(formatMessage(globalHelp(), { version: cliVersion() }));
     return EXIT_CODES.ok;
   }
   if (VERSION_FLAGS.has(first)) {
-    io.stdout(cliVersion() + "\n");
+    io.stdout(cliVersion() + '\n');
     return EXIT_CODES.ok;
   }
-  if (first === "help") {
+  if (first === 'help') {
     const [topic] = rest;
     if (topic === undefined) {
       io.stdout(formatMessage(globalHelp(), { version: cliVersion() }));
       return EXIT_CODES.ok;
     }
-    if (!isCommandName(topic)) throw new UsageError(cliDiagnostic("JOTL9001", { name: topic }), undefined);
+    if (!isCommandName(topic)) throw new UsageError(cliDiagnostic('JOTL9001', { name: topic }), undefined);
     io.stdout(commandHelp(topic));
     return EXIT_CODES.ok;
   }
-  if (first.startsWith("-")) throw new UsageError(cliDiagnostic("JOTL9002", { option: first }), undefined);
-  if (!isCommandName(first)) throw new UsageError(cliDiagnostic("JOTL9001", { name: first }), undefined);
+  if (first.startsWith('-')) throw new UsageError(cliDiagnostic('JOTL9002', { option: first }), undefined);
+  if (!isCommandName(first)) throw new UsageError(cliDiagnostic('JOTL9001', { name: first }), undefined);
 
   const command = COMMANDS[first];
   const args = parseCommandArgs(command.name, rest, command.options, command.positionals);

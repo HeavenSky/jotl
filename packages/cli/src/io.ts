@@ -1,6 +1,6 @@
 // 命令行的输入输出端口: run 只经此接口读写, 便于测试注入; 另提供基于 Node 进程与文件系统的实现.
-import { existsSync, readFileSync, statSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { existsSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
 
 export interface CliIo {
   /** 解析相对路径的基准目录. */
@@ -32,17 +32,17 @@ function sameInode(a: string, b: string): boolean {
 export function createNodeIo(): CliIo {
   const cwd = process.cwd();
   // 下游提前关闭管道(如 `| head`)时忽略 EPIPE, 否则未处理的 error 事件会让进程崩溃并打印堆栈.
-  process.stdout.on("error", (error: NodeJS.ErrnoException) => {
-    if (error.code !== "EPIPE") throw error;
+  process.stdout.on('error', (error: NodeJS.ErrnoException) => {
+    if (error.code !== 'EPIPE') throw error;
   });
   return {
     cwd,
-    stdout: (text) => void process.stdout.write(text),
-    stderr: (text) => void process.stderr.write(text),
-    readFile: (path) => readFileSync(resolve(cwd, path), "utf8"),
-    readStdin: () => readFileSync(0, "utf8"),
-    writeFile: (path, text) => writeFileSync(resolve(cwd, path), text, "utf8"),
-    exists: (path) => existsSync(resolve(cwd, path)),
+    stdout: text => void process.stdout.write(text),
+    stderr: text => void process.stderr.write(text),
+    readFile: path => readFileSync(resolve(cwd, path), 'utf8'),
+    readStdin: () => readFileSync(0, 'utf8'),
+    writeFile: (path, text) => writeFileSync(resolve(cwd, path), text, 'utf8'),
+    exists: path => existsSync(resolve(cwd, path)),
     isSameFile: (a, b) => {
       const ra = resolve(cwd, a);
       const rb = resolve(cwd, b);

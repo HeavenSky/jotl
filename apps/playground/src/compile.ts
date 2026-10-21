@@ -1,5 +1,5 @@
 // 纯函数: Jotl 源码编译为 JSON Schema 文本, schema 生成 TS 文本, 两者的诊断统一换算成源码行列.
-import { compile, getLocale, type CompileOptions } from "@jotl/core";
+import { compile, getLocale, type CompileOptions } from '@jotl/core';
 import {
   parentPointer,
   type Diagnostic,
@@ -9,12 +9,12 @@ import {
   type Severity,
   type SourceMap,
   type SourceRange,
-} from "@jotl/core";
-import type { ConfigReport } from "./config.js";
-import { copyOf, type DiagnosticStage } from "./copy.js";
+} from '@jotl/core';
+import type { ConfigReport } from './config.js';
+import { copyOf, type DiagnosticStage } from './copy.js';
 
 /** 编译时使用的文件名, 也是源码定位诊断中 range.file 的取值. */
-export const PLAYGROUND_FILE = "playground.jotl";
+export const PLAYGROUND_FILE = 'playground.jotl';
 
 export type { DiagnosticStage };
 
@@ -62,7 +62,7 @@ function errorDetail(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-function rangeOf(range: SourceRange): Pick<PlaygroundDiagnostic, "start" | "end"> {
+function rangeOf(range: SourceRange): Pick<PlaygroundDiagnostic, 'start' | 'end'> {
   return {
     start: { line: range.start.line, column: range.start.column },
     end: { line: range.end.line, column: range.end.column },
@@ -79,11 +79,21 @@ function pointerRange(pointer: string, sourceMap: SourceMap | undefined): Source
   return undefined;
 }
 
-function toPlayground(diagnostic: Diagnostic, stage: DiagnosticStage, sourceMap: SourceMap | undefined): PlaygroundDiagnostic {
-  const base: PlaygroundDiagnostic = { stage, code: diagnostic.code, severity: diagnostic.severity, message: diagnostic.message };
+function toPlayground(
+  diagnostic: Diagnostic,
+  stage: DiagnosticStage,
+  sourceMap: SourceMap | undefined
+): PlaygroundDiagnostic {
+  const base: PlaygroundDiagnostic = {
+    stage,
+    code: diagnostic.code,
+    severity: diagnostic.severity,
+    message: diagnostic.message,
+  };
   const location = diagnostic.location;
   if (location === undefined) return base;
-  if (location.kind === "source") return location.range.file === PLAYGROUND_FILE ? { ...base, ...rangeOf(location.range) } : base;
+  if (location.kind === 'source')
+    return location.range.file === PLAYGROUND_FILE ? { ...base, ...rangeOf(location.range) } : base;
   if (location.document !== undefined) return base;
   const range = pointerRange(location.pointer, sourceMap);
   return range === undefined ? base : { ...base, ...rangeOf(range) };
@@ -99,10 +109,19 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
   try {
     result = compile(source, PLAYGROUND_FILE, options);
   } catch (error) {
-    return { source, diagnostics: [{ stage: "compile", severity: "error", message: copyOf(getLocale()).diagnostics.internalError(errorDetail(error)) }] };
+    return {
+      source,
+      diagnostics: [
+        {
+          stage: 'compile',
+          severity: 'error',
+          message: copyOf(getLocale()).diagnostics.internalError(errorDetail(error)),
+        },
+      ],
+    };
   }
   const sourceMap = result.value?.sourceMap;
-  const diagnostics = result.diagnostics.map((d) => toPlayground(d, "compile", sourceMap));
+  const diagnostics = result.diagnostics.map(d => toPlayground(d, 'compile', sourceMap));
   if (result.value === undefined) return { source, diagnostics };
   const { schema, defaultExport } = result.value;
   const output: CompiledSchema = { schema, schemaText: formatSchema(schema), sourceMap: result.value.sourceMap };
@@ -114,11 +133,22 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
 export function generateTs(compiled: CompiledSchema, schemaToTs: SchemaToTs): TsReport {
   let result: Result<string>;
   try {
-    result = schemaToTs(compiled.schema, compiled.defaultExport === undefined ? {} : { defaultExport: compiled.defaultExport });
+    result = schemaToTs(
+      compiled.schema,
+      compiled.defaultExport === undefined ? {} : { defaultExport: compiled.defaultExport }
+    );
   } catch (error) {
-    return { diagnostics: [{ stage: "ts", severity: "error", message: copyOf(getLocale()).diagnostics.tsInternalError(errorDetail(error)) }] };
+    return {
+      diagnostics: [
+        {
+          stage: 'ts',
+          severity: 'error',
+          message: copyOf(getLocale()).diagnostics.tsInternalError(errorDetail(error)),
+        },
+      ],
+    };
   }
-  const diagnostics = result.diagnostics.map((d) => toPlayground(d, "ts", compiled.sourceMap));
+  const diagnostics = result.diagnostics.map(d => toPlayground(d, 'ts', compiled.sourceMap));
   return result.value === undefined ? { diagnostics } : { text: result.value, diagnostics };
 }
 
@@ -132,7 +162,8 @@ export interface PlaygroundBuild {
 
 export function buildPlayground(source: string, schemaToTs: SchemaToTs, config?: ConfigReport): PlaygroundBuild {
   const report = compileSource(source, config?.compileOptions);
-  const build: PlaygroundBuild = report.output === undefined ? { report } : { report, ts: generateTs(report.output, schemaToTs) };
+  const build: PlaygroundBuild =
+    report.output === undefined ? { report } : { report, ts: generateTs(report.output, schemaToTs) };
   if (config !== undefined) build.config = config;
   return build;
 }
@@ -146,8 +177,8 @@ export function countBySeverity(diagnostics: readonly PlaygroundDiagnostic[]): {
   let errors = 0;
   let warnings = 0;
   for (const d of diagnostics) {
-    if (d.severity === "error") errors += 1;
-    else if (d.severity === "warning") warnings += 1;
+    if (d.severity === 'error') errors += 1;
+    else if (d.severity === 'warning') warnings += 1;
   }
   return { errors, warnings };
 }

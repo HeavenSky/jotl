@@ -1,14 +1,18 @@
 {
   "name": "@jotl/convert",
   "version": "0.0.2",
-  "license": "MIT",
-  "type": "module",
   "description": "Turn JSON Schema into TypeScript declarations and back without losing constraints, and bring legacy JSON Schema, OpenAPI and Fengdie schemas up to JSON Schema 2020-12 and Jotl.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/convert"
   },
+  "files": [
+    "dist",
+    "tsdoc.json"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -24,10 +28,6 @@
     },
     "./tsdoc.json": "./tsdoc.json"
   },
-  "files": [
-    "dist",
-    "tsdoc.json"
-  ],
   "scripts": {
     "build": "tsc -b",
     "typecheck:test": "tsc -p tsconfig.test.json"

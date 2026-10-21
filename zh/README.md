@@ -58,10 +58,7 @@ Home: {
           }
         }
       },
-      "required": [
-        "title",
-        "mode"
-      ]
+      "required": ["title", "mode"]
     }
   }
 }
@@ -93,17 +90,17 @@ pnpm exec jotl compile home.jotl --to ts --out home.d.ts
 
 浏览器中渲染表单只需要 `@jotl/core`、`@jotl/data` 和 `@jotl/form`，其余包用于编写与工具链。
 
-| 包 | 用途 |
-|---|---|
-| [`@jotl/core`](../packages/core/zh/README.md) | 解析、编译、格式化与打印 Jotl；共用的 schema 类型、诊断与 JSON Pointer 工具 |
-| [`@jotl/convert`](../packages/convert/zh/README.md) | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移凤蝶 schema |
-| [`@jotl/data`](../packages/data/zh/README.md) | 面向 JSON Schema 2020-12 的默认数据、校验、迁移与 Mock |
-| [`@jotl/form`](../packages/form/zh/README.md) | React 表单渲染器（React 16.8 至 19），自带原生 HTML widget；与框架无关的渲染规划在 `@jotl/form/core` |
-| [`@jotl/antd`](../packages/antd/zh/README.md) | `@jotl/form` 的 Ant Design widget（antd 5 或 6，React 18 及以上） |
-| [`@jotl/language-server`](../packages/language-server/zh/README.md) | `.jotl` 文件的语言服务（LSP） |
-| [`vscode-jotl`](../packages/vscode/zh/README.md) | 带实时预览的 VS Code 插件 |
-| [`@jotl/cli`](../packages/cli/zh/README.md) | 命令行：编译、转换、检查、校验、默认数据、迁移与格式化 |
-| [`@jotl/playground`](../apps/playground/zh/README.md) | 在浏览器中编辑 Jotl 并预览表单，从本仓库本地启动 |
+| 包                                                                  | 用途                                                                                                 |
+| ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| [`@jotl/core`](../packages/core/zh/README.md)                       | 解析、编译、格式化与打印 Jotl；共用的 schema 类型、诊断与 JSON Pointer 工具                          |
+| [`@jotl/convert`](../packages/convert/zh/README.md)                 | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移凤蝶 schema                         |
+| [`@jotl/data`](../packages/data/zh/README.md)                       | 面向 JSON Schema 2020-12 的默认数据、校验、迁移与 Mock                                               |
+| [`@jotl/form`](../packages/form/zh/README.md)                       | React 表单渲染器（React 16.8 至 19），自带原生 HTML widget；与框架无关的渲染规划在 `@jotl/form/core` |
+| [`@jotl/antd`](../packages/antd/zh/README.md)                       | `@jotl/form` 的 Ant Design widget（antd 5 或 6，React 18 及以上）                                    |
+| [`@jotl/language-server`](../packages/language-server/zh/README.md) | `.jotl` 文件的语言服务（LSP）                                                                        |
+| [`vscode-jotl`](../packages/vscode/zh/README.md)                    | 带实时预览的 VS Code 插件                                                                            |
+| [`@jotl/cli`](../packages/cli/zh/README.md)                         | 命令行：编译、转换、检查、校验、默认数据、迁移与格式化                                               |
+| [`@jotl/playground`](../apps/playground/zh/README.md)               | 在浏览器中编辑 Jotl 并预览表单，从本仓库本地启动                                                     |
 
 面向使用者的文字有英文（`en`，默认）与中文（`zh-CN`）两种。代码中用 `@jotl/core` 的 `setLocale` 设置，命令行用 `--lang`；各包的其他选项见各自 README。
 

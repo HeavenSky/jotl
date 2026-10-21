@@ -1,21 +1,21 @@
 // Playground 主界面: 编辑源码与 jotl.config.json, 防抖编译, 保存到本地存储, 加载示例, 切换界面语言, 诊断定位与输出页签.
-import { useEffect, useMemo, useRef, useState } from "react";
-import { setLocale, type Locale, type Severity } from "@jotl/core";
-import { schemaToTs } from "@jotl/convert";
-import { allDiagnostics, buildPlayground, type PlaygroundBuild, type PlaygroundDiagnostic } from "./compile.js";
-import { DEFAULT_CONFIG, readConfig } from "./config.js";
-import { CopyContext, copyOf } from "./copy.js";
-import { DiagnosticList } from "./diagnostic-list.js";
-import { Editor, type EditorHandle } from "./editor.js";
-import { EXAMPLES, defaultSource, findExample } from "./examples.js";
-import { LOCALES, browserLanguage, initialLocale, isLocale } from "./locale.js";
-import { OutputTabs } from "./output-tabs.js";
-import { loadConfig, loadLocaleChoice, loadSource, saveConfig, saveLocaleChoice, saveSource } from "./storage.js";
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { setLocale, type Locale, type Severity } from '@jotl/core';
+import { schemaToTs } from '@jotl/convert';
+import { allDiagnostics, buildPlayground, type PlaygroundBuild, type PlaygroundDiagnostic } from './compile.js';
+import { DEFAULT_CONFIG, readConfig } from './config.js';
+import { CopyContext, copyOf } from './copy.js';
+import { DiagnosticList } from './diagnostic-list.js';
+import { Editor, type EditorHandle } from './editor.js';
+import { EXAMPLES, defaultSource, findExample } from './examples.js';
+import { LOCALES, browserLanguage, initialLocale, isLocale } from './locale.js';
+import { OutputTabs } from './output-tabs.js';
+import { loadConfig, loadLocaleChoice, loadSource, saveConfig, saveLocaleChoice, saveSource } from './storage.js';
 
 /** 最后一次输入之后等待多久再编译. */
 export const COMPILE_DEBOUNCE_MS = 300;
 
-type SourceTab = "source" | "config";
+type SourceTab = 'source' | 'config';
 
 interface BuildInput {
   source: string;
@@ -34,7 +34,7 @@ function build(input: BuildInput): PlaygroundBuild {
 }
 
 function inputOf(build: PlaygroundBuild): BuildInput {
-  return { source: build.report.source, config: build.config?.text ?? "" };
+  return { source: build.report.source, config: build.config?.text ?? '' };
 }
 
 function advance(prev: BuildState | undefined, next: PlaygroundBuild): BuildState {
@@ -53,7 +53,7 @@ const SEVERITY_RANK: Record<Severity, number> = { info: 0, warning: 1, error: 2 
 
 /** 配置诊断定位在 jotl.config.json 页签, 其余诊断定位在源码页签. */
 function tabOf(diagnostic: PlaygroundDiagnostic): SourceTab {
-  return diagnostic.stage === "config" ? "config" : "source";
+  return diagnostic.stage === 'config' ? 'config' : 'source';
 }
 
 function lineMarkers(diagnostics: readonly PlaygroundDiagnostic[], tab: SourceTab): Map<number, Severity> {
@@ -79,7 +79,7 @@ export function App() {
   const [config, setConfig] = useState(() => loadConfig() ?? DEFAULT_CONFIG);
   const [state, setState] = useState(() => advance(undefined, build({ source, config })));
   const [storageOk, setStorageOk] = useState(true);
-  const [sourceTab, setSourceTab] = useState<SourceTab>("source");
+  const [sourceTab, setSourceTab] = useState<SourceTab>('source');
   const editor = useRef<EditorHandle>(null);
   const configEditor = useRef<EditorHandle>(null);
   const COPY = copyOf(locale);
@@ -89,7 +89,7 @@ export function App() {
 
   useEffect(() => {
     if (!pending) return;
-    const timer = setTimeout(() => setState((prev) => advance(prev, build({ source, config }))), COMPILE_DEBOUNCE_MS);
+    const timer = setTimeout(() => setState(prev => advance(prev, build({ source, config }))), COMPILE_DEBOUNCE_MS);
     return () => clearTimeout(timer);
   }, [source, config, pending]);
 
@@ -112,20 +112,20 @@ export function App() {
     setLocale(next);
     saveLocaleChoice(next);
     setLocaleState(next);
-    setState((prev) => rebuild(prev));
+    setState(prev => rebuild(prev));
   };
 
   const loadExample = (id: string) => {
     const example = findExample(id);
     if (example === undefined) return;
     updateSource(example.source);
-    setSourceTab("source");
-    setState((prev) => advance(prev, build({ source: example.source, config })));
+    setSourceTab('source');
+    setState(prev => advance(prev, build({ source: example.source, config })));
   };
 
   const diagnostics = useMemo(() => allDiagnostics(state.current), [state]);
-  const markers = useMemo(() => lineMarkers(diagnostics, "source"), [diagnostics]);
-  const configMarkers = useMemo(() => lineMarkers(diagnostics, "config"), [diagnostics]);
+  const markers = useMemo(() => lineMarkers(diagnostics, 'source'), [diagnostics]);
+  const configMarkers = useMemo(() => lineMarkers(diagnostics, 'config'), [diagnostics]);
   const stale = state.current.report.output === undefined && state.lastGood !== undefined;
 
   return (
@@ -135,11 +135,11 @@ export function App() {
           <h1 className="pg-title">{COPY.appTitle}</h1>
           <label className="pg-examples">
             {COPY.examples.label}
-            <select value="" onChange={(event) => loadExample(event.target.value)}>
+            <select value="" onChange={event => loadExample(event.target.value)}>
               <option value="" disabled>
                 {COPY.examples.placeholder}
               </option>
-              {EXAMPLES.map((example) => (
+              {EXAMPLES.map(example => (
                 <option key={example.id} value={example.id}>
                   {example.id}
                 </option>
@@ -148,8 +148,8 @@ export function App() {
           </label>
           <label className="pg-examples pg-language">
             {COPY.language.label}
-            <select value={locale} onChange={(event) => changeLocale(event.target.value)}>
-              {LOCALES.map((item) => (
+            <select value={locale} onChange={event => changeLocale(event.target.value)}>
+              {LOCALES.map(item => (
                 <option key={item} value={item}>
                   {COPY.language.names[item]}
                 </option>
@@ -165,7 +165,7 @@ export function App() {
         <main className="pg-main">
           <div className="pg-left">
             <div className="pg-tablist" role="tablist" aria-label={COPY.sources.label}>
-              {(["source", "config"] as const).map((tab) => (
+              {(['source', 'config'] as const).map(tab => (
                 <button
                   key={tab}
                   type="button"
@@ -178,7 +178,7 @@ export function App() {
                 </button>
               ))}
             </div>
-            {sourceTab === "source" ? (
+            {sourceTab === 'source' ? (
               <Editor
                 key="source"
                 ref={editor}
@@ -201,11 +201,11 @@ export function App() {
             )}
             <DiagnosticList
               diagnostics={diagnostics}
-              onReveal={(diagnostic) => {
+              onReveal={diagnostic => {
                 const { start, end } = diagnostic;
                 if (start === undefined) return;
                 const tab = tabOf(diagnostic);
-                const target = tab === "source" ? editor : configEditor;
+                const target = tab === 'source' ? editor : configEditor;
                 if (sourceTab === tab) {
                   target.current?.reveal(start, end);
                   return;
@@ -217,7 +217,11 @@ export function App() {
             />
           </div>
           <div className="pg-right">
-            <OutputTabs {...(state.lastGood === undefined ? {} : { build: state.lastGood })} stale={stale} locale={locale} />
+            <OutputTabs
+              {...(state.lastGood === undefined ? {} : { build: state.lastGood })}
+              stale={stale}
+              locale={locale}
+            />
           </div>
         </main>
       </div>

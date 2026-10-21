@@ -9,12 +9,12 @@ import {
   isSchemaObject,
   ok,
   orderKeywords,
-} from "@jotl/core";
-import { type VersionSource, detectVersion } from "./detect.js";
-import { upgradeDiagnostic } from "./diagnostics.js";
-import { type ResourceLookup, rewriteRefs, walkRefTargets } from "./refs.js";
-import { type ConflictPolicy, type DocumentState, locate, transformDocument } from "./transform.js";
-import type { SchemaVersion } from "./versions.js";
+} from '@jotl/core';
+import { type VersionSource, detectVersion } from './detect.js';
+import { upgradeDiagnostic } from './diagnostics.js';
+import { type ResourceLookup, rewriteRefs, walkRefTargets } from './refs.js';
+import { type ConflictPolicy, type DocumentState, locate, transformDocument } from './transform.js';
+import type { SchemaVersion } from './versions.js';
 
 export interface UpgradeOptions {
   /** 没有可识别的 `$schema` 时采用的版本; 不给且无法推断时报错. */
@@ -30,8 +30,8 @@ export interface UpgradeOptions {
 /** D14 的默认值. */
 export const DEFAULT_UPGRADE_OPTIONS = {
   acceptNewerKeywords: true,
-  onConflict: "error",
-} as const satisfies Required<Pick<UpgradeOptions, "acceptNewerKeywords" | "onConflict">>;
+  onConflict: 'error',
+} as const satisfies Required<Pick<UpgradeOptions, 'acceptNewerKeywords' | 'onConflict'>>;
 
 export interface UpgradedSchema {
   schema: JsonSchema;
@@ -43,7 +43,7 @@ export interface UpgradedSchema {
 /** 识别版本并完成节点改写; 识别失败时返回 undefined 与诊断. */
 export function prepareDocument(
   schema: unknown,
-  options: UpgradeOptions,
+  options: UpgradeOptions
 ): { state: DocumentState | undefined; source: VersionSource | undefined; diagnostics: Diagnostic[] } {
   const detectOptions = {
     ...(options.version !== undefined ? { version: options.version } : {}),
@@ -68,10 +68,10 @@ export function finalizeDocument(state: DocumentState): JsonSchema {
     const added = root.$schema === undefined;
     state.diagnostics.push(
       upgradeDiagnostic(
-        added ? "JOTL3131" : "JOTL3119",
+        added ? 'JOTL3131' : 'JOTL3119',
         { dialect: JSON_SCHEMA_DIALECT },
-        { location: locate(added ? "" : "/$schema", state.uri) },
-      ),
+        { location: locate(added ? '' : '/$schema', state.uri) }
+      )
     );
     root.$schema = JSON_SCHEMA_DIALECT;
   }
@@ -82,7 +82,7 @@ export function finalizeDocument(state: DocumentState): JsonSchema {
 export function upgradeSchema(schema: unknown, options: UpgradeOptions = {}): Result<UpgradedSchema> {
   const { state, source, diagnostics } = prepareDocument(schema, options);
   if (state === undefined || source === undefined) return fail(diagnostics);
-  const lookup: ResourceLookup = (uri) => {
+  const lookup: ResourceLookup = uri => {
     const resource = state.resources.get(uri);
     return resource === undefined ? undefined : { state, resource };
   };

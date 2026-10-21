@@ -1,0 +1,28 @@
+{
+  "$schema": "./node_modules/oxfmt/configuration_schema.json",
+  "singleQuote": true,
+  "semi": true,
+  "printWidth": 120,
+  "trailingComma": "es5",
+  "arrowParens": "avoid",
+  "ignorePatterns": [
+    "**/dist/**",
+    "**/coverage/**",
+    "**/CHANGELOG.md",
+    "vendor/**",
+    "fixtures/**",
+    "packages/*/test/fixtures/**",
+    "packages/*/test/**/__snapshots__/**",
+    "packages/form/style.css",
+    "packages/vscode/.nvmrc",
+    "packages/vscode/.vscode/tasks.json",
+    "packages/vscode/scripts/changelog-section.mjs",
+    "packages/vscode/scripts/check-template.mjs",
+    "packages/vscode/scripts/check.mjs",
+    "packages/vscode/scripts/gen-icon.mjs",
+    "packages/vscode/scripts/lib/check-manifest.mjs",
+    "packages/vscode/scripts/lib/icon-render.mjs",
+    "packages/vscode/scripts/lib/template-shared.mjs",
+    "packages/vscode/scripts/lib/vsix-allowlist.mjs"
+  ]
+}

@@ -11,7 +11,10 @@
 <JotlForm schema={schema} locale="en" schemaModules />;
 
 // 自定义加载, 或为相对模块地址(./ ../ /)指定基准
-<JotlForm schema={schema} schemaModules={{ baseUrl: "https://cdn.example.com/widgets/", importer: (url) => import(/* @vite-ignore */ url) }} />;
+<JotlForm
+  schema={schema}
+  schemaModules={{ baseUrl: 'https://cdn.example.com/widgets/', importer: url => import(/* @vite-ignore */ url) }}
+/>;
 ```
 
 传 `schemaModules` 时，`JotlForm` 把这些声明登记到本表单自己的注册表（同名覆盖），并按需加载各模块。

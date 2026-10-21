@@ -9,7 +9,7 @@
 宿主不用 Tailwind 时，引入一次预编译 CSS：
 
 ```ts
-import "@jotl/form/style.css";
+import '@jotl/form/style.css';
 ```
 
 ## 用自己的 CSS 覆盖
@@ -38,9 +38,9 @@ import "@jotl/form/style.css";
 ```css
 /* jotl.css */
 @layer theme, base, components, utilities;
-@import "tailwindcss/theme.css" layer(theme) prefix(jt);
-@import "tailwindcss/utilities.css" layer(utilities) source(none);
-@import "@jotl/form/tailwind.css";
+@import 'tailwindcss/theme.css' layer(theme) prefix(jt);
+@import 'tailwindcss/utilities.css' layer(utilities) source(none);
+@import '@jotl/form/tailwind.css';
 ```
 
 - `tailwind.css` 用 `@source` 扫描随包发布的 `src`，`source(none)` 关掉对宿主项目的扫描，只生成 widget 用到的工具类。

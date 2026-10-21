@@ -1,12 +1,12 @@
 // 对象组件 page / inline: fieldset 排版子字段, 按 layout 选择 stack, tabs 或 grid 排版, 未支持的布局按 stack 排版; 有 additional 时其后是 "其他键" 区.
-import { useState, type ComponentType, type CSSProperties, type KeyboardEvent, type ReactNode } from "react";
-import { escapePointerToken, isSchemaObject } from "@jotl/core";
-import type { LayoutField } from "../../core/index.js";
-import { useCopy } from "../copy.js";
-import { nameId } from "../ids.js";
-import type { HtmlLayoutProps } from "../props.js";
-import { styles } from "../styles.js";
-import { EntryEditor } from "./map.js";
+import { useState, type ComponentType, type CSSProperties, type KeyboardEvent, type ReactNode } from 'react';
+import { escapePointerToken, isSchemaObject } from '@jotl/core';
+import type { LayoutField } from '../../core/index.js';
+import { useCopy } from '../copy.js';
+import { nameId } from '../ids.js';
+import type { HtmlLayoutProps } from '../props.js';
+import { styles } from '../styles.js';
+import { EntryEditor } from './map.js';
 
 export interface FieldSection {
   /** 未分组字段的分区为 undefined. */
@@ -15,19 +15,19 @@ export interface FieldSection {
 }
 
 /** 可见字段按分组切分: 未分组字段在前, 各分组按声明顺序; 一个字段只归入它出现的第一个分组, 空分组省略. */
-export function partitionFields(fields: readonly LayoutField[], groups: HtmlLayoutProps["groups"]): FieldSection[] {
-  const visible = fields.filter((field) => !field.hidden).map((field) => field.key);
+export function partitionFields(fields: readonly LayoutField[], groups: HtmlLayoutProps['groups']): FieldSection[] {
+  const visible = fields.filter(field => !field.hidden).map(field => field.key);
   const visibleSet = new Set(visible);
   const owner = new Map<string, number>();
   groups.forEach((group, i) => {
     for (const key of group.fields) if (visibleSet.has(key) && !owner.has(key)) owner.set(key, i);
   });
-  const sections: FieldSection[] = [{ title: undefined, keys: visible.filter((key) => !owner.has(key)) }];
+  const sections: FieldSection[] = [{ title: undefined, keys: visible.filter(key => !owner.has(key)) }];
   groups.forEach((group, i) => {
     // 组内字段按 fields 的顺序(已按 order 排好)排列, 不按 group.fields 的书写顺序.
-    sections.push({ title: group.title, keys: visible.filter((key) => owner.get(key) === i) });
+    sections.push({ title: group.title, keys: visible.filter(key => owner.get(key) === i) });
   });
-  return sections.filter((section) => section.keys.length > 0);
+  return sections.filter(section => section.keys.length > 0);
 }
 
 export interface ObjectLayoutProps {
@@ -49,7 +49,7 @@ function StackLayout({ sections, renderField }: ObjectLayoutProps) {
             <legend className={`jotl-group-title ${styles.objectTitle}`}>{section.title}</legend>
             {section.keys.map(renderField)}
           </fieldset>
-        ),
+        )
       )}
     </>
   );
@@ -57,10 +57,10 @@ function StackLayout({ sections, renderField }: ObjectLayoutProps) {
 
 /** 标签页: 每个分组一页, 未分组字段并入第一页; 没有分组时返回空数组. */
 export function tabSections(sections: readonly FieldSection[]): FieldSection[] {
-  const grouped = sections.filter((section) => section.title !== undefined);
+  const grouped = sections.filter(section => section.title !== undefined);
   const [first, ...rest] = grouped;
   if (first === undefined) return [];
-  const ungrouped = sections.find((section) => section.title === undefined)?.keys ?? [];
+  const ungrouped = sections.find(section => section.title === undefined)?.keys ?? [];
   return [{ title: first.title, keys: [...ungrouped, ...first.keys] }, ...rest];
 }
 
@@ -72,7 +72,7 @@ interface TabSelection {
 /** 选中项同时记下标与标题: 前面的分组因字段全部隐藏而消失时按标题找回, 标题重复时按下标区分. */
 function activeTab(tabs: readonly FieldSection[], selection: TabSelection): number {
   if (tabs[selection.index]?.title === selection.title) return selection.index;
-  const byTitle = tabs.findIndex((tab) => tab.title === selection.title);
+  const byTitle = tabs.findIndex(tab => tab.title === selection.title);
   return byTitle === -1 ? 0 : byTitle;
 }
 
@@ -87,15 +87,20 @@ function TabsLayout(layout: ObjectLayoutProps) {
   const tabs = tabSections(sections);
   if (tabs.length === 0) return <StackLayout {...layout} />;
   const active = activeTab(tabs, selection);
-  const errorCounts = new Map(props.fields.map((field) => [field.key, field.errorCount ?? 0]));
-  const tabErrors = tabs.map((tab) => tab.keys.reduce((sum, key) => sum + (errorCounts.get(key) ?? 0), 0));
+  const errorCounts = new Map(props.fields.map(field => [field.key, field.errorCount ?? 0]));
+  const tabErrors = tabs.map(tab => tab.keys.reduce((sum, key) => sum + (errorCounts.get(key) ?? 0), 0));
   const select = (index: number, focus: boolean) => {
     setSelection({ index, title: tabs[index]?.title });
     if (focus) document.getElementById(tabId(props.id, index))?.focus();
   };
   const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>) => {
     const last = tabs.length - 1;
-    const target = { ArrowRight: active === last ? 0 : active + 1, ArrowLeft: active === 0 ? last : active - 1, Home: 0, End: last }[e.key];
+    const target = {
+      ArrowRight: active === last ? 0 : active + 1,
+      ArrowLeft: active === 0 ? last : active - 1,
+      Home: 0,
+      End: last,
+    }[e.key];
     if (target === undefined) return;
     e.preventDefault();
     select(target, true);
@@ -113,13 +118,15 @@ function TabsLayout(layout: ObjectLayoutProps) {
             aria-selected={i === active}
             aria-controls={panelId(props.id, i)}
             tabIndex={i === active ? 0 : -1}
-            disabled={props.mode === "disabled"}
+            disabled={props.mode === 'disabled'}
             onClick={() => select(i, false)}
             onKeyDown={onKeyDown}
           >
             {tab.title}
-            {tabErrors[i]! > 0 && " "}
-            {tabErrors[i]! > 0 && <span className={`jotl-tab-errors ${styles.tabErrors}`}>{COPY.tabErrors(tabErrors[i]!)}</span>}
+            {tabErrors[i]! > 0 && ' '}
+            {tabErrors[i]! > 0 && (
+              <span className={`jotl-tab-errors ${styles.tabErrors}`}>{COPY.tabErrors(tabErrors[i]!)}</span>
+            )}
           </button>
         ))}
       </div>
@@ -144,7 +151,7 @@ const DEFAULT_GRID_COLUMNS = 2;
 
 function gridStyle(columns: number): CSSProperties {
   const count = Number.isInteger(columns) && columns > 0 ? columns : DEFAULT_GRID_COLUMNS;
-  return { "--jotl-columns": String(count) } as CSSProperties;
+  return { '--jotl-columns': String(count) } as CSSProperties;
 }
 
 function GridLayout({ props, sections, renderField }: ObjectLayoutProps) {
@@ -163,13 +170,13 @@ function GridLayout({ props, sections, renderField }: ObjectLayoutProps) {
               {section.keys.map(renderField)}
             </div>
           </fieldset>
-        ),
+        )
       )}
     </>
   );
 }
 
-const OBJECT_LAYOUTS: Partial<Record<HtmlLayoutProps["layout"], ComponentType<ObjectLayoutProps>>> = {
+const OBJECT_LAYOUTS: Partial<Record<HtmlLayoutProps['layout'], ComponentType<ObjectLayoutProps>>> = {
   stack: StackLayout,
   tabs: TabsLayout,
   grid: GridLayout,
@@ -190,9 +197,11 @@ export function PageWidget(props: HtmlLayoutProps) {
       id={props.id}
       className={`jotl-object jotl-object--${props.layout} ${styles.object}`}
       aria-labelledby={nameId(props.id)}
-      disabled={props.mode === "disabled"}
+      disabled={props.mode === 'disabled'}
     >
-      {typeof title === "string" && title !== "" && <legend className={`jotl-object-title ${styles.objectTitle}`}>{title}</legend>}
+      {typeof title === 'string' && title !== '' && (
+        <legend className={`jotl-object-title ${styles.objectTitle}`}>{title}</legend>
+      )}
       <Layout props={props} sections={partitionFields(props.fields, props.groups)} renderField={renderField} />
       {props.additional !== undefined && (
         <fieldset className={`jotl-group jotl-object-additional ${styles.group}`}>

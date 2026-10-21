@@ -7,8 +7,8 @@
 ## 最小的字段 widget
 
 ```tsx
-import type { FieldProps } from "@jotl/form/core";
-import type { ReactNode } from "react";
+import type { FieldProps } from '@jotl/form/core';
+import type { ReactNode } from 'react';
 
 export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldProps<boolean, ReactNode>) {
   return (
@@ -17,9 +17,9 @@ export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldPro
       type="checkbox"
       role="switch"
       checked={value === true}
-      disabled={mode !== "edit"}
+      disabled={mode !== 'edit'}
       aria-invalid={errors.length > 0}
-      onChange={(event) => onChange(event.target.checked)}
+      onChange={event => onChange(event.target.checked)}
       onBlur={onBlur}
     />
   );
@@ -40,13 +40,13 @@ export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldPro
 
 登记的层级决定 props 类型。全部类型从 `@jotl/form/core` 导出，定义在 [`src/core/contracts.ts`](../../src/core/contracts.ts)；`N` 是节点类型，React 下为 `ReactNode`。
 
-| 层级 | props | 内置名 | 在 `BaseProps` 之外得到的内容 |
-|---|---|---|---|
-| `view` | `ViewProps<N>` | `form` | `submit()` `reset()` `children`；不属于任何可见字段的 `errors`；可选的 `goToError(error)` 用于跳到某条错误 |
-| `decorator` | `DecoratorProps<N>`（不继承 `BaseProps`） | `field` | `id` `label?` `description?` `required` `errors` `hidden` `children` |
-| `layout` | `LayoutProps<N>` | `page` `inline` | `fields`（已排序，含 `hidden` 与 `errorCount`）、`groups`、`layout`、`columns`，以及用于 `properties` 之外键名的可选 `additional` |
-| `field` | `FieldProps<V, N>` | `input` `number` `switch` `select` `date` 等标量名 | `required` `value` `onChange(value)` `onBlur()` `errors` `thousands?` |
-| `composite` | `ArrayProps` `TupleProps` `MapProps` `UnionProps` `NullableProps` `TreeProps` | `list` `tuple` `kv` `union` `nullable` `tree` | 带稳定 key 的条目列表与增、删、移动操作，或分支、空值、展开状态加 `renderContent()` |
+| 层级        | props                                                                         | 内置名                                             | 在 `BaseProps` 之外得到的内容                                                                                                     |
+| ----------- | ----------------------------------------------------------------------------- | -------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `view`      | `ViewProps<N>`                                                                | `form`                                             | `submit()` `reset()` `children`；不属于任何可见字段的 `errors`；可选的 `goToError(error)` 用于跳到某条错误                        |
+| `decorator` | `DecoratorProps<N>`（不继承 `BaseProps`）                                     | `field`                                            | `id` `label?` `description?` `required` `errors` `hidden` `children`                                                              |
+| `layout`    | `LayoutProps<N>`                                                              | `page` `inline`                                    | `fields`（已排序，含 `hidden` 与 `errorCount`）、`groups`、`layout`、`columns`，以及用于 `properties` 之外键名的可选 `additional` |
+| `field`     | `FieldProps<V, N>`                                                            | `input` `number` `switch` `select` `date` 等标量名 | `required` `value` `onChange(value)` `onBlur()` `errors` `thousands?`                                                             |
+| `composite` | `ArrayProps` `TupleProps` `MapProps` `UnionProps` `NullableProps` `TreeProps` | `list` `tuple` `kv` `union` `nullable` `tree`      | 带稳定 key 的条目列表与增、删、移动操作，或分支、空值、展开状态加 `renderContent()`                                               |
 
 除 `decorator` 外各层共有的 `BaseProps<N>` 包含 `id`、`schema`、`dataPath`（实际路径，数组下标为具体数字）、`mode`、`props`（合并后的 `x-ui.props`）、`adapters` 与 `renderChild(relativePath)`。
 

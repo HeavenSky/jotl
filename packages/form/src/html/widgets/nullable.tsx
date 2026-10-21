@@ -1,10 +1,10 @@
 // 可空组件: 置空开关 + 非空时由 renderContent() 渲染的原组件.
-import type { ChangeEvent } from "react";
-import { useCopy } from "../copy.js";
-import { errorId } from "../ids.js";
-import { groupAttributes, type HtmlNullableProps } from "../props.js";
-import { ErrorList } from "./error-list.js";
-import { styles } from "../styles.js";
+import type { ChangeEvent } from 'react';
+import { useCopy } from '../copy.js';
+import { errorId } from '../ids.js';
+import { groupAttributes, type HtmlNullableProps } from '../props.js';
+import { ErrorList } from './error-list.js';
+import { styles } from '../styles.js';
 
 export function NullableWidget(props: HtmlNullableProps) {
   const COPY = useCopy();
@@ -17,7 +17,7 @@ export function NullableWidget(props: HtmlNullableProps) {
           type="checkbox"
           className={`jotl-checkbox ${styles.checkbox}`}
           checked={props.isNull}
-          disabled={props.mode !== "edit"}
+          disabled={props.mode !== 'edit'}
           onChange={(e: ChangeEvent<HTMLInputElement>) => props.setNull(e.target.checked)}
         />
         <span className="jotl-option-label">{COPY.setNull}</span>

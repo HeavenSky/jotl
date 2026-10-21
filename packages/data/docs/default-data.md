@@ -7,31 +7,31 @@ This page shows how to produce initial data from a schema with `getDefaults`, an
 ## Choose a strategy
 
 ```js
-import { getDefaults } from "@jotl/data";
+import { getDefaults } from '@jotl/data';
 
 const schema = {
-  type: "object",
+  type: 'object',
   properties: {
-    title: { type: "string", maxLength: 5, default: "Home" },
-    count: { type: "integer", minimum: 1 },
-    color: { type: "string", format: "color" },
-    tags: { type: "array", minItems: 1, items: { type: "string" } },
+    title: { type: 'string', maxLength: 5, default: 'Home' },
+    count: { type: 'integer', minimum: 1 },
+    color: { type: 'string', format: 'color' },
+    tags: { type: 'array', minItems: 1, items: { type: 'string' } },
   },
-  required: ["title", "count"],
+  required: ['title', 'count'],
 };
 
 getDefaults(schema).value; // { title: "Home" }
-getDefaults(schema, { strategy: "required" }).value; // { title: "Home", count: 1 }
-getDefaults(schema, { strategy: "all" }).value; // { title: "Home", count: 1, color: "", tags: [""] }
+getDefaults(schema, { strategy: 'required' }).value; // { title: "Home", count: 1 }
+getDefaults(schema, { strategy: 'all' }).value; // { title: "Home", count: 1, color: "", tags: [""] }
 ```
 
 A node that has a `default`, directly or through a node merged via `$ref` or `allOf`, always gets a copy of that `default`. Otherwise the strategy decides:
 
-| Node | `explicit` (default) | `required` | `all` |
-|---|---|---|---|
-| Object | Only properties that produce a value; if none, the root is `{}` and other objects are omitted | Required properties are produced recursively; optional properties take only explicit defaults. When an optional object appears because a child has a default, its required fields are filled too. At least `{}` | All properties produced recursively |
-| Array | Omitted, even if its items have defaults | When required, `minItems` items, using zero values for items without a value | Same as `required`, and optional arrays too |
-| Scalar | Omitted | Zero value when required | Zero value |
+| Node   | `explicit` (default)                                                                          | `required`                                                                                                                                                                                                      | `all`                                       |
+| ------ | --------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| Object | Only properties that produce a value; if none, the root is `{}` and other objects are omitted | Required properties are produced recursively; optional properties take only explicit defaults. When an optional object appears because a child has a default, its required fields are filled too. At least `{}` | All properties produced recursively         |
+| Array  | Omitted, even if its items have defaults                                                      | When required, `minItems` items, using zero values for items without a value                                                                                                                                    | Same as `required`, and optional arrays too |
+| Scalar | Omitted                                                                                       | Zero value when required                                                                                                                                                                                        | Zero value                                  |
 
 ## Set the other options
 
@@ -61,11 +61,11 @@ Apart from these cases, zero values ignore constraints such as `format`, `minLen
 `fillDefaults(schema, data, opts?)` takes the same options as `getDefaults` except `at`, and never overwrites existing values.
 
 ```js
-import { fillDefaults } from "@jotl/data";
+import { fillDefaults } from '@jotl/data';
 
 const schema = {
-  type: "object",
-  properties: { title: { type: "string", default: "Home" }, count: { type: "integer" } },
+  type: 'object',
+  properties: { title: { type: 'string', default: 'Home' }, count: { type: 'integer' } },
 };
 fillDefaults(schema, { count: 2 }).value; // { data: { count: 2, title: "Home" }, filled: ["/title"] }
 ```

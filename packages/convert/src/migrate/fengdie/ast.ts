@@ -1,5 +1,5 @@
 // 凤蝶 schema 语法树: 与 umo-edit-sdk `parse/schema.yy` 各产生式的产出一一对应, 另带源码位置.
-import type { SourceRange } from "@jotl/core";
+import type { SourceRange } from '@jotl/core';
 
 export interface Name {
   text: string;
@@ -37,7 +37,7 @@ export interface Export {
   schema: RootSchema;
 }
 
-export type FengdieDocument = { kind: "schema"; schema: RootSchema } | { kind: "exports"; exports: Export[] };
+export type FengdieDocument = { kind: 'schema'; schema: RootSchema } | { kind: 'exports'; exports: Export[] };
 
 interface PropBase {
   key: Name;
@@ -47,14 +47,14 @@ interface PropBase {
 
 /** `key(说明)`, `key(说明): a.b[...]` 与 `key(说明): Array<string>`(path 为 `arraystring`). */
 export interface LeafProp extends PropBase {
-  kind: "leaf";
+  kind: 'leaf';
   /** 点号类型路径的各段, 省略类型时为空. */
   path: Name[];
 }
 
 /** 带子字段的写法: Object Array Action OpenAction Module ModuleArray `ns.Comp` Spm; type 已按 schema.yy 求出. */
 export interface NestedProp extends PropBase {
-  kind: "nested";
+  kind: 'nested';
   type: string;
   typeRange: SourceRange;
   props: Prop[];
@@ -62,7 +62,7 @@ export interface NestedProp extends PropBase {
 
 /** `key(说明): Enum {...}`, `Enum[...] {...}` 与 `Enum[...]`. */
 export interface EnumProp extends PropBase {
-  kind: "enum";
+  kind: 'enum';
   items: Prop[];
 }
 

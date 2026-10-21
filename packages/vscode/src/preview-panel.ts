@@ -1,24 +1,40 @@
 // 预览面板(E6): 命令 `jotl.showPreview` 在编辑器旁打开 webview, 展示当前 Jotl 文档的 JSON Schema, TS 与表单预览, 随编辑与切换编辑器更新;
 // 设置 `jotl.preview.loadWidgetModules` 开启时把扩展组件模块的来源放进 CSP 与 localResourceRoots.
-import { dirname } from "node:path";
-import type { PreviewContent } from "@jotl/language-server";
-import { commands, type Disposable, env, l10n, type TextDocument, Uri, ViewColumn, type WebviewPanel, window, workspace } from "vscode";
-import { localModulePath, schemaModuleImports } from "./preview-config.js";
-import { createNonce, renderPreviewHtml } from "./preview-html.js";
-import { LOAD_WIDGET_MODULES_SETTING, type PreviewModules, SHARED_MODULE_SHIMS, type WidgetModuleRef } from "./preview-modules.js";
-import { isFromWebview, type ToWebview } from "./preview-protocol.js";
-import { createPreviewText, formatText, type PreviewText } from "./preview-text.js";
+import { dirname } from 'node:path';
+import type { PreviewContent } from '@jotl/language-server';
+import {
+  commands,
+  type Disposable,
+  env,
+  l10n,
+  type TextDocument,
+  Uri,
+  ViewColumn,
+  type WebviewPanel,
+  window,
+  workspace,
+} from 'vscode';
+import { localModulePath, schemaModuleImports } from './preview-config.js';
+import { createNonce, renderPreviewHtml } from './preview-html.js';
+import {
+  LOAD_WIDGET_MODULES_SETTING,
+  type PreviewModules,
+  SHARED_MODULE_SHIMS,
+  type WidgetModuleRef,
+} from './preview-modules.js';
+import { isFromWebview, type ToWebview } from './preview-protocol.js';
+import { createPreviewText, formatText, type PreviewText } from './preview-text.js';
 
 /** 必须等于 package.json 中 `contributes.commands` 声明的命令名. */
-export const SHOW_PREVIEW_COMMAND = "jotl.showPreview";
-export const PREVIEW_VIEW_TYPE = "jotl.preview";
+export const SHOW_PREVIEW_COMMAND = 'jotl.showPreview';
+export const PREVIEW_VIEW_TYPE = 'jotl.preview';
 /** 必须等于打包脚本中预览脚本与表单样式的输出目录与文件名. */
-const SCRIPT_DIR = "dist";
-const SCRIPT_FILE = "preview.js";
-const FORM_STYLE_FILE = "preview-form.css";
-const LANGUAGE_ID = "jotl";
+const SCRIPT_DIR = 'dist';
+const SCRIPT_FILE = 'preview.js';
+const FORM_STYLE_FILE = 'preview-form.css';
+const LANGUAGE_ID = 'jotl';
 const UPDATE_DELAY_MS = 200;
-const CONFIGURATION_SECTION = "jotl";
+const CONFIGURATION_SECTION = 'jotl';
 
 export type RequestPreview = (uri: string) => Promise<PreviewContent | null>;
 export type Log = (message: string) => void;
@@ -32,7 +48,7 @@ class PreviewController implements Disposable {
   /** 只投递最后一次请求的结果, 防止慢响应覆盖新内容. */
   private sequence = 0;
   /** 当前 HTML 外壳对应的模块开关与本地资源目录; 变化时重建外壳. */
-  private shellKey = "";
+  private shellKey = '';
   private readonly subscriptions: Disposable[];
 
   constructor(
@@ -40,22 +56,23 @@ class PreviewController implements Disposable {
     private readonly request: RequestPreview,
     private readonly log: Log,
     private readonly text: PreviewText,
-    onConfigChanged: OnConfigChanged,
+    onConfigChanged: OnConfigChanged
   ) {
     this.subscriptions = [
       workspace.onDidChangeTextDocument(({ document }) => {
         if (document === this.document) this.schedule();
       }),
-      window.onDidChangeActiveTextEditor((editor) => {
+      window.onDidChangeActiveTextEditor(editor => {
         const document = editor?.document;
-        if (this.panel !== undefined && document?.languageId === LANGUAGE_ID && document !== this.document) this.show(document, false);
+        if (this.panel !== undefined && document?.languageId === LANGUAGE_ID && document !== this.document)
+          this.show(document, false);
       }),
-      workspace.onDidCloseTextDocument((document) => {
+      workspace.onDidCloseTextDocument(document => {
         if (document !== this.document) return;
         this.cancel();
-        this.post({ type: "unavailable", fileName: fileName(document), reason: this.text.documentClosed });
+        this.post({ type: 'unavailable', fileName: fileName(document), reason: this.text.documentClosed });
       }),
-      workspace.onDidChangeConfiguration((event) => {
+      workspace.onDidChangeConfiguration(event => {
         if (event.affectsConfiguration(`${CONFIGURATION_SECTION}.${LOAD_WIDGET_MODULES_SETTING}`)) this.schedule();
       }),
       onConfigChanged(() => this.schedule()),
@@ -76,7 +93,12 @@ class PreviewController implements Disposable {
   }
 
   private createPanel(title: string): WebviewPanel {
-    const panel = window.createWebviewPanel(PREVIEW_VIEW_TYPE, title, { viewColumn: ViewColumn.Beside, preserveFocus: true }, { enableScripts: true });
+    const panel = window.createWebviewPanel(
+      PREVIEW_VIEW_TYPE,
+      title,
+      { viewColumn: ViewColumn.Beside, preserveFocus: true },
+      { enableScripts: true }
+    );
     this.renderShell(panel, false, [], {});
     const { webview } = panel;
     webview.onDidReceiveMessage((message: unknown) => {
@@ -92,7 +114,12 @@ class PreviewController implements Disposable {
   }
 
   /** 设置 localResourceRoots 并写入 HTML 外壳(imports 是 schema 中本地模块地址的 import map 项); 重写外壳会重新加载 webview, 加载后它再发 ready. */
-  private renderShell(panel: WebviewPanel, load: boolean, moduleRoots: readonly Uri[], imports: Readonly<Record<string, string>>): void {
+  private renderShell(
+    panel: WebviewPanel,
+    load: boolean,
+    moduleRoots: readonly Uri[],
+    imports: Readonly<Record<string, string>>
+  ): void {
     const scriptRoot = Uri.joinPath(this.extensionUri, SCRIPT_DIR);
     const { webview } = panel;
     webview.options = { enableScripts: true, localResourceRoots: [scriptRoot, ...moduleRoots] };
@@ -105,7 +132,16 @@ class PreviewController implements Disposable {
       title: panel.title,
       text: this.text,
       lang: env.language,
-      ...(load ? { sharedModules: { ...imports, ...Object.fromEntries(Object.entries(SHARED_MODULE_SHIMS).map(([specifier, file]) => [specifier, asUri(file)])) } } : {}),
+      ...(load
+        ? {
+            sharedModules: {
+              ...imports,
+              ...Object.fromEntries(
+                Object.entries(SHARED_MODULE_SHIMS).map(([specifier, file]) => [specifier, asUri(file)])
+              ),
+            },
+          }
+        : {}),
     });
     this.shellKey = shellKey(load, moduleRoots, imports);
   }
@@ -117,11 +153,14 @@ class PreviewController implements Disposable {
   private resolveModules(
     panel: WebviewPanel,
     document: TextDocument,
-    content: PreviewContent,
+    content: PreviewContent
   ): { modules: PreviewModules; roots: Uri[]; imports: Record<string, string> } {
-    const load = workspace.getConfiguration(CONFIGURATION_SECTION, document.uri).get<boolean>(LOAD_WIDGET_MODULES_SETTING, false) === true;
+    const load =
+      workspace
+        .getConfiguration(CONFIGURATION_SECTION, document.uri)
+        .get<boolean>(LOAD_WIDGET_MODULES_SETTING, false) === true;
     const { webview } = panel;
-    const isFile = document.uri.scheme === "file";
+    const isFile = document.uri.scheme === 'file';
     const documentDir = isFile ? dirname(document.uri.fsPath) : undefined;
     const configDir = content.configFile === undefined ? undefined : dirname(content.configFile);
     const dirs = new Set<string>();
@@ -139,13 +178,16 @@ class PreviewController implements Disposable {
     let imports: Record<string, string> = {};
     if (documentDir !== undefined) {
       const schema: unknown = content.schema === undefined ? undefined : JSON.parse(content.schema);
-      const found = schemaModuleImports(schema, documentDir, (file) => webview.asWebviewUri(Uri.file(file)).toString());
+      const found = schemaModuleImports(schema, documentDir, file => webview.asWebviewUri(Uri.file(file)).toString());
       imports = found.imports;
       for (const dir of found.dirs) dirs.add(dir);
     }
     const folder = workspace.getWorkspaceFolder(document.uri);
-    const roots = [...(folder === undefined ? [] : [folder.uri]), ...[...dirs].sort().map((dir) => Uri.file(dir))];
-    const baseUrl = documentDir === undefined ? undefined : `${webview.asWebviewUri(Uri.file(documentDir)).toString().replace(/\/$/, "")}/`;
+    const roots = [...(folder === undefined ? [] : [folder.uri]), ...[...dirs].sort().map(dir => Uri.file(dir))];
+    const baseUrl =
+      documentDir === undefined
+        ? undefined
+        : `${webview.asWebviewUri(Uri.file(documentDir)).toString().replace(/\/$/, '')}/`;
     return { modules: { load, config, baseUrl }, roots, imports };
   }
 
@@ -168,7 +210,7 @@ class PreviewController implements Disposable {
     const document = this.document;
     if (document === undefined || this.panel === undefined) return;
     if (document.isClosed) {
-      this.post({ type: "unavailable", fileName: fileName(document), reason: this.text.documentClosed });
+      this.post({ type: 'unavailable', fileName: fileName(document), reason: this.text.documentClosed });
       return;
     }
     const sequence = ++this.sequence;
@@ -176,7 +218,7 @@ class PreviewController implements Disposable {
     try {
       const content = await this.request(document.uri.toString());
       if (content === null) {
-        message = { type: "unavailable", fileName: fileName(document), reason: this.text.notOpened };
+        message = { type: 'unavailable', fileName: fileName(document), reason: this.text.notOpened };
       } else {
         const panel = this.panel;
         if (sequence !== this.sequence || document !== this.document || panel === undefined) return;
@@ -185,11 +227,11 @@ class PreviewController implements Disposable {
           this.renderShell(panel, modules.load, roots, imports);
           return;
         }
-        message = { type: "update", fileName: fileName(document), content, modules };
+        message = { type: 'update', fileName: fileName(document), content, modules };
       }
     } catch (error) {
       this.log(error instanceof Error ? (error.stack ?? error.message) : String(error));
-      message = { type: "unavailable", fileName: fileName(document), reason: this.text.serverUnavailable };
+      message = { type: 'unavailable', fileName: fileName(document), reason: this.text.serverUnavailable };
     }
     if (sequence === this.sequence && document === this.document) this.post(message);
   }
@@ -206,7 +248,11 @@ class PreviewController implements Disposable {
 }
 
 function shellKey(load: boolean, roots: readonly Uri[], imports: Readonly<Record<string, string>>): string {
-  return JSON.stringify([load, roots.map((root) => root.toString()), Object.entries(imports).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))]);
+  return JSON.stringify([
+    load,
+    roots.map(root => root.toString()),
+    Object.entries(imports).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
+  ]);
 }
 
 function fileName(document: TextDocument): string {
@@ -214,11 +260,17 @@ function fileName(document: TextDocument): string {
 }
 
 /** 命令参数是编辑器标题栏传入的资源 Uri; 从命令面板执行时取当前编辑器. */
-export function registerPreview(extensionUri: Uri, request: RequestPreview, log: Log, onConfigChanged: OnConfigChanged): Disposable[] {
+export function registerPreview(
+  extensionUri: Uri,
+  request: RequestPreview,
+  log: Log,
+  onConfigChanged: OnConfigChanged
+): Disposable[] {
   const text = createPreviewText(l10n);
   const controller = new PreviewController(extensionUri, request, log, text, onConfigChanged);
   const command = commands.registerCommand(SHOW_PREVIEW_COMMAND, async (resource?: unknown) => {
-    const document = resource instanceof Uri ? await workspace.openTextDocument(resource) : window.activeTextEditor?.document;
+    const document =
+      resource instanceof Uri ? await workspace.openTextDocument(resource) : window.activeTextEditor?.document;
     if (document?.languageId !== LANGUAGE_ID) {
       void window.showInformationMessage(text.notJotl);
       return;

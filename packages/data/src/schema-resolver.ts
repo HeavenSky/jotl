@@ -6,8 +6,8 @@ import {
   type JsonSchema,
   type JsonSchemaObject,
   type JsonSchemaType,
-} from "@jotl/core";
-import { jsonType } from "./json-value.js";
+} from '@jotl/core';
+import { jsonType } from './json-value.js';
 
 export interface SchemaResolver {
   /** 数据根对应的 schema; 引用总是在整个文档内解析. */
@@ -17,7 +17,7 @@ export interface SchemaResolver {
 }
 
 /** 文档根没有 $id 时使用的伪 base URI; 须为层级 URI, 相对 $id 与相对引用才能在其上解析. */
-const ROOT_BASE = "jotl:/root";
+const ROOT_BASE = 'jotl:/root';
 
 /**
  * 支持文档内的 `#/...` 指针, `#name` 形式的 $anchor, 以及文档内各 schema 资源的 $id(可带指针片段).
@@ -32,15 +32,15 @@ export function createResolver(document: JsonSchema, root: JsonSchema = document
   return {
     root,
     resolveRef(ref, from) {
-      const base = (typeof from === "object" && from !== null ? index.bases.get(from) : undefined) ?? rootBase;
+      const base = (typeof from === 'object' && from !== null ? index.bases.get(from) : undefined) ?? rootBase;
       const target = resolveUri(ref, base);
       if (target === undefined) return undefined;
       const resource = index.resources.get(target.uri);
-      if (target.fragment === "") return resource;
-      if (target.fragment.startsWith("/")) {
+      if (target.fragment === '') return resource;
+      if (target.fragment.startsWith('/')) {
         if (resource === undefined) return undefined;
         const { found, value } = lookupPointer(resource, target.fragment);
-        return found && (typeof value === "boolean" || isSchemaObject(value)) ? (value as JsonSchema) : undefined;
+        return found && (typeof value === 'boolean' || isSchemaObject(value)) ? (value as JsonSchema) : undefined;
       }
       return index.anchors.get(`${target.uri}#${target.fragment}`);
     },
@@ -55,12 +55,12 @@ export interface SubschemaOptions {
 /** 选项 at 指定的子 schema: 指针在文档中求值, schema 值原样使用(其中的引用在文档内解析); 未指定时为文档本身, 找不到时为 undefined. */
 export function subschemaAt(document: JsonSchema, at: JsonPointer | JsonSchema | undefined): JsonSchema | undefined {
   if (at === undefined) return document;
-  if (typeof at !== "string") return typeof at === "boolean" || isSchemaObject(at) ? at : undefined;
+  if (typeof at !== 'string') return typeof at === 'boolean' || isSchemaObject(at) ? at : undefined;
   const { found, value } = lookupPointer(document, at);
-  return found && (typeof value === "boolean" || isSchemaObject(value)) ? (value as JsonSchema) : undefined;
+  return found && (typeof value === 'boolean' || isSchemaObject(value)) ? (value as JsonSchema) : undefined;
 }
 
-const NON_SCHEMA_KEYWORDS = new Set(["const", "default", "enum", "examples", "x-ui", "errorMessage"]);
+const NON_SCHEMA_KEYWORDS = new Set(['const', 'default', 'enum', 'examples', 'x-ui', 'errorMessage']);
 
 interface IdentifierIndex {
   /** 资源的绝对 URI(不含片段) -> 资源根. */
@@ -82,8 +82,8 @@ function resolveUri(ref: string, base: string): { uri: string; fragment: string 
   } catch {
     return undefined;
   }
-  const hash = href.indexOf("#");
-  if (hash === -1) return { uri: href, fragment: "" };
+  const hash = href.indexOf('#');
+  if (hash === -1) return { uri: href, fragment: '' };
   try {
     return { uri: href.slice(0, hash), fragment: decodeURIComponent(href.slice(hash + 1)) };
   } catch {
@@ -92,17 +92,17 @@ function resolveUri(ref: string, base: string): { uri: string; fragment: string 
 }
 
 function collectIdentifiers(node: unknown, base: string, index: IdentifierIndex, seen: Set<object>): void {
-  if (typeof node !== "object" || node === null || seen.has(node)) return;
+  if (typeof node !== 'object' || node === null || seen.has(node)) return;
   seen.add(node);
   if (Array.isArray(node)) {
     for (const item of node) collectIdentifiers(item, base, index, seen);
     return;
   }
   const schema = node as JsonSchemaObject;
-  if (typeof schema.$id === "string") {
+  if (typeof schema.$id === 'string') {
     const id = resolveUri(schema.$id, base);
     if (id !== undefined) {
-      if (id.fragment === "" || id.fragment.startsWith("/")) {
+      if (id.fragment === '' || id.fragment.startsWith('/')) {
         base = id.uri;
         if (!index.resources.has(base)) index.resources.set(base, schema);
       } else {
@@ -113,8 +113,8 @@ function collectIdentifiers(node: unknown, base: string, index: IdentifierIndex,
     }
   }
   index.bases.set(schema, base);
-  if (typeof schema.$anchor === "string") index.anchors.set(`${base}#${schema.$anchor}`, schema);
-  if (typeof schema.$dynamicAnchor === "string") {
+  if (typeof schema.$anchor === 'string') index.anchors.set(`${base}#${schema.$anchor}`, schema);
+  if (typeof schema.$dynamicAnchor === 'string') {
     const key = `${base}#${schema.$dynamicAnchor}`;
     if (!index.anchors.has(key)) index.anchors.set(key, schema);
   }
@@ -137,12 +137,12 @@ export function expand(resolver: SchemaResolver, schema: JsonSchema | undefined)
   const visit = (node: JsonSchema | undefined): void => {
     if (!isSchemaObject(node) || nodes.includes(node)) return;
     nodes.push(node);
-    if (typeof node.$ref === "string") {
+    if (typeof node.$ref === 'string') {
       const target = resolver.resolveRef(node.$ref, node);
       if (target === undefined) unresolved.push(node.$ref);
       else visit(target);
     }
-    if (typeof node.$dynamicRef === "string") {
+    if (typeof node.$dynamicRef === 'string') {
       const target = resolver.resolveRef(node.$dynamicRef, node);
       if (target === undefined) unresolved.push(node.$dynamicRef);
       else visit(target);
@@ -154,7 +154,10 @@ export function expand(resolver: SchemaResolver, schema: JsonSchema | undefined)
 }
 
 /** 取展开后第一个出现的关键字值. */
-export function pick<K extends keyof JsonSchemaObject>(nodes: readonly JsonSchemaObject[], key: K): JsonSchemaObject[K] {
+export function pick<K extends keyof JsonSchemaObject>(
+  nodes: readonly JsonSchemaObject[],
+  key: K
+): JsonSchemaObject[K] {
   for (const node of nodes) if (node[key] !== undefined) return node[key];
   return undefined;
 }
@@ -165,19 +168,19 @@ export function hasOwn(node: JsonSchemaObject, key: string): boolean {
 
 /** 节点声明或可推断出的 JSON 类型; 无法推断时为空数组. */
 export function schemaTypes(nodes: readonly JsonSchemaObject[]): JsonSchemaType[] {
-  const declared = pick(nodes, "type");
+  const declared = pick(nodes, 'type');
   if (declared !== undefined) return Array.isArray(declared) ? declared : [declared];
   for (const node of nodes) {
-    if (hasOwn(node, "const")) return [jsonType(node.const)];
+    if (hasOwn(node, 'const')) return [jsonType(node.const)];
     if (Array.isArray(node.enum) && node.enum.length > 0) return [...new Set(node.enum.map(jsonType))];
   }
-  const has = (...keys: string[]): boolean => nodes.some((n) => keys.some((k) => n[k] !== undefined));
-  if (has("properties", "required", "additionalProperties", "patternProperties", "minProperties", "maxProperties")) {
-    return ["object"];
+  const has = (...keys: string[]): boolean => nodes.some(n => keys.some(k => n[k] !== undefined));
+  if (has('properties', 'required', 'additionalProperties', 'patternProperties', 'minProperties', 'maxProperties')) {
+    return ['object'];
   }
-  if (has("items", "prefixItems", "minItems", "maxItems", "uniqueItems", "contains")) return ["array"];
-  if (has("minLength", "maxLength", "pattern", "format")) return ["string"];
-  if (has("minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum", "multipleOf")) return ["number"];
+  if (has('items', 'prefixItems', 'minItems', 'maxItems', 'uniqueItems', 'contains')) return ['array'];
+  if (has('minLength', 'maxLength', 'pattern', 'format')) return ['string'];
+  if (has('minimum', 'maximum', 'exclusiveMinimum', 'exclusiveMaximum', 'multipleOf')) return ['number'];
   return [];
 }
 
@@ -185,7 +188,7 @@ export function schemaTypes(nodes: readonly JsonSchemaObject[]): JsonSchemaType[
 export function acceptsType(types: readonly JsonSchemaType[], value: unknown): boolean {
   if (types.length === 0) return true;
   const actual = jsonType(value);
-  return types.includes(actual) || (actual === "integer" && types.includes("number"));
+  return types.includes(actual) || (actual === 'integer' && types.includes('number'));
 }
 
 /** 对象节点上 key 对应的子 schema: properties, patternProperties, 否则 additionalProperties. */
@@ -222,7 +225,7 @@ export function itemSchemas(nodes: readonly JsonSchemaObject[], index: number): 
 
 export function safeRegExp(pattern: string): RegExp | undefined {
   try {
-    return new RegExp(pattern, "u");
+    return new RegExp(pattern, 'u');
   } catch {
     return undefined;
   }
@@ -230,15 +233,17 @@ export function safeRegExp(pattern: string): RegExp | undefined {
 
 /** 节点是否为带标签枚举: oneOf 的每个分支都只靠 const 区分. */
 export function isLabeledEnum(node: JsonSchemaObject): boolean {
-  return Array.isArray(node.oneOf) && node.oneOf.length > 0 && node.oneOf.every((b) => isSchemaObject(b) && hasOwn(b, "const"));
+  return (
+    Array.isArray(node.oneOf) && node.oneOf.length > 0 && node.oneOf.every(b => isSchemaObject(b) && hasOwn(b, 'const'))
+  );
 }
 
 /** 节点允许的离散值(const, enum 或带标签枚举); 不是离散值节点时为 undefined. */
 export function allowedValues(nodes: readonly JsonSchemaObject[]): unknown[] | undefined {
   for (const node of nodes) {
-    if (hasOwn(node, "const")) return [node.const];
+    if (hasOwn(node, 'const')) return [node.const];
     if (Array.isArray(node.enum)) return node.enum;
-    if (isLabeledEnum(node)) return node.oneOf!.map((b) => (b as JsonSchemaObject).const);
+    if (isLabeledEnum(node)) return node.oneOf!.map(b => (b as JsonSchemaObject).const);
   }
   return undefined;
 }

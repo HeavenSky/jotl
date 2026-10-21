@@ -1,15 +1,15 @@
 // Jotl v1 源码的抽象语法树类型(定稿 §3 §4 §7); 每个节点带源码位置.
-import type { SourceRange, SourceSpan } from "../schema/index.js";
+import type { SourceRange, SourceSpan } from '../schema/index.js';
 
 export interface Identifier {
-  kind: "Identifier";
+  kind: 'Identifier';
   name: string;
   span: SourceSpan;
 }
 
 /** 字符串字面量或元数据对象的键; raw 为源码原文(标识符键无引号). */
 export interface StringLiteral {
-  kind: "StringLiteral";
+  kind: 'StringLiteral';
   value: string;
   raw: string;
   span: SourceSpan;
@@ -17,13 +17,13 @@ export interface StringLiteral {
 
 /** `(` 到配对的 `)` 之间去掉转义与首尾空白后的文本; span 含两侧括号. */
 export interface Label {
-  kind: "Label";
+  kind: 'Label';
   text: string;
   span: SourceSpan;
 }
 
 export interface Comment {
-  kind: "LineComment" | "BlockComment";
+  kind: 'LineComment' | 'BlockComment';
   /** 含注释标记的原文. */
   text: string;
   range: SourceRange;
@@ -32,7 +32,7 @@ export interface Comment {
 export type LiteralScalar = string | number | boolean | null;
 
 export interface LiteralValue {
-  kind: "LiteralValue";
+  kind: 'LiteralValue';
   value: LiteralScalar;
   /** 源码原文, 例如 `'aA'` 或 `0x10`. */
   raw: string;
@@ -40,7 +40,7 @@ export interface LiteralValue {
 }
 
 export interface ArrayValue {
-  kind: "ArrayValue";
+  kind: 'ArrayValue';
   items: ValueNode[];
   span: SourceSpan;
 }
@@ -51,7 +51,7 @@ export interface ObjectValueMember {
 }
 
 export interface ObjectValue {
-  kind: "ObjectValue";
+  kind: 'ObjectValue';
   members: ObjectValueMember[];
   span: SourceSpan;
 }
@@ -61,8 +61,8 @@ export type ValueNode = LiteralValue | ArrayValue | ObjectValue;
 
 /** `<root/>` 或 `<default/>`. */
 export interface Marker {
-  kind: "Marker";
-  name: "root" | "default";
+  kind: 'Marker';
+  name: 'root' | 'default';
   span: SourceSpan;
 }
 
@@ -71,8 +71,8 @@ export interface Marker {
  * name 为作为字段键的取值(数字取原文); value 为作为枚举成员或分支值的取值(标识符 `true` `false` 为布尔, 数字为数值).
  */
 export interface Key {
-  kind: "Key";
-  form: "identifier" | "string" | "number" | "star";
+  kind: 'Key';
+  form: 'identifier' | 'string' | 'number' | 'star';
   name: string;
   value: LiteralScalar;
   raw: string;
@@ -81,14 +81,14 @@ export interface Key {
 
 /** `[...]`: 组件与体之间的元数据, 成员同 JSON5 对象. */
 export interface Meta {
-  kind: "Meta";
+  kind: 'Meta';
   members: ObjectValueMember[];
   span: SourceSpan;
 }
 
 /** `{...}`: 体的内容(字段, 枚举成员, 元组位置或 union 分支)由组件决定. */
 export interface Body {
-  kind: "Body";
+  kind: 'Body';
   entries: Entry[];
   span: SourceSpan;
 }
@@ -98,7 +98,7 @@ export interface Body {
  * 没有冒号时 component meta body 通常为空; 枚举成员可带 meta; 缺冒号的错误写法也会把内容放进来.
  */
 export interface Entry {
-  kind: "Entry";
+  kind: 'Entry';
   /** 只出现在顶层条目上. */
   markers: Marker[];
   key: Key;
@@ -115,7 +115,7 @@ export interface Entry {
 }
 
 export interface JotlFile {
-  kind: "File";
+  kind: 'File';
   file: string;
   /** 顶层条目, 按出现顺序. */
   entries: Entry[];

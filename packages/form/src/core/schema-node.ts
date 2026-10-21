@@ -1,5 +1,12 @@
 // schema 节点的引用解析与有效 schema: 沿 $ref 链取目标, 与引用处的同级关键字合并.
-import { isSchemaObject, lookupPointer, tryParsePointer, type JsonPointer, type JsonSchema, type JsonSchemaObject } from "@jotl/core";
+import {
+  isSchemaObject,
+  lookupPointer,
+  tryParsePointer,
+  type JsonPointer,
+  type JsonSchema,
+  type JsonSchemaObject,
+} from '@jotl/core';
 
 /** plan 中的一个 schema 位置; virtual 表示由上层节点拆分合成, pointer 与被拆分的节点相同. */
 export interface SchemaSite {
@@ -29,7 +36,7 @@ export interface ResolvedNode {
 
 /** 只解析文档内引用("#" 与 "#/..."); 其余形式与指向不存在的位置都返回 undefined. */
 export function resolveRefPointer(document: JsonSchema, ref: string): RefTarget | undefined {
-  if (!ref.startsWith("#")) return undefined;
+  if (!ref.startsWith('#')) return undefined;
   let pointer: string;
   try {
     pointer = decodeURIComponent(ref.slice(1));
@@ -49,7 +56,7 @@ export function resolveNode(document: JsonSchema, site: SchemaSite, depth = 0): 
   let unresolvedRef: string | undefined;
   let current = own;
   const seen = new Set<string>();
-  while (typeof current.$ref === "string") {
+  while (typeof current.$ref === 'string') {
     const ref = current.$ref;
     const target = seen.has(ref) ? undefined : resolveRefPointer(document, ref);
     if (target === undefined) {
@@ -66,7 +73,7 @@ export function resolveNode(document: JsonSchema, site: SchemaSite, depth = 0): 
   const origin = new Map<string, JsonPointer>();
   for (const layer of layers) {
     for (const [key, value] of Object.entries(layer.schema)) {
-      if (key === "$ref") continue;
+      if (key === '$ref') continue;
       effective[key] = value;
       origin.set(key, (layer.schema === own ? site.origin?.get(key) : undefined) ?? layer.pointer);
     }
@@ -80,7 +87,7 @@ export function resolveNode(document: JsonSchema, site: SchemaSite, depth = 0): 
 const MAX_ALL_OF_DEPTH = 8;
 
 /** 文档中一个 schema 的有效 schema; pointer 为它在文档中的位置, 作为其自身关键字的来源. */
-export function resolveSchema(document: JsonSchema, schema: JsonSchema, pointer: JsonPointer = ""): ResolvedNode {
+export function resolveSchema(document: JsonSchema, schema: JsonSchema, pointer: JsonPointer = ''): ResolvedNode {
   return resolveNode(document, { pointer, schema });
 }
 
@@ -89,14 +96,15 @@ const atCache = new WeakMap<object, Map<JsonPointer, ResolvedNode>>();
 /** 文档中指针处的有效 schema, 按文档与指针缓存; 指针不存在或指向的不是 schema 时为空 schema. */
 export function resolveSchemaAt(document: JsonSchema, pointer: JsonPointer): ResolvedNode {
   let cache: Map<JsonPointer, ResolvedNode> | undefined;
-  if (typeof document === "object") {
+  if (typeof document === 'object') {
     cache = atCache.get(document) ?? new Map();
     atCache.set(document, cache);
     const cached = cache.get(pointer);
     if (cached !== undefined) return cached;
   }
   const { found, value } = lookupPointer(document, pointer);
-  const schema: JsonSchema = found && (typeof value === "boolean" || isSchemaObject(value)) ? (value as JsonSchema) : {};
+  const schema: JsonSchema =
+    found && (typeof value === 'boolean' || isSchemaObject(value)) ? (value as JsonSchema) : {};
   const resolved = resolveNode(document, { pointer, schema });
   cache?.set(pointer, resolved);
   return resolved;
@@ -109,11 +117,13 @@ function mergeAllOf(document: JsonSchema, pointer: JsonPointer, effective: JsonS
   const own: JsonSchemaObject = { ...effective };
   delete own.allOf;
   for (const key of Object.keys(effective)) delete effective[key];
-  const parts = members.map((m) => resolveNode(document, { pointer, schema: m }, depth + 1).effective);
+  const parts = members.map(m => resolveNode(document, { pointer, schema: m }, depth + 1).effective);
   for (const part of [...parts, own]) {
     for (const [key, value] of Object.entries(part)) {
-      if (key === "properties" && isSchemaObject(value)) effective.properties = { ...(effective.properties ?? {}), ...(value as Record<string, JsonSchema>) };
-      else if (key === "required" && Array.isArray(value)) effective.required = [...new Set([...(effective.required ?? []), ...value])];
+      if (key === 'properties' && isSchemaObject(value))
+        effective.properties = { ...(effective.properties ?? {}), ...(value as Record<string, JsonSchema>) };
+      else if (key === 'required' && Array.isArray(value))
+        effective.required = [...new Set([...(effective.required ?? []), ...value])];
       else effective[key] = value;
     }
   }

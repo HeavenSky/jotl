@@ -10,7 +10,7 @@
   --pg-stale: #fff4d6;
   --pg-code-font: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --pg-line-height: 1.5;
-  font-family: system-ui, -apple-system, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
   color: #1f2328;
   background: var(--pg-surface);
 }
@@ -246,7 +246,7 @@ body {
   cursor: pointer;
 }
 
-.pg-tab[aria-selected="true"] {
+.pg-tab[aria-selected='true'] {
   border-color: var(--pg-border);
   border-bottom-color: var(--pg-surface);
   background: var(--pg-surface);
@@ -293,14 +293,29 @@ body {
 }
 
 /* 配色取自 VS Code Light+ */
-.pg-tok-key { color: #0451a5; }
-.pg-tok-string { color: #a31515; }
-.pg-tok-number { color: #098658; }
+.pg-tok-key {
+  color: #0451a5;
+}
+.pg-tok-string {
+  color: #a31515;
+}
+.pg-tok-number {
+  color: #098658;
+}
 .pg-tok-literal,
-.pg-tok-keyword { color: #0000ff; }
-.pg-tok-type { color: #267f99; }
-.pg-tok-comment { color: #008000; }
-.pg-tok-tag { color: #008000; font-weight: 600; }
+.pg-tok-keyword {
+  color: #0000ff;
+}
+.pg-tok-type {
+  color: #267f99;
+}
+.pg-tok-comment {
+  color: #008000;
+}
+.pg-tok-tag {
+  color: #008000;
+  font-weight: 600;
+}
 
 .pg-form-preview {
   display: grid;

@@ -9,14 +9,14 @@ The upgrade detects the input's version and rewrites it step by step to 2020-12.
 ## Upgrade one document
 
 ```ts
-import { upgradeSchema } from "@jotl/convert";
+import { upgradeSchema } from '@jotl/convert';
 
 const result = upgradeSchema({
-  $schema: "http://json-schema.org/draft-04/schema#",
-  id: "https://x.test/a.json",
-  type: "object",
-  properties: { n: { $ref: "#/definitions/n" } },
-  definitions: { n: { type: "number", minimum: 0, exclusiveMinimum: true } },
+  $schema: 'http://json-schema.org/draft-04/schema#',
+  id: 'https://x.test/a.json',
+  type: 'object',
+  properties: { n: { $ref: '#/definitions/n' } },
+  definitions: { n: { type: 'number', minimum: 0, exclusiveMinimum: true } },
 });
 // result.value.schema:
 // { $schema: "https://json-schema.org/draft/2020-12/schema", $id: "https://x.test/a.json", type: "object",
@@ -32,10 +32,10 @@ const result = upgradeSchema({
 For cross-file references use `upgradeDocuments`, and provide a callback that fetches a document by URI:
 
 ```ts
-import { upgradeDocuments } from "@jotl/convert";
+import { upgradeDocuments } from '@jotl/convert';
 
-const result = await upgradeDocuments("https://x.test/main.json", {
-  load: async (uri) => ({ value: await fetchJson(uri), diagnostics: [] }),
+const result = await upgradeDocuments('https://x.test/main.json', {
+  load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
 });
 // result.value.documents: keyed by document URI, in load order, the first being the entry; each document's version is detected from its own $schema
 ```
@@ -62,25 +62,25 @@ The `load` callback (`DocumentLoader`) receives an absolute URI without fragment
 
 ## API
 
-| Export | Purpose |
-|---|---|
-| `upgradeSchema(schema, options?)` | Upgrades a single document; returns `Result<UpgradedSchema>`: `{ schema, version, versionSource }` |
-| `upgradeDocuments(entry, options)` | Upgrades the entry and every document reachable through `$ref`; returns `Promise<Result<UpgradedDocuments>>`: `{ entry, documents }` |
-| `detectVersion(schema, options?)` | Only detects the version; returns `Result<VersionDetection>`: `{ version, source }` |
-| `DEFAULT_UPGRADE_OPTIONS` | Default option values |
-| `RECURSIVE_ANCHOR_NAME` | The `$dynamicAnchor` name that `$recursiveAnchor: true` is rewritten to |
-| `UPGRADE_DIAGNOSTICS`, `upgradeDiagnostic` | Code table and a helper that builds a diagnostic by code |
+| Export                                     | Purpose                                                                                                                              |
+| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ |
+| `upgradeSchema(schema, options?)`          | Upgrades a single document; returns `Result<UpgradedSchema>`: `{ schema, version, versionSource }`                                   |
+| `upgradeDocuments(entry, options)`         | Upgrades the entry and every document reachable through `$ref`; returns `Promise<Result<UpgradedDocuments>>`: `{ entry, documents }` |
+| `detectVersion(schema, options?)`          | Only detects the version; returns `Result<VersionDetection>`: `{ version, source }`                                                  |
+| `DEFAULT_UPGRADE_OPTIONS`                  | Default option values                                                                                                                |
+| `RECURSIVE_ANCHOR_NAME`                    | The `$dynamicAnchor` name that `$recursiveAnchor: true` is rewritten to                                                              |
+| `UPGRADE_DIAGNOSTICS`, `upgradeDiagnostic` | Code table and a helper that builds a diagnostic by code                                                                             |
 
 ## Set upgrade options
 
 `UpgradeOptions`:
 
-| Option | Default | Meaning |
-|---|---|---|
-| `version` | none | Version used when there is no recognizable `$schema`; usually needed for OpenAPI 3.0 / Swagger 2.0 Schema Objects |
-| `acceptNewerKeywords` | `true` | Newer keywords that do not exist in the declared version: `true` keeps them with 2020-12 semantics and reports `JOTL3201`; `false` removes them and reports `JOTL3202`. `$defs` is kept under both values, because it is only a container referenced by `$ref` |
-| `onConflict` | `"error"` | On old/new semantic conflicts (`JOTL33xx`): `"error"` reports an error and fails; `"preferDeclared"` follows the declared version; `"preferLatest"` follows 2020-12. The latter two report a warning and state the handling in `related` |
-| `uri` | none | Document URI: the base for resolving relative `$id` / `$ref`, also written into the `document` of diagnostic locations |
+| Option                | Default   | Meaning                                                                                                                                                                                                                                                        |
+| --------------------- | --------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`             | none      | Version used when there is no recognizable `$schema`; usually needed for OpenAPI 3.0 / Swagger 2.0 Schema Objects                                                                                                                                              |
+| `acceptNewerKeywords` | `true`    | Newer keywords that do not exist in the declared version: `true` keeps them with 2020-12 semantics and reports `JOTL3201`; `false` removes them and reports `JOTL3202`. `$defs` is kept under both values, because it is only a container referenced by `$ref` |
+| `onConflict`          | `"error"` | On old/new semantic conflicts (`JOTL33xx`): `"error"` reports an error and fails; `"preferDeclared"` follows the declared version; `"preferLatest"` follows 2020-12. The latter two report a warning and state the handling in `related`                       |
+| `uri`                 | none      | Document URI: the base for resolving relative `$id` / `$ref`, also written into the `document` of diagnostic locations                                                                                                                                         |
 
 Example: in draft-07, a `minLength` next to `$ref` is ignored, but in 2020-12 it takes effect. By default this reports a `JOTL3303` error; `preferDeclared` deletes `minLength`, and `preferLatest` keeps it.
 
@@ -90,13 +90,13 @@ Example: in draft-07, a `minLength` next to `$ref` is ignored, but in 2020-12 it
 
 Upgrade codes are `JOTL3xxx`; the code table is `UPGRADE_DIAGNOSTICS` in [`src/migrate/upgrade/diagnostics.ts`](../src/migrate/upgrade/diagnostics.ts). Locations are JSON Pointers (`location.kind === "pointer"`), with `document` set when several documents are involved.
 
-| Range | Meaning |
-|---|---|
-| `30xx` | Input and version detection |
-| `31xx` | Step-by-step rewrites, one info each |
+| Range  | Meaning                                                                              |
+| ------ | ------------------------------------------------------------------------------------ |
+| `30xx` | Input and version detection                                                          |
+| `31xx` | Step-by-step rewrites, one info each                                                 |
 | `32xx` | Lenient mode: newer keywords accepted or removed, legacy notation in newer documents |
-| `33xx` | Old/new semantic conflicts; severity follows `onConflict` |
-| `34xx` | Multi-document loading |
+| `33xx` | Old/new semantic conflicts; severity follows `onConflict`                            |
+| `34xx` | Multi-document loading                                                               |
 
 ## Known limitations
 

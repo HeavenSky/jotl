@@ -1,10 +1,10 @@
 // 表单实例上下文: 各节点共享的仓库, schema 文档, 注册表, 模式与回调; 以及订阅仓库的 hook.
-import { createContext, useContext, useLayoutEffect, useReducer, useRef } from "react";
-import type { Diagnostic, JsonPointer, JsonSchema, Locale } from "@jotl/core";
-import type { RenderMode } from "../core/index.js";
-import type { FormStore } from "./form-store.js";
-import type { SchemaInfo } from "./schema-access.js";
-import type { DegradeEvent, ReactAdapters, ReactRegistry } from "./types.js";
+import { createContext, useContext, useLayoutEffect, useReducer, useRef } from 'react';
+import type { Diagnostic, JsonPointer, JsonSchema, Locale } from '@jotl/core';
+import type { RenderMode } from '../core/index.js';
+import type { FormStore } from './form-store.js';
+import type { SchemaInfo } from './schema-access.js';
+import type { DegradeEvent, ReactAdapters, ReactRegistry } from './types.js';
 
 export interface FormContextValue {
   store: FormStore;
@@ -40,7 +40,7 @@ export const FormContext = createContext<FormContextValue | null>(null);
 
 export function useFormContext(): FormContextValue {
   const ctx = useContext(FormContext);
-  if (ctx === null) throw new Error("Jotl 节点必须渲染在 JotlForm 之内");
+  if (ctx === null) throw new Error('Jotl 节点必须渲染在 JotlForm 之内');
   return ctx;
 }
 

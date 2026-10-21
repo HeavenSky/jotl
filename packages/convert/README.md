@@ -11,21 +11,27 @@ This package is for teams that keep form or API contracts in JSON Schema and als
 Give `schemaToTs` a 2020-12 schema:
 
 ```ts
-import { schemaToTs } from "@jotl/convert";
+import { schemaToTs } from '@jotl/convert';
 
 const schema = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $ref: "#/$defs/User",
-  "x-ui": { version: 1 },
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $ref: '#/$defs/User',
+  'x-ui': { version: 1 },
   $defs: {
     User: {
-      type: "object",
+      type: 'object',
       properties: {
-        name: { title: "Name", type: "string", maxLength: 20 },
-        age: { type: "integer", minimum: 0 },
-        role: { type: "string", oneOf: [{ const: "admin", title: "Admin" }, { const: "guest", title: "Guest" }] },
+        name: { title: 'Name', type: 'string', maxLength: 20 },
+        age: { type: 'integer', minimum: 0 },
+        role: {
+          type: 'string',
+          oneOf: [
+            { const: 'admin', title: 'Admin' },
+            { const: 'guest', title: 'Guest' },
+          ],
+        },
       },
-      required: ["name"],
+      required: ['name'],
     },
   },
 };
@@ -52,7 +58,7 @@ export interface User {
   /**
    * @enumTitles `{"admin":"Admin","guest":"Guest"}`
    */
-  role?: "admin" | "guest";
+  role?: 'admin' | 'guest';
 }
 
 export default User;

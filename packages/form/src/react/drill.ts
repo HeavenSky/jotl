@@ -1,40 +1,62 @@
 // 钻取渲染(每层一页)的判定与导航: 组件种类, 哪些节点显示为入口行, 当前页路径的收敛, 错误所在页, 面包屑与摘要文字.
-import { escapePointerToken, formatPointer, isSchemaObject, lastPointerToken, tryParsePointer, type JsonPointer, type Locale } from "@jotl/core";
-import { BUILTIN_WIDGETS, isBuiltinWidget, resolvePlanNode, type RenderPlanNode, type WidgetLevel, type WidgetRegistration } from "../core/index.js";
-import { contentTarget, effectiveNode, nodeId, propertyNames, resolveChild, type NodeTarget } from "./child-resolver.js";
-import type { FormContextValue } from "./context.js";
-import { copyOf } from "./diagnostics.js";
-import type { HostKind } from "./hosts.js";
-import { DEGRADE_TARGETS, type ReactWidgetComponent } from "./types.js";
+import {
+  escapePointerToken,
+  formatPointer,
+  isSchemaObject,
+  lastPointerToken,
+  tryParsePointer,
+  type JsonPointer,
+  type Locale,
+} from '@jotl/core';
+import {
+  BUILTIN_WIDGETS,
+  isBuiltinWidget,
+  resolvePlanNode,
+  type RenderPlanNode,
+  type WidgetLevel,
+  type WidgetRegistration,
+} from '../core/index.js';
+import {
+  contentTarget,
+  effectiveNode,
+  nodeId,
+  propertyNames,
+  resolveChild,
+  type NodeTarget,
+} from './child-resolver.js';
+import type { FormContextValue } from './context.js';
+import { copyOf } from './diagnostics.js';
+import type { HostKind } from './hosts.js';
+import { DEGRADE_TARGETS, type ReactWidgetComponent } from './types.js';
 
 type Registration = WidgetRegistration<ReactWidgetComponent>;
 
 const STRUCTURE_KINDS: Readonly<Record<string, HostKind>> = {
-  page: "object",
-  inline: "object",
-  list: "array",
-  tuple: "tuple",
-  union: "union",
-  nullable: "nullable",
-  kv: "map",
-  tree: "tree",
+  page: 'object',
+  inline: 'object',
+  list: 'array',
+  tuple: 'tuple',
+  union: 'union',
+  nullable: 'nullable',
+  kv: 'map',
+  tree: 'tree',
 };
 
 export function levelOf(name: string, registration: Registration | undefined): WidgetLevel {
   if (registration !== undefined) return registration.level;
-  return isBuiltinWidget(name) ? BUILTIN_WIDGETS[name].level : "field";
+  return isBuiltinWidget(name) ? BUILTIN_WIDGETS[name].level : 'field';
 }
 
 export function hostKindOf(name: string, registration: Registration | undefined): HostKind {
-  if (name === DEGRADE_TARGETS.minimalJson) return "field";
+  if (name === DEGRADE_TARGETS.minimalJson) return 'field';
   const level = levelOf(name, registration);
-  if (level === "view") return "view";
-  if (level === "layout" || level === "composite") return STRUCTURE_KINDS[name] ?? "custom";
-  return "field";
+  if (level === 'view') return 'view';
+  if (level === 'layout' || level === 'composite') return STRUCTURE_KINDS[name] ?? 'custom';
+  return 'field';
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /**
@@ -43,16 +65,16 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  */
 export function isDrillKind(ctx: FormContextValue, kind: HostKind, widget: string, node: RenderPlanNode): boolean {
   switch (kind) {
-    case "object":
-      return widget !== "inline";
-    case "array":
-    case "map":
-    case "tree":
+    case 'object':
+      return widget !== 'inline';
+    case 'array':
+    case 'map':
+    case 'tree':
       return true;
-    case "union":
-      return node.children.some((child) => {
+    case 'union':
+      return node.children.some(child => {
         const c = effectiveNode(ctx, child);
-        return hostKindOf(c.widget, ctx.registry.get(c.widget)) === "object" && c.widget !== "inline";
+        return hostKindOf(c.widget, ctx.registry.get(c.widget)) === 'object' && c.widget !== 'inline';
       });
     default:
       return false;
@@ -63,7 +85,7 @@ export function isDrillKind(ctx: FormContextValue, kind: HostKind, widget: strin
 export function isDrillTarget(ctx: FormContextValue, target: NodeTarget): boolean {
   const node = effectiveNode(ctx, target.node);
   const kind = hostKindOf(node.widget, ctx.registry.get(node.widget));
-  if (kind === "nullable") {
+  if (kind === 'nullable') {
     const content = contentTarget(ctx, { ...target, node }, 0);
     return content !== undefined && isDrillTarget(ctx, content);
   }
@@ -78,7 +100,7 @@ const INDEX = /^(0|[1-9]\d*)$/;
  */
 export function clampPath(value: unknown, path: JsonPointer, isMapValue?: (path: JsonPointer) => boolean): JsonPointer {
   const tokens = tryParsePointer(path);
-  if (tokens === undefined) return "";
+  if (tokens === undefined) return '';
   let current = value;
   for (const [i, token] of tokens.entries()) {
     if (Array.isArray(current)) {
@@ -87,7 +109,8 @@ export function clampPath(value: unknown, path: JsonPointer, isMapValue?: (path:
     } else if (isPlainObject(current) && Object.hasOwn(current, token)) {
       current = current[token];
     } else {
-      if (isPlainObject(current) && isMapValue?.(formatPointer(tokens.slice(0, i + 1))) === true) return formatPointer(tokens.slice(0, i));
+      if (isPlainObject(current) && isMapValue?.(formatPointer(tokens.slice(0, i + 1))) === true)
+        return formatPointer(tokens.slice(0, i));
       current = undefined;
     }
   }
@@ -101,7 +124,7 @@ export function pageOfPointer(ctx: FormContextValue, root: NodeTarget, pointer: 
   let page = root.path;
   for (const [i, token] of tokens.entries()) {
     const node = effectiveNode(ctx, target.node);
-    if (levelOf(node.widget, ctx.registry.get(node.widget)) === "field") break;
+    if (levelOf(node.widget, ctx.registry.get(node.widget)) === 'field') break;
     target = resolveChild(ctx, target, escapePointerToken(token));
     if (i < tokens.length - 1 && isDrillTarget(ctx, target)) page = target.path;
   }
@@ -109,8 +132,8 @@ export function pageOfPointer(ctx: FormContextValue, root: NodeTarget, pointer: 
 }
 
 function display(value: unknown): string | undefined {
-  if (value === undefined || value === null || value === "") return undefined;
-  return typeof value === "string" ? value : JSON.stringify(value);
+  if (value === undefined || value === null || value === '') return undefined;
+  return typeof value === 'string' ? value : JSON.stringify(value);
 }
 
 /** 摘要: summary 指定的字段, 否则第一个非空字符串字段(先按 schema 的属性顺序, 再按数据的键顺序); 值不是对象时没有. */
@@ -120,7 +143,7 @@ export function summaryText(target: NodeTarget, value: unknown): string | undefi
   if (field !== undefined) return Object.hasOwn(value, field) ? display(value[field]) : undefined;
   for (const key of [...propertyNames(target.info.effective), ...Object.keys(value)]) {
     const v = Object.hasOwn(value, key) ? value[key] : undefined;
-    if (typeof v === "string" && v !== "") return v;
+    if (typeof v === 'string' && v !== '') return v;
   }
   return undefined;
 }
@@ -130,7 +153,7 @@ export function contentCount(value: unknown, locale: Locale): string {
   const COPY = copyOf(locale);
   if (Array.isArray(value)) return value.length === 0 ? COPY.empty : COPY.itemCount(value.length);
   if (isPlainObject(value)) {
-    const n = Object.values(value).filter((v) => v !== undefined).length;
+    const n = Object.values(value).filter(v => v !== undefined).length;
     return n === 0 ? COPY.empty : COPY.filledCount(n);
   }
   return value === undefined || value === null ? COPY.empty : COPY.enter;
@@ -148,8 +171,11 @@ export function crumbLabel(target: NodeTarget, value: unknown, locale: Locale): 
   const item = itemLabel(target, locale);
   if (item !== undefined) return summaryText(target, value) ?? item;
   if (target.element && target.labelKey !== undefined) return target.labelKey;
-  const title = isSchemaObject(target.info.effective) && typeof target.info.effective.title === "string" ? target.info.effective.title : undefined;
-  if (title !== undefined && title !== "") return title;
+  const title =
+    isSchemaObject(target.info.effective) && typeof target.info.effective.title === 'string'
+      ? target.info.effective.title
+      : undefined;
+  if (title !== undefined && title !== '') return title;
   return target.labelKey ?? copyOf(locale).rootLabel;
 }
 
@@ -176,8 +202,8 @@ export function dataRootTarget(ctx: FormContextValue, view: NodeTarget): NodeTar
   if (child === undefined) return undefined;
   return {
     node: child,
-    path: "",
-    id: nodeId(ctx.formId, ""),
+    path: '',
+    id: nodeId(ctx.formId, ''),
     info: resolvePlanNode(child, ctx.document),
     required: false,
     labelKey: undefined,

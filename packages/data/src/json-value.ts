@@ -1,18 +1,18 @@
 // JSON 值的类型判断, 深度相等与深拷贝.
-import type { JsonSchemaType } from "@jotl/core";
+import type { JsonSchemaType } from '@jotl/core';
 
 export function isPlainObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** 整数值记为 integer. */
 export function jsonType(value: unknown): JsonSchemaType {
-  if (value === null) return "null";
-  if (Array.isArray(value)) return "array";
-  if (typeof value === "number") return Number.isInteger(value) ? "integer" : "number";
-  if (typeof value === "string") return "string";
-  if (typeof value === "boolean") return "boolean";
-  return "object";
+  if (value === null) return 'null';
+  if (Array.isArray(value)) return 'array';
+  if (typeof value === 'number') return Number.isInteger(value) ? 'integer' : 'number';
+  if (typeof value === 'string') return 'string';
+  if (typeof value === 'boolean') return 'boolean';
+  return 'object';
 }
 
 /** 对象不比较键顺序. */
@@ -23,7 +23,7 @@ export function jsonEqual(a: unknown, b: unknown): boolean {
   }
   if (!isPlainObject(a) || !isPlainObject(b)) return false;
   const keys = Object.keys(a);
-  return keys.length === Object.keys(b).length && keys.every((k) => Object.hasOwn(b, k) && jsonEqual(a[k], b[k]));
+  return keys.length === Object.keys(b).length && keys.every(k => Object.hasOwn(b, k) && jsonEqual(a[k], b[k]));
 }
 
 /** 运行时不依赖 structuredClone(不在 ES2023 标准库中). */

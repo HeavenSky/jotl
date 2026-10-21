@@ -7,9 +7,9 @@ import {
   type SourceRange,
   formatMessage,
   parentPointer,
-} from "@jotl/core";
-import type { CliIo } from "./io.js";
-import { severityLabel, cliText } from "./messages.js";
+} from '@jotl/core';
+import type { CliIo } from './io.js';
+import { severityLabel, cliText } from './messages.js';
 
 /** 诊断所属的文件; sourceMap 存在时, 指向 schema 的指针诊断换算回源码位置. */
 export interface DiagnosticOrigin {
@@ -25,14 +25,14 @@ export class UsageError extends Error {
 
   constructor(diagnostic: Diagnostic, command: string | undefined) {
     super(diagnostic.message);
-    this.name = "UsageError";
+    this.name = 'UsageError';
     this.diagnostic = diagnostic;
     this.command = command;
   }
 }
 
 function rangeText(range: SourceRange, fallbackFile: string): string {
-  return `${range.file === "" ? fallbackFile : range.file}:${range.start.line}:${range.start.column}`;
+  return `${range.file === '' ? fallbackFile : range.file}:${range.start.line}:${range.start.column}`;
 }
 
 function mappedRange(pointer: JsonPointer, sourceMap: SourceMap): SourceRange | undefined {
@@ -47,7 +47,7 @@ function mappedRange(pointer: JsonPointer, sourceMap: SourceMap): SourceRange | 
 
 function locationText(location: DiagnosticLocation | undefined, origin: DiagnosticOrigin): string {
   if (location === undefined) return origin.file;
-  if (location.kind === "source") return rangeText(location.range, origin.file);
+  if (location.kind === 'source') return rangeText(location.range, origin.file);
   if (location.document === undefined && origin.sourceMap) {
     const range = mappedRange(location.pointer, origin.sourceMap);
     if (range) return rangeText(range, origin.file);
@@ -57,14 +57,16 @@ function locationText(location: DiagnosticLocation | undefined, origin: Diagnost
 
 /** 多行消息的后续行缩进两格, 保证每行开头的 `位置 代码` 只属于一条诊断. */
 function indentLines(message: string): string {
-  return message.replace(/\r?\n/g, "\n  ");
+  return message.replace(/\r?\n/g, '\n  ');
 }
 
 /** 一条诊断格式化为 `位置 代码 级别: 消息`, related 各占一行并缩进两格. */
 export function formatDiagnostic(diagnostic: Diagnostic, origin: DiagnosticOrigin): string {
   const head = `${locationText(diagnostic.location, origin)} ${diagnostic.code} ${severityLabel(diagnostic.severity)}: ${indentLines(diagnostic.message)}`;
-  const related = (diagnostic.related ?? []).map((r) => `\n  ${locationText(r.location, origin)} ${indentLines(r.message)}`);
-  return head + related.join("");
+  const related = (diagnostic.related ?? []).map(
+    r => `\n  ${locationText(r.location, origin)} ${indentLines(r.message)}`
+  );
+  return head + related.join('');
 }
 
 export interface Reporter {
@@ -77,8 +79,8 @@ export function createReporter(io: CliIo): Reporter {
   return {
     report(diagnostics, origin) {
       for (const d of diagnostics) {
-        if (d.severity === "error") errorCount += 1;
-        io.stderr(formatDiagnostic(d, origin) + "\n");
+        if (d.severity === 'error') errorCount += 1;
+        io.stderr(formatDiagnostic(d, origin) + '\n');
       }
     },
     get errorCount() {
@@ -89,7 +91,7 @@ export function createReporter(io: CliIo): Reporter {
 
 /** 取 fs 错误的 code 转成当前语言的原因; 不暴露底层错误消息中的绝对路径. */
 export function fsReason(error: unknown): string {
-  const code = typeof error === "object" && error !== null && "code" in error ? String(error.code) : "UNKNOWN";
+  const code = typeof error === 'object' && error !== null && 'code' in error ? String(error.code) : 'UNKNOWN';
   const t = cliText();
   return t.fsReasons[code] ?? formatMessage(t.fsUnknownReason, { code });
 }

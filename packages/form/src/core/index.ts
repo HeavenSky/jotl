@@ -29,7 +29,7 @@ export type {
   ViewProps,
   WidgetLevel,
   WidgetRegistration,
-} from "./contracts.js";
+} from './contracts.js';
 export {
   BUILTIN_WIDGETS,
   DECORATOR_WIDGET,
@@ -45,13 +45,13 @@ export {
   type BuiltinWidgetName,
   type EnumOption,
   type WidgetPriority,
-} from "./builtin-widgets.js";
-export { createRegistry } from "./registry.js";
-export { DEFAULT_MAX_DEPTH, expand, plan, resolvePlanNode } from "./plan.js";
-export { resolveSchema, resolveSchemaAt, type RefTarget, type ResolvedNode, type SchemaSite } from "./schema-node.js";
-export { evaluateCondition, jsonEqual } from "./condition.js";
-export { resolveXUi, type Degrade, type ResolvedXUi, type ResolveXUiOptions } from "./resolve.js";
-export type { MergedUi, WidgetCandidate } from "./x-ui-merge.js";
+} from './builtin-widgets.js';
+export { createRegistry } from './registry.js';
+export { DEFAULT_MAX_DEPTH, expand, plan, resolvePlanNode } from './plan.js';
+export { resolveSchema, resolveSchemaAt, type RefTarget, type ResolvedNode, type SchemaSite } from './schema-node.js';
+export { evaluateCondition, jsonEqual } from './condition.js';
+export { resolveXUi, type Degrade, type ResolvedXUi, type ResolveXUiOptions } from './resolve.js';
+export type { MergedUi, WidgetCandidate } from './x-ui-merge.js';
 export {
   JSON_TEXT_MEDIA_TYPE,
   RICH_TEXT_MEDIA_TYPE,
@@ -62,9 +62,17 @@ export {
   valueFormatOf,
   valueFormatWidget,
   type DecimalKind,
-} from "./schema-shape.js";
-export { EXACT_DECIMAL, formatThousands, fromBig, isDecimalValue, stripThousands, toBig, type DecimalValue } from "./decimal.js";
-export { checkXUi, type XUiIssue } from "./x-ui-check.js";
+} from './schema-shape.js';
+export {
+  EXACT_DECIMAL,
+  formatThousands,
+  fromBig,
+  isDecimalValue,
+  stripThousands,
+  toBig,
+  type DecimalValue,
+} from './decimal.js';
+export { checkXUi, type XUiIssue } from './x-ui-check.js';
 export {
   UI_CORE_DIAGNOSTICS,
   XUI_ISSUE_REASONS,
@@ -73,4 +81,4 @@ export {
   xuiIssueReason,
   type UiCoreDiagnosticCode,
   type XUiIssueKind,
-} from "./diagnostics.js";
+} from './diagnostics.js';

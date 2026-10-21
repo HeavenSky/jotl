@@ -9,21 +9,21 @@ Render a validated React form straight from a JSON Schema, with widgets and layo
 ## See what it renders
 
 ```tsx
-import { JotlForm, type JotlFormProps } from "@jotl/form";
-import "@jotl/form/style.css";
+import { JotlForm, type JotlFormProps } from '@jotl/form';
+import '@jotl/form/style.css';
 
-const schema: JotlFormProps["schema"] = {
-  type: "object",
+const schema: JotlFormProps['schema'] = {
+  type: 'object',
   properties: {
-    title: { type: "string", title: "Title", maxLength: 20 },
-    status: { enum: ["draft", "published"], title: "Status", "x-ui": { widget: "radio" } },
-    featured: { type: "boolean", title: "Featured", default: false },
+    title: { type: 'string', title: 'Title', maxLength: 20 },
+    status: { enum: ['draft', 'published'], title: 'Status', 'x-ui': { widget: 'radio' } },
+    featured: { type: 'boolean', title: 'Featured', default: false },
   },
-  required: ["title"],
+  required: ['title'],
 };
 
 export default function App() {
-  return <JotlForm schema={schema} locale="en" onSubmit={(value) => console.log(value)} />;
+  return <JotlForm schema={schema} locale="en" onSubmit={value => console.log(value)} />;
 }
 ```
 

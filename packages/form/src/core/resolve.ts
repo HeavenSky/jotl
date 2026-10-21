@@ -12,8 +12,8 @@ import {
   DEFAULT_SCENE,
   fail,
   ok,
-} from "@jotl/core";
-import { BUILTIN_WIDGETS, FALLBACK_WIDGET, isBuiltinWidget } from "./builtin-widgets.js";
+} from '@jotl/core';
+import { BUILTIN_WIDGETS, FALLBACK_WIDGET, isBuiltinWidget } from './builtin-widgets.js';
 import type {
   PlanDegradeReason,
   Registry,
@@ -22,10 +22,10 @@ import type {
   ResolveSource,
   WidgetLevel,
   WidgetRegistration,
-} from "./contracts.js";
-import { uiCoreDiagnostic, xuiIssueReason } from "./diagnostics.js";
-import { resolveNode, type ResolvedNode, type SchemaSite } from "./schema-node.js";
-import { acceptsShape, builtinWidgetOf, shapeOf, type Shape } from "./schema-shape.js";
+} from './contracts.js';
+import { uiCoreDiagnostic, xuiIssueReason } from './diagnostics.js';
+import { resolveNode, type ResolvedNode, type SchemaSite } from './schema-node.js';
+import { acceptsShape, builtinWidgetOf, shapeOf, type Shape } from './schema-shape.js';
 import {
   collectLayers,
   mergeLayers,
@@ -35,9 +35,9 @@ import {
   type MergedUi,
   type WidgetCandidate,
   type XUiProblem,
-} from "./x-ui-merge.js";
+} from './x-ui-merge.js';
 
-export const DEFAULT_MODE: RenderMode = "edit";
+export const DEFAULT_MODE: RenderMode = 'edit';
 
 export interface ResolveEnv {
   document: JsonSchema;
@@ -72,10 +72,15 @@ export interface NodeResolution extends Selection {
 
 /** 读取根 x-ui 的 rules; 根 x-ui 不合法时没有规则(F3 记在根节点上). */
 export function rootRules(document: JsonSchema): UiRule[] {
-  return readXUi(document, "", [])?.rules ?? [];
+  return readXUi(document, '', [])?.rules ?? [];
 }
 
-export function createEnv(document: JsonSchema, registry: Registry<unknown>, scene = DEFAULT_SCENE, mode = DEFAULT_MODE): ResolveEnv {
+export function createEnv(
+  document: JsonSchema,
+  registry: Registry<unknown>,
+  scene = DEFAULT_SCENE,
+  mode = DEFAULT_MODE
+): ResolveEnv {
   return { document, registry, rules: rootRules(document), scene, mode, diagnostics: [], reported: new Set() };
 }
 
@@ -86,8 +91,8 @@ function report(env: ResolveEnv, diagnostic: Diagnostic): void {
   env.diagnostics.push(diagnostic);
 }
 
-function at(pointer: JsonPointer): { location: { kind: "pointer"; pointer: JsonPointer } } {
-  return { location: { kind: "pointer", pointer } };
+function at(pointer: JsonPointer): { location: { kind: 'pointer'; pointer: JsonPointer } } {
+  return { location: { kind: 'pointer', pointer } };
 }
 
 /** 注册项的回调属于外部代码; 抛错时按给定的保守值处理, 不中断 plan(). */
@@ -101,7 +106,7 @@ function guarded<T>(call: () => T, onError: T): T {
 
 export function levelOf(name: string, registration: WidgetRegistration<unknown> | undefined): WidgetLevel {
   if (registration !== undefined) return registration.level;
-  return isBuiltinWidget(name) ? BUILTIN_WIDGETS[name].level : "field";
+  return isBuiltinWidget(name) ? BUILTIN_WIDGETS[name].level : 'field';
 }
 
 function matcherCandidates(env: ResolveEnv, schema: JsonSchemaObject, ctx: ResolveContext): WidgetCandidate[] {
@@ -110,9 +115,9 @@ function matcherCandidates(env: ResolveEnv, schema: JsonSchemaObject, ctx: Resol
     const match = registration.match;
     if (match === undefined) continue;
     const score = guarded(() => match(schema, ctx), 0);
-    if (typeof score === "number" && score > 0) scored.push({ name: registration.name, score });
+    if (typeof score === 'number' && score > 0) scored.push({ name: registration.name, score });
   }
-  return scored.sort((a, b) => b.score - a.score).map(({ name }) => ({ name, source: "matcher" }));
+  return scored.sort((a, b) => b.score - a.score).map(({ name }) => ({ name, source: 'matcher' }));
 }
 
 /**
@@ -125,49 +130,68 @@ export function selectWidget(
   schema: JsonSchemaObject,
   pointer: JsonPointer,
   silent = false,
-  shape?: Shape,
+  shape?: Shape
 ): Selection {
   const list: WidgetCandidate[] = [];
-  for (const c of [...candidates, { name: FALLBACK_WIDGET, source: "fallback" as const }]) {
-    if (!list.some((seen) => seen.name === c.name)) list.push(c);
+  for (const c of [...candidates, { name: FALLBACK_WIDGET, source: 'fallback' as const }]) {
+    if (!list.some(seen => seen.name === c.name)) list.push(c);
   }
-  const usable = list.map((c) => {
+  const usable = list.map(c => {
     if (c.name === FALLBACK_WIDGET) return { registration: env.registry.get(c.name), reason: undefined };
     const registration = env.registry.get(c.name);
-    if (registration === undefined) return { registration, reason: "F1" as const };
-    if (shape !== undefined && acceptsShape(c.name, shape, schema) === false) return { registration, reason: "F2" as const };
+    if (registration === undefined) return { registration, reason: 'F1' as const };
+    if (shape !== undefined && acceptsShape(c.name, shape, schema) === false)
+      return { registration, reason: 'F2' as const };
     const accepts = registration.accepts;
-    if (accepts !== undefined && !guarded(() => accepts(schema), false)) return { registration, reason: "F2" as const };
+    if (accepts !== undefined && !guarded(() => accepts(schema), false)) return { registration, reason: 'F2' as const };
     return { registration, reason: undefined };
   });
-  const index = usable.findIndex((u) => u.reason === undefined);
+  const index = usable.findIndex(u => u.reason === undefined);
   const degraded: Degrade[] = [];
   for (let i = 0; i < index; i++) {
     const reason = usable[i]!.reason!;
     const from = list[i]!.name;
     degraded.push({ reason, from });
-    if (!silent) report(env, uiCoreDiagnostic(reason === "F1" ? "JOTL5001" : "JOTL5002", { widget: from }, at(pointer)));
+    if (!silent)
+      report(env, uiCoreDiagnostic(reason === 'F1' ? 'JOTL5001' : 'JOTL5002', { widget: from }, at(pointer)));
   }
   const chosen = list[index]!;
   const registration = usable[index]!.registration;
-  const fallbackChain = chosen.name === FALLBACK_WIDGET ? [] : list.slice(index + 1).filter((_, i) => usable[index + 1 + i]!.reason === undefined).map((c) => c.name);
-  return { widget: chosen.name, source: chosen.source, level: levelOf(chosen.name, registration), registration, fallbackChain, degraded };
+  const fallbackChain =
+    chosen.name === FALLBACK_WIDGET
+      ? []
+      : list
+          .slice(index + 1)
+          .filter((_, i) => usable[index + 1 + i]!.reason === undefined)
+          .map(c => c.name);
+  return {
+    widget: chosen.name,
+    source: chosen.source,
+    level: levelOf(chosen.name, registration),
+    registration,
+    fallbackChain,
+    degraded,
+  };
 }
 
 function reportProblems(env: ResolveEnv, problems: readonly XUiProblem[], silent: boolean): Degrade[] {
-  return problems.map((problem) => {
+  return problems.map(problem => {
     if (!silent) {
       const params = { path: `x-ui${problem.issue.path}`, reason: xuiIssueReason(problem.issue.kind) };
-      report(env, uiCoreDiagnostic("JOTL5003", params, at(problem.pointer)));
+      report(env, uiCoreDiagnostic('JOTL5003', params, at(problem.pointer)));
     }
-    return { reason: "F3" };
+    return { reason: 'F3' };
   });
 }
 
 /** 可空节点上不接受可空形态的内置组件名是给内容用的(见 splitBranch), 不作为可空节点自身的候选, 也不记 F2. */
-function contentAware(shape: Shape, schema: JsonSchemaObject, candidates: readonly WidgetCandidate[]): WidgetCandidate[] {
-  if (shape.kind !== "nullable") return [...candidates];
-  return candidates.filter((c) => acceptsShape(c.name, shape, schema) !== false);
+function contentAware(
+  shape: Shape,
+  schema: JsonSchemaObject,
+  candidates: readonly WidgetCandidate[]
+): WidgetCandidate[] {
+  if (shape.kind !== 'nullable') return [...candidates];
+  return candidates.filter(c => acceptsShape(c.name, shape, schema) !== false);
 }
 
 export interface ResolveSiteOptions {
@@ -186,42 +210,72 @@ export function resolveSite(env: ResolveEnv, site: SchemaSite, options: ResolveS
   const degradedF3 = reportProblems(env, layers.problems, silent);
   const schema = node.effective;
 
-  if (shape.kind === "unsupported" || shape.kind === "unresolved") {
+  if (shape.kind === 'unsupported' || shape.kind === 'unresolved') {
     if (!silent) {
-      const diagnostic = shape.kind === "unsupported"
-        ? uiCoreDiagnostic("JOTL5004", { feature: shape.feature }, at(site.pointer))
-        : uiCoreDiagnostic("JOTL5005", { ref: shape.ref }, at(site.pointer));
+      const diagnostic =
+        shape.kind === 'unsupported'
+          ? uiCoreDiagnostic('JOTL5004', { feature: shape.feature }, at(site.pointer))
+          : uiCoreDiagnostic('JOTL5005', { ref: shape.ref }, at(site.pointer));
       report(env, diagnostic);
     }
     const { ui, candidates } = mergeLayers(layers, []);
     const registration = env.registry.get(FALLBACK_WIDGET);
     return {
-      node, shape, ui, uiCandidates: candidates, matchedRules: [],
-      widget: FALLBACK_WIDGET, source: "fallback", level: levelOf(FALLBACK_WIDGET, registration), registration,
-      fallbackChain: [], degraded: [...degradedF3, { reason: "F7" }],
+      node,
+      shape,
+      ui,
+      uiCandidates: candidates,
+      matchedRules: [],
+      widget: FALLBACK_WIDGET,
+      source: 'fallback',
+      level: levelOf(FALLBACK_WIDGET, registration),
+      registration,
+      fallbackChain: [],
+      degraded: [...degradedF3, { reason: 'F7' }],
     };
   }
 
   // 内置规则落到 json 时不单列候选, 让它以兜底(fallback)身份出现在列表末尾.
-  const builtinName = recursive ? "tree" : builtinWidgetOf(shape);
-  const builtin: WidgetCandidate[] = builtinName === FALLBACK_WIDGET ? [] : [{ name: builtinName, source: "builtin" }];
+  const builtinName = recursive ? 'tree' : builtinWidgetOf(shape);
+  const builtin: WidgetCandidate[] = builtinName === FALLBACK_WIDGET ? [] : [{ name: builtinName, source: 'builtin' }];
   const matchers = matcherCandidates(env, schema, ctx);
-  let preRuleWidget = "";
+  let preRuleWidget = '';
   if (rulesUsingWidget(env.rules)) {
     const pre = mergeLayers(layers, []);
-    preRuleWidget = selectWidget(env, [...contentAware(shape, schema, pre.candidates), ...matchers, ...builtin], schema, site.pointer, true, shape).widget;
+    preRuleWidget = selectWidget(
+      env,
+      [...contentAware(shape, schema, pre.candidates), ...matchers, ...builtin],
+      schema,
+      site.pointer,
+      true,
+      shape
+    ).widget;
   }
   const subject = { pointer: site.pointer, schema, virtual: site.virtual === true, widget: preRuleWidget };
   const matchedRules: number[] = [];
   env.rules.forEach((rule, i) => {
     if (ruleMatches(rule.match, subject)) matchedRules.push(i);
   });
-  const merged = mergeLayers(layers, matchedRules.map((i) => env.rules[i]!));
-  const selection = selectWidget(env, [...contentAware(shape, schema, merged.candidates), ...matchers, ...builtin], schema, site.pointer, silent, shape);
+  const merged = mergeLayers(
+    layers,
+    matchedRules.map(i => env.rules[i]!)
+  );
+  const selection = selectWidget(
+    env,
+    [...contentAware(shape, schema, merged.candidates), ...matchers, ...builtin],
+    schema,
+    site.pointer,
+    silent,
+    shape
+  );
   return {
     ...selection,
     degraded: [...degradedF3, ...selection.degraded],
-    node, shape, ui: merged.ui, uiCandidates: merged.candidates, matchedRules,
+    node,
+    shape,
+    ui: merged.ui,
+    uiCandidates: merged.candidates,
+    matchedRules,
   };
 }
 
@@ -249,21 +303,29 @@ export interface ResolveXUiOptions {
 /** 所有名字都视为已注册且接受任意形态的注册表, 用于未传注册表时的查询. */
 const PERMISSIVE_REGISTRY: Registry<unknown> = {
   register() {},
-  get: (name) => ({ name, level: levelOf(name, undefined), component: undefined }),
+  get: name => ({ name, level: levelOf(name, undefined), component: undefined }),
   extend: () => PERMISSIVE_REGISTRY,
   list: () => [],
 };
 
 /** 解析 schema 文档中某个位置的有效 x-ui; schemaPointer 指向引用处时, 引用处与被引用类型的 x-ui 都参与合并. */
-export function resolveXUi(schema: JsonSchema, schemaPointer: JsonPointer = "", options: ResolveXUiOptions = {}): Result<ResolvedXUi> {
-  if (typeof schema !== "boolean" && !isSchemaObject(schema)) return fail([uiCoreDiagnostic("JOTL5101")]);
+export function resolveXUi(
+  schema: JsonSchema,
+  schemaPointer: JsonPointer = '',
+  options: ResolveXUiOptions = {}
+): Result<ResolvedXUi> {
+  if (typeof schema !== 'boolean' && !isSchemaObject(schema)) return fail([uiCoreDiagnostic('JOTL5101')]);
   const found = tryParsePointer(schemaPointer) === undefined ? undefined : lookupPointer(schema, schemaPointer);
-  if (found === undefined || !found.found || (typeof found.value !== "boolean" && !isSchemaObject(found.value))) {
-    return fail([uiCoreDiagnostic("JOTL5102", { pointer: schemaPointer })]);
+  if (found === undefined || !found.found || (typeof found.value !== 'boolean' && !isSchemaObject(found.value))) {
+    return fail([uiCoreDiagnostic('JOTL5102', { pointer: schemaPointer })]);
   }
   const env = createEnv(schema, options.registry ?? PERMISSIVE_REGISTRY, options.scene, options.mode);
-  const ctx: ResolveContext = { scene: env.scene, mode: env.mode, schemaPointer, dataPath: "", depth: 0 };
-  const resolution = resolveSite(env, { pointer: schemaPointer, schema: found.value as JsonSchema }, { ctx, recursive: false });
+  const ctx: ResolveContext = { scene: env.scene, mode: env.mode, schemaPointer, dataPath: '', depth: 0 };
+  const resolution = resolveSite(
+    env,
+    { pointer: schemaPointer, schema: found.value as JsonSchema },
+    { ctx, recursive: false }
+  );
   return ok(
     {
       ui: resolution.ui,
@@ -274,6 +336,6 @@ export function resolveXUi(schema: JsonSchema, schemaPointer: JsonPointer = "", 
       fallbackChain: resolution.fallbackChain,
       degraded: resolution.degraded,
     },
-    env.diagnostics,
+    env.diagnostics
   );
 }

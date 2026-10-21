@@ -7,31 +7,31 @@
 ## 选择策略
 
 ```js
-import { getDefaults } from "@jotl/data";
+import { getDefaults } from '@jotl/data';
 
 const schema = {
-  type: "object",
+  type: 'object',
   properties: {
-    title: { type: "string", maxLength: 5, default: "Home" },
-    count: { type: "integer", minimum: 1 },
-    color: { type: "string", format: "color" },
-    tags: { type: "array", minItems: 1, items: { type: "string" } },
+    title: { type: 'string', maxLength: 5, default: 'Home' },
+    count: { type: 'integer', minimum: 1 },
+    color: { type: 'string', format: 'color' },
+    tags: { type: 'array', minItems: 1, items: { type: 'string' } },
   },
-  required: ["title", "count"],
+  required: ['title', 'count'],
 };
 
 getDefaults(schema).value; // { title: "Home" }
-getDefaults(schema, { strategy: "required" }).value; // { title: "Home", count: 1 }
-getDefaults(schema, { strategy: "all" }).value; // { title: "Home", count: 1, color: "", tags: [""] }
+getDefaults(schema, { strategy: 'required' }).value; // { title: "Home", count: 1 }
+getDefaults(schema, { strategy: 'all' }).value; // { title: "Home", count: 1, color: "", tags: [""] }
 ```
 
 节点自身有 `default`，或经 `$ref`、`allOf` 合并的节点有 `default` 时，一律取它的拷贝。没有时按策略：
 
-| 节点 | `explicit`（默认） | `required` | `all` |
-|---|---|---|---|
-| 对象 | 只含能产出值的属性；一个都没有时，根为 `{}`，其他对象省略 | 必填属性递归产出，可选属性只取显式默认值。可选对象因子字段有默认值而出现时，它的必填字段也补上。至少为 `{}` | 全部属性递归产出 |
-| 数组 | 省略，即使元素有默认值 | 必填时生成 `minItems` 个元素，元素无值时用零值 | 同 `required`，可选数组也生成 |
-| 标量 | 省略 | 必填时用零值 | 用零值 |
+| 节点 | `explicit`（默认）                                        | `required`                                                                                                  | `all`                         |
+| ---- | --------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------- | ----------------------------- |
+| 对象 | 只含能产出值的属性；一个都没有时，根为 `{}`，其他对象省略 | 必填属性递归产出，可选属性只取显式默认值。可选对象因子字段有默认值而出现时，它的必填字段也补上。至少为 `{}` | 全部属性递归产出              |
+| 数组 | 省略，即使元素有默认值                                    | 必填时生成 `minItems` 个元素，元素无值时用零值                                                              | 同 `required`，可选数组也生成 |
+| 标量 | 省略                                                      | 必填时用零值                                                                                                | 用零值                        |
 
 ## 设置其他选项
 
@@ -61,11 +61,11 @@ getDefaults(schema, { strategy: "all" }).value; // { title: "Home", count: 1, co
 `fillDefaults(schema, data, opts?)` 接受除 `at` 以外与 `getDefaults` 相同的选项，不覆盖任何已有值。
 
 ```js
-import { fillDefaults } from "@jotl/data";
+import { fillDefaults } from '@jotl/data';
 
 const schema = {
-  type: "object",
-  properties: { title: { type: "string", default: "Home" }, count: { type: "integer" } },
+  type: 'object',
+  properties: { title: { type: 'string', default: 'Home' }, count: { type: 'integer' } },
 };
 fillDefaults(schema, { count: 2 }).value; // { data: { count: 2, title: "Home" }, filled: ["/title"] }
 ```

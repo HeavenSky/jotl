@@ -8,11 +8,11 @@
 
 **退出码决定任务该不该失败**：警告与提示从不影响它。
 
-| 退出码 | 含义 |
-|---|---|
-| `0` | 成功；仍可能输出警告与提示 |
-| `1` | 至少有一条错误级诊断，含文件读写失败与内部错误（`JOTL9099`） |
-| `2` | 用法错误：未知命令或选项、缺少或非法的取值、互斥的选项 |
+| 退出码 | 含义                                                         |
+| ------ | ------------------------------------------------------------ |
+| `0`    | 成功；仍可能输出警告与提示                                   |
+| `1`    | 至少有一条错误级诊断，含文件读写失败与内部错误（`JOTL9099`） |
+| `2`    | 用法错误：未知命令或选项、缺少或非法的取值、互斥的选项       |
 
 典型的 CI 步骤是检查全部 schema 并校验样例数据：
 
@@ -43,14 +43,14 @@ jotl JOTL9006 错误: 缺少参数 <file.jotl>
 
 代码说明问题出在哪个环节：
 
-| 代码 | 来源 |
-|---|---|
-| `JOTL9001`-`JOTL9017` | 命令行用法错误（退出码 `2`） |
-| `JOTL9050`-`JOTL9056` | 读取文件与输入：文件读写失败、JSON 不合法、schema 版本回落、没有默认数据、迁移输入的判定、`jotl.config.json` 不合法 |
-| `JOTL9099` | `jotl` 内部错误；下一行请你报告问题 |
-| `JOTL0xxx`、`JOTL1xxx` | `@jotl/core`：JSON Pointer 与 Jotl 编译 |
-| `JOTL2xxx`、`JOTL3xxx`、`JOTL8xxx` | `@jotl/convert`：TS 转换、JSON Schema 升级、凤蝶迁移 |
-| `JOTL4xxx` | `@jotl/data`：校验与默认数据 |
+| 代码                               | 来源                                                                                                                |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
+| `JOTL9001`-`JOTL9017`              | 命令行用法错误（退出码 `2`）                                                                                        |
+| `JOTL9050`-`JOTL9056`              | 读取文件与输入：文件读写失败、JSON 不合法、schema 版本回落、没有默认数据、迁移输入的判定、`jotl.config.json` 不合法 |
+| `JOTL9099`                         | `jotl` 内部错误；下一行请你报告问题                                                                                 |
+| `JOTL0xxx`、`JOTL1xxx`             | `@jotl/core`：JSON Pointer 与 Jotl 编译                                                                             |
+| `JOTL2xxx`、`JOTL3xxx`、`JOTL8xxx` | `@jotl/convert`：TS 转换、JSON Schema 升级、凤蝶迁移                                                                |
+| `JOTL4xxx`                         | `@jotl/data`：校验与默认数据                                                                                        |
 
 命令行自身的代码表以 `CLI_DIAGNOSTICS` 导出。
 
@@ -71,9 +71,9 @@ JOTL_LANG=en jotl validate form.schema.json data.json
 `run(argv, io, options?)` 执行一次调用并返回退出码，不调用 `process.exit`。`createNodeIo()` 返回基于 Node 进程与文件系统的实现。
 
 ```ts
-import { createNodeIo, run } from "@jotl/cli";
+import { createNodeIo, run } from '@jotl/cli';
 
-process.exitCode = run(["check", "home.jotl"], createNodeIo(), { env: process.env });
+process.exitCode = run(['check', 'home.jotl'], createNodeIo(), { env: process.env });
 ```
 
 - 输出语言先取 `argv` 中的 `--lang`，再取 `options.env`（解析规则同[选择输出语言](#选择输出语言)，另导出 `localeFromEnv(env)`）。不给 `env` 时沿用 `@jotl/core` 当前的全局语言。`run` 在调用期间写入全局语言，结束后恢复为调用前的值。

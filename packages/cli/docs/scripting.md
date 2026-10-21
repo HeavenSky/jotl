@@ -8,11 +8,11 @@ After reading this page you can gate a CI job on `jotl`, parse its diagnostics l
 
 **The exit code tells you whether a job should fail:** warnings and info never change it.
 
-| Exit code | Meaning |
-|---|---|
-| `0` | Success; warnings and info may still be printed |
-| `1` | At least one error-level diagnostic, including file read or write failures and internal errors (`JOTL9099`) |
-| `2` | Usage error: unknown command or option, missing or invalid value, conflicting options |
+| Exit code | Meaning                                                                                                     |
+| --------- | ----------------------------------------------------------------------------------------------------------- |
+| `0`       | Success; warnings and info may still be printed                                                             |
+| `1`       | At least one error-level diagnostic, including file read or write failures and internal errors (`JOTL9099`) |
+| `2`       | Usage error: unknown command or option, missing or invalid value, conflicting options                       |
 
 A typical CI step checks every schema and validates sample data:
 
@@ -43,14 +43,14 @@ Run `jotl compile --help` for usage
 
 Codes tell you which stage reported the problem:
 
-| Codes | Source |
-|---|---|
-| `JOTL9001`-`JOTL9017` | Command-line usage errors (exit code `2`) |
-| `JOTL9050`-`JOTL9056` | Reading files and inputs: unreadable or unwritable files, invalid JSON, schema version fallback, empty defaults, migration input kind, invalid `jotl.config.json` |
-| `JOTL9099` | Internal error in `jotl`; the next line asks you to report it |
-| `JOTL0xxx`, `JOTL1xxx` | `@jotl/core`: JSON Pointers and Jotl compilation |
-| `JOTL2xxx`, `JOTL3xxx`, `JOTL8xxx` | `@jotl/convert`: TS conversion, JSON Schema upgrade, Fengdie migration |
-| `JOTL4xxx` | `@jotl/data`: validation and default data |
+| Codes                              | Source                                                                                                                                                            |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `JOTL9001`-`JOTL9017`              | Command-line usage errors (exit code `2`)                                                                                                                         |
+| `JOTL9050`-`JOTL9056`              | Reading files and inputs: unreadable or unwritable files, invalid JSON, schema version fallback, empty defaults, migration input kind, invalid `jotl.config.json` |
+| `JOTL9099`                         | Internal error in `jotl`; the next line asks you to report it                                                                                                     |
+| `JOTL0xxx`, `JOTL1xxx`             | `@jotl/core`: JSON Pointers and Jotl compilation                                                                                                                  |
+| `JOTL2xxx`, `JOTL3xxx`, `JOTL8xxx` | `@jotl/convert`: TS conversion, JSON Schema upgrade, Fengdie migration                                                                                            |
+| `JOTL4xxx`                         | `@jotl/data`: validation and default data                                                                                                                         |
 
 The command line's own table is exported as `CLI_DIAGNOSTICS`.
 
@@ -71,9 +71,9 @@ JOTL_LANG=en jotl validate form.schema.json data.json
 `run(argv, io, options?)` performs one invocation and returns the exit code; it never calls `process.exit`. `createNodeIo()` gives the implementation backed by the Node process and file system.
 
 ```ts
-import { createNodeIo, run } from "@jotl/cli";
+import { createNodeIo, run } from '@jotl/cli';
 
-process.exitCode = run(["check", "home.jotl"], createNodeIo(), { env: process.env });
+process.exitCode = run(['check', 'home.jotl'], createNodeIo(), { env: process.env });
 ```
 
 - The output language comes from `--lang` in `argv`, then from `options.env` (resolved as in [Choose the output language](#choose-the-output-language); `localeFromEnv(env)` is exported). Without `env`, the current global language of `@jotl/core` is used. `run` sets the global language for the call and restores the previous value afterwards.

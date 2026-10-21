@@ -9,7 +9,7 @@
 `startServer()` 创建连接、注册全部处理函数并开始监听。它按进程参数 `--node-ipc`、`--stdio` 或 `--socket` 选择传输方式，返回该连接。
 
 ```js
-import { startServer } from "@jotl/language-server";
+import { startServer } from '@jotl/language-server';
 
 startServer();
 ```
@@ -20,12 +20,12 @@ startServer();
 
 `initialize` 的响应声明以下能力，`serverInfo.name` 为 `jotl-language-server`：
 
-| 能力 | 取值 |
-|---|---|
-| `textDocumentSync` | `openClose: true`，增量同步 |
-| `completionProvider` | 触发字符 `:` `[` `,` `'` `"` `<` `\|`（`COMPLETION_TRIGGER_CHARACTERS`） |
-| `codeActionProvider` | 类型 `quickfix` |
-| `hoverProvider`、`definitionProvider`、`referencesProvider`、`documentSymbolProvider` | `true` |
+| 能力                                                                                  | 取值                                                                     |
+| ------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| `textDocumentSync`                                                                    | `openClose: true`，增量同步                                              |
+| `completionProvider`                                                                  | 触发字符 `:` `[` `,` `'` `"` `<` `\|`（`COMPLETION_TRIGGER_CHARACTERS`） |
+| `codeActionProvider`                                                                  | 类型 `quickfix`                                                          |
+| `hoverProvider`、`definitionProvider`、`referencesProvider`、`documentSymbolProvider` | `true`                                                                   |
 
 另有两条自定义消息：请求 `jotl/preview` 与通知 `jotl/configChanged`，见[展示预览](#展示预览)。
 
@@ -35,10 +35,10 @@ startServer();
 
 在 `initializationOptions` 中传入以下字段，不合法的值被忽略。
 
-| 字段 | 类型 | 含义 |
-|---|---|---|
+| 字段                | 类型       | 含义                                                                                                                                                                     |
+| ------------------- | ---------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `registeredWidgets` | `string[]` | 项目自行登记的 widget 名。空串与非字符串被丢弃，重复项去重。大驼峰名同时作为扩展组件编译，底层类型为 `{ "type": "string" }`，`jotl.config.json` 给出其他类型时以配置为准 |
-| `locale` | `string` | 诊断、悬停、补全说明与预览文字的语言标签 |
+| `locale`            | `string`   | 诊断、悬停、补全说明与预览文字的语言标签                                                                                                                                 |
 
 语言依次取 `initializationOptions.locale`、`initialize` 参数中的 `locale`，都没有时为 `en`。以 `zh` 开头的标签为中文，其余为英文。该设置作用于整个进程：它设置的是 `@jotl/core` 的全局语言。
 
@@ -68,12 +68,12 @@ startServer();
 
 发送请求 `jotl/preview`（`PREVIEW_REQUEST_METHOD`），参数为 `{ textDocument: { uri } }`。服务端返回 `PreviewContent`；文档未打开时返回 `null`。
 
-| 字段 | 内容 |
-|---|---|
-| `schema` | 编译出的 JSON Schema，两空格缩进的 JSON 文本；有错误级诊断时为 `undefined` |
-| `typescript` | TS 声明；编译或转换失败时为 `undefined` |
-| `diagnostics` | 编译诊断与 widget 未注册警告，行列从 1 起 |
-| `typescriptDiagnostics` | TS 转换诊断，已换算回源码位置；换算不到时只有 `pointer` |
+| 字段                    | 内容                                                                                                      |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- |
+| `schema`                | 编译出的 JSON Schema，两空格缩进的 JSON 文本；有错误级诊断时为 `undefined`                                |
+| `typescript`            | TS 声明；编译或转换失败时为 `undefined`                                                                   |
+| `diagnostics`           | 编译诊断与 widget 未注册警告，行列从 1 起                                                                 |
+| `typescriptDiagnostics` | TS 转换诊断，已换算回源码位置；换算不到时只有 `pointer`                                                   |
 | `configFile`、`modules` | 文档所属 `jotl.config.json` 的绝对路径及其中的模块声明；`module` 中的相对路径按 `configFile` 所在目录解析 |
 
 服务端处理完 `jotl.config.json` 的变更后，发出无参数通知 `jotl/configChanged`（`PREVIEW_CONFIG_CHANGED_METHOD`）。收到后重新请求预览。不要为此自己监听该文件：那样会在服务端丢弃旧配置之前读到预览。
@@ -91,10 +91,10 @@ startServer();
 
 服务端在编译器诊断（`@jotl/core` 的 `JOTL1xxx`）之外加两种警告：
 
-| 代码 | 含义 |
-|---|---|
+| 代码       | 含义                                                                                                                                                                                |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `JOTL7001` | 元数据 `widget` 或 `decorator`（含 `variants` 各场景覆盖中的）引用的 widget 既不是内置 widget，也不在 `registeredWidgets` 中，也不是文件根元数据 `widgets` 声明的名字，渲染时将降级 |
-| `JOTL7002` | 文档所属的 `jotl.config.json` 有误；报在文档开头 |
+| `JOTL7002` | 文档所属的 `jotl.config.json` 有误；报在文档开头                                                                                                                                    |
 
 所有诊断的 `source` 都是 `"jotl"`。
 

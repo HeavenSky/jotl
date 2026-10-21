@@ -1,9 +1,18 @@
 // 组件契约(CT5): 注册, 解析上下文, 渲染计划与各层组件 props; 与 UI 框架无关.
-import type { Condition, Diagnostic, JsonPointer, JsonSchema, JsonSchemaObject, Locale, Result, XUiGroup } from "@jotl/core";
+import type {
+  Condition,
+  Diagnostic,
+  JsonPointer,
+  JsonSchema,
+  JsonSchemaObject,
+  Locale,
+  Result,
+  XUiGroup,
+} from '@jotl/core';
 
-export type WidgetLevel = "view" | "layout" | "composite" | "field" | "decorator";
+export type WidgetLevel = 'view' | 'layout' | 'composite' | 'field' | 'decorator';
 
-export type RenderMode = "edit" | "view" | "disabled";
+export type RenderMode = 'edit' | 'view' | 'disabled';
 
 export interface ResolveContext {
   scene: string;
@@ -24,7 +33,7 @@ export interface WidgetRegistration<C = unknown> {
   /** >0 参与竞选, 分值高者胜. */
   match?: (schema: JsonSchemaObject, ctx: ResolveContext) => number;
   /** 复合组件接管的子数据路径(相对). */
-  claims?: (schema: JsonSchemaObject) => JsonPointer[] | "all";
+  claims?: (schema: JsonSchemaObject) => JsonPointer[] | 'all';
   /** 懒加载(D35); 有 load 时 component 为加载前的占位, 加载失败按 F9 处理; ctx.locale 为首个触发加载的表单的语言. */
   load?: (ctx?: { locale: Locale }) => Promise<C>;
 }
@@ -39,9 +48,9 @@ export interface Registry<C> {
 }
 
 /** node: 节点自身或引用处的 x-ui; ref: 被引用类型的 x-ui; rule: 根规则表. */
-export type ResolveSource = "node" | "ref" | "rule" | "matcher" | "builtin" | "fallback";
+export type ResolveSource = 'node' | 'ref' | 'rule' | 'matcher' | 'builtin' | 'fallback';
 
-export type PlanDegradeReason = "F1" | "F2" | "F3" | "F7";
+export type PlanDegradeReason = 'F1' | 'F2' | 'F3' | 'F7';
 
 export interface RenderPlanNode {
   schemaPointer: JsonPointer;
@@ -61,7 +70,7 @@ export interface RenderPlanNode {
   /** 递归引用超过 maxDepth 时不展开, 渲染期调用 expand(). */
   lazy?: true;
   /** 对象节点, 取自合并后的 x-ui(D42). */
-  layout?: "stack" | "tabs" | "grid";
+  layout?: 'stack' | 'tabs' | 'grid';
   columns?: number;
   /** 对象节点, 取自合并后的 x-ui; 无分组时为空数组. */
   groups?: XUiGroup[];
@@ -79,13 +88,17 @@ export interface PlanOptions extends Partial<ResolveContext> {
   maxDepth?: number;
 }
 
-export type PlanFunction = (schema: JsonSchema, registry: Registry<unknown>, ctx?: PlanOptions) => Result<RenderPlanNode>;
+export type PlanFunction = (
+  schema: JsonSchema,
+  registry: Registry<unknown>,
+  ctx?: PlanOptions
+) => Result<RenderPlanNode>;
 /** ctx 中给出的场景, 模式与 maxDepth 优先于节点生成时记录的值. */
 export type ExpandFunction = (
   node: RenderPlanNode,
   schema: JsonSchema,
   registry: Registry<unknown>,
-  ctx?: PlanOptions,
+  ctx?: PlanOptions
 ) => Result<RenderPlanNode>;
 /** dataPath 为实际路径. */
 export type EvaluateCondition = (cond: Condition, data: unknown, dataPath: JsonPointer) => boolean;
@@ -159,7 +172,7 @@ export interface LayoutProps<N> extends BaseProps<N> {
   /** 已按 order 排序; hidden 已计入 visibleIf 求值结果. */
   fields: LayoutField[];
   groups: { title: string; fields: string[] }[];
-  layout: "stack" | "tabs" | "grid";
+  layout: 'stack' | 'tabs' | 'grid';
   columns: number;
   /** 对象另有 schema 形式的 additionalProperties 时提供: 编辑不在 properties 中的键, 值用 renderChild(escapePointerToken(name)) 渲染. */
   additional?: EntryEditing;

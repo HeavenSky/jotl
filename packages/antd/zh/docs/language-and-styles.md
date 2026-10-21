@@ -12,12 +12,12 @@
 三处设为同一种语言，表单才一致：
 
 ```tsx
-import { ConfigProvider } from "antd";
-import enUS from "antd/locale/en_US";
-import dayjs from "dayjs";
-import "dayjs/locale/en";
+import { ConfigProvider } from 'antd';
+import enUS from 'antd/locale/en_US';
+import dayjs from 'dayjs';
+import 'dayjs/locale/en';
 
-dayjs.locale("en");
+dayjs.locale('en');
 
 <ConfigProvider locale={enUS}>
   <JotlForm schema={schema} registry={registry} locale="en" />

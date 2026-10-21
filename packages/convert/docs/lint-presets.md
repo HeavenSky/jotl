@@ -18,11 +18,11 @@ For TSDoc-based tools (e.g. eslint-plugin-tsdoc, API Extractor), extend the pres
 eslint-plugin-tsdoc reads the `tsdoc.json` in the directory ESLint runs from (with typed linting, the directory of the TypeScript program), not one next to the linted file, so put it at the project root. Then enable the rule:
 
 ```js
-import tsParser from "@typescript-eslint/parser";
-import tsdoc from "eslint-plugin-tsdoc";
+import tsParser from '@typescript-eslint/parser';
+import tsdoc from 'eslint-plugin-tsdoc';
 
 export default [
-  { files: ["**/*.ts"], languageOptions: { parser: tsParser }, plugins: { tsdoc }, rules: { "tsdoc/syntax": "warn" } },
+  { files: ['**/*.ts'], languageOptions: { parser: tsParser }, plugins: { tsdoc }, rules: { 'tsdoc/syntax': 'warn' } },
 ];
 ```
 
@@ -31,16 +31,16 @@ export default [
 `definedTags` lists the custom tags plus `defaultValue` and `privateRemarks`:
 
 ```js
-import tsParser from "@typescript-eslint/parser";
-import jsdoc from "eslint-plugin-jsdoc";
-import { definedTags } from "@jotl/convert/eslint";
+import tsParser from '@typescript-eslint/parser';
+import jsdoc from 'eslint-plugin-jsdoc';
+import { definedTags } from '@jotl/convert/eslint';
 
 export default [
   {
-    files: ["**/*.ts"],
+    files: ['**/*.ts'],
     languageOptions: { parser: tsParser },
     plugins: { jsdoc },
-    rules: { "jsdoc/check-tag-names": ["error", { definedTags }] },
+    rules: { 'jsdoc/check-tag-names': ['error', { definedTags }] },
   },
 ];
 ```

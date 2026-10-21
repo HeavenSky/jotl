@@ -1,6 +1,6 @@
 // 文本草稿: 输入中尚不合法的文本只留在组件内, 合法后立即写回.
-import { useState } from "react";
-import { deepEqual } from "./deep-equal.js";
+import { useState } from 'react';
+import { deepEqual } from './deep-equal.js';
 
 interface DraftState {
   text: string;

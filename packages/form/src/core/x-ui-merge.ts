@@ -13,11 +13,11 @@ import {
   type XUiGroup,
   type XUiLayout,
   type XUiVariant,
-} from "@jotl/core";
-import { enumOptions, schemaTypes } from "./builtin-widgets.js";
-import type { ResolveSource } from "./contracts.js";
-import type { ResolvedNode } from "./schema-node.js";
-import { checkXUi, type XUiIssue } from "./x-ui-check.js";
+} from '@jotl/core';
+import { enumOptions, schemaTypes } from './builtin-widgets.js';
+import type { ResolveSource } from './contracts.js';
+import type { ResolvedNode } from './schema-node.js';
+import { checkXUi, type XUiIssue } from './x-ui-check.js';
 
 export interface WidgetCandidate {
   name: string;
@@ -60,11 +60,11 @@ export interface NodeLayers {
 
 /** 读取 schema 对象上的 x-ui; 没有时返回 undefined, 不合法时记入 problems 并按没有处理. */
 export function readXUi(schema: JsonSchema, pointer: JsonPointer, problems: XUiProblem[]): XUi | undefined {
-  if (!isSchemaObject(schema) || !Object.hasOwn(schema, "x-ui")) return undefined;
-  const value: unknown = schema["x-ui"];
+  if (!isSchemaObject(schema) || !Object.hasOwn(schema, 'x-ui')) return undefined;
+  const value: unknown = schema['x-ui'];
   const issue = checkXUi(value);
   if (issue !== undefined) {
-    problems.push({ pointer: appendPointer(pointer, "x-ui"), issue });
+    problems.push({ pointer: appendPointer(pointer, 'x-ui'), issue });
     return undefined;
   }
   return value as XUi;
@@ -81,7 +81,8 @@ function shallowMerge(base: XUi | undefined, top: XUi | undefined): XUi | undefi
 export function collectLayers(node: ResolvedNode, scene: string): NodeLayers {
   const problems: XUiProblem[] = [];
   let ref: XUi | undefined;
-  for (const target of [...node.targets].reverse()) ref = shallowMerge(ref, readXUi(target.schema, target.pointer, problems));
+  for (const target of [...node.targets].reverse())
+    ref = shallowMerge(ref, readXUi(target.schema, target.pointer, problems));
   const own = readXUi(node.site.schema, node.site.pointer, problems);
   const layers: NodeLayers = { problems };
   if (ref !== undefined) layers.ref = ref;
@@ -115,21 +116,31 @@ export function ruleMatches(match: UiRuleMatch, subject: RuleSubject): boolean {
 }
 
 export function rulesUsingWidget(rules: readonly UiRule[]): boolean {
-  return rules.some((rule) => rule.match.widget !== undefined);
+  return rules.some(rule => rule.match.widget !== undefined);
 }
 
 /** 由低到高的层; 规则按数组顺序, 后者优先. */
 function orderedLayers(layers: NodeLayers, rules: readonly UiRule[]): UiLayer[] {
   const out: UiLayer[] = [];
-  for (const rule of rules) out.push({ source: "rule", ui: rule.ui });
-  if (layers.ref !== undefined) out.push({ source: "ref", ui: layers.ref });
-  if (layers.node !== undefined) out.push({ source: "node", ui: layers.node });
-  if (layers.refVariant !== undefined) out.push({ source: "ref", ui: layers.refVariant });
-  if (layers.nodeVariant !== undefined) out.push({ source: "node", ui: layers.nodeVariant });
+  for (const rule of rules) out.push({ source: 'rule', ui: rule.ui });
+  if (layers.ref !== undefined) out.push({ source: 'ref', ui: layers.ref });
+  if (layers.node !== undefined) out.push({ source: 'node', ui: layers.node });
+  if (layers.refVariant !== undefined) out.push({ source: 'ref', ui: layers.refVariant });
+  if (layers.nodeVariant !== undefined) out.push({ source: 'node', ui: layers.nodeVariant });
   return out;
 }
 
-const MERGED_KEYS = ["decorator", "order", "groups", "layout", "columns", "hidden", "visibleIf", "summary", "thousands"] as const;
+const MERGED_KEYS = [
+  'decorator',
+  'order',
+  'groups',
+  'layout',
+  'columns',
+  'hidden',
+  'visibleIf',
+  'summary',
+  'thousands',
+] as const;
 
 export interface MergeResult {
   ui: MergedUi;
@@ -148,7 +159,8 @@ export function mergeLayers(layers: NodeLayers, rules: readonly UiRule[]): Merge
   }
   const candidates: WidgetCandidate[] = [];
   for (const { source, ui: layer } of [...ordered].reverse()) {
-    if (layer.widget !== undefined && !candidates.some((c) => c.name === layer.widget)) candidates.push({ name: layer.widget, source });
+    if (layer.widget !== undefined && !candidates.some(c => c.name === layer.widget))
+      candidates.push({ name: layer.widget, source });
   }
   return { ui, candidates };
 }

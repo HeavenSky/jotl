@@ -58,10 +58,7 @@ Home: {
           }
         }
       },
-      "required": [
-        "title",
-        "mode"
-      ]
+      "required": ["title", "mode"]
     }
   }
 }
@@ -93,17 +90,17 @@ The first command installs the CLI, the second writes the JSON Schema shown abov
 
 Rendering a form in the browser needs only `@jotl/core`, `@jotl/data` and `@jotl/form`; the rest are for authoring and tooling.
 
-| Package | What it does |
-|---|---|
-| [`@jotl/core`](packages/core/README.md) | Parse, compile, format and print Jotl; shared schema types, diagnostics and JSON Pointer utilities |
-| [`@jotl/convert`](packages/convert/README.md) | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate Fengdie schemas |
-| [`@jotl/data`](packages/data/README.md) | Default data, validation, migration and Mock for JSON Schema 2020-12 |
-| [`@jotl/form`](packages/form/README.md) | React form renderer (React 16.8 to 19) with native HTML widgets; framework-independent planning in `@jotl/form/core` |
-| [`@jotl/antd`](packages/antd/README.md) | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+) |
-| [`@jotl/language-server`](packages/language-server/README.md) | Language server (LSP) for `.jotl` files |
-| [`vscode-jotl`](packages/vscode/README.md) | VS Code extension with live preview |
-| [`@jotl/cli`](packages/cli/README.md) | Command line: compile, convert, check, validate, defaults, migrate and format |
-| [`@jotl/playground`](apps/playground/README.md) | Browser app for editing Jotl and previewing the form, run locally from this repository |
+| Package                                                       | What it does                                                                                                         |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| [`@jotl/core`](packages/core/README.md)                       | Parse, compile, format and print Jotl; shared schema types, diagnostics and JSON Pointer utilities                   |
+| [`@jotl/convert`](packages/convert/README.md)                 | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate Fengdie schemas             |
+| [`@jotl/data`](packages/data/README.md)                       | Default data, validation, migration and Mock for JSON Schema 2020-12                                                 |
+| [`@jotl/form`](packages/form/README.md)                       | React form renderer (React 16.8 to 19) with native HTML widgets; framework-independent planning in `@jotl/form/core` |
+| [`@jotl/antd`](packages/antd/README.md)                       | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+)                                                         |
+| [`@jotl/language-server`](packages/language-server/README.md) | Language server (LSP) for `.jotl` files                                                                              |
+| [`vscode-jotl`](packages/vscode/README.md)                    | VS Code extension with live preview                                                                                  |
+| [`@jotl/cli`](packages/cli/README.md)                         | Command line: compile, convert, check, validate, defaults, migrate and format                                        |
+| [`@jotl/playground`](apps/playground/README.md)               | Browser app for editing Jotl and previewing the form, run locally from this repository                               |
 
 User-facing text is available in English (`en`, default) and Chinese (`zh-CN`). Code sets it with `setLocale` from `@jotl/core`, the CLI with `--lang`; each package README covers its own options.
 

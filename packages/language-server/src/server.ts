@@ -1,22 +1,34 @@
 // 把诊断, 补全, 快速修复, 悬停, 跳转, 引用, 大纲与预览请求接到 LSP 连接上; 文档按增量同步保存在内存中, 各自并入所属 jotl.config.json 的登记.
-import { JOTL_CONFIG_FILE, resolveLocale, setLocale } from "@jotl/core";
+import { JOTL_CONFIG_FILE, resolveLocale, setLocale } from '@jotl/core';
 import {
   CodeActionKind,
   type Connection,
   type InitializeResult,
   type TextDocumentContentChangeEvent,
   TextDocumentSyncKind,
-} from "vscode-languageserver";
-import { createConnection, ProposedFeatures } from "vscode-languageserver/node";
-import { getCodeActions } from "./code-actions.js";
-import { getCompletions } from "./completion.js";
-import { getDiagnostics, toLspDiagnostic } from "./document-diagnostics.js";
-import { getHover } from "./hover.js";
-import { getDefinition, getDocumentSymbols, getReferences } from "./navigation.js";
-import { CONFIGURATION_SECTION, type LanguageServiceOptions, readInitializationOptions, readLocaleOption, withConfigWidgets } from "./options.js";
-import { getPreview, PREVIEW_CONFIG_CHANGED_METHOD, PREVIEW_REQUEST_METHOD, type PreviewContent, type PreviewParams } from "./preview.js";
-import { type ConfigHost, configDiagnostics, createConfigLookup } from "./project-config.js";
-import { offsetAt } from "./text-position.js";
+} from 'vscode-languageserver';
+import { createConnection, ProposedFeatures } from 'vscode-languageserver/node';
+import { getCodeActions } from './code-actions.js';
+import { getCompletions } from './completion.js';
+import { getDiagnostics, toLspDiagnostic } from './document-diagnostics.js';
+import { getHover } from './hover.js';
+import { getDefinition, getDocumentSymbols, getReferences } from './navigation.js';
+import {
+  CONFIGURATION_SECTION,
+  type LanguageServiceOptions,
+  readInitializationOptions,
+  readLocaleOption,
+  withConfigWidgets,
+} from './options.js';
+import {
+  getPreview,
+  PREVIEW_CONFIG_CHANGED_METHOD,
+  PREVIEW_REQUEST_METHOD,
+  type PreviewContent,
+  type PreviewParams,
+} from './preview.js';
+import { type ConfigHost, configDiagnostics, createConfigLookup } from './project-config.js';
+import { offsetAt } from './text-position.js';
 
 /** 文档变更后推送诊断前的防抖时长(毫秒). */
 export const DIAGNOSTICS_DELAY = 200;
@@ -27,10 +39,10 @@ export interface ServerOptions {
   configHost?: ConfigHost;
 }
 
-export const COMPLETION_TRIGGER_CHARACTERS: readonly string[] = [":", "[", ",", "'", "\"", "<", "|"];
+export const COMPLETION_TRIGGER_CHARACTERS: readonly string[] = [':', '[', ',', "'", '"', '<', '|'];
 
 function applyChange(text: string, change: TextDocumentContentChangeEvent): string {
-  if (!("range" in change)) return change.text;
+  if (!('range' in change)) return change.text;
   const start = offsetAt(text, change.range.start);
   const end = offsetAt(text, change.range.end);
   return text.slice(0, start) + change.text + text.slice(end);
@@ -67,7 +79,7 @@ export function createServer(connection: Connection, serverOptions: ServerOption
         pending.delete(uri);
         const text = documents.get(uri);
         if (text !== undefined) publish(uri, text);
-      }, delay),
+      }, delay)
     );
   };
 
@@ -84,7 +96,7 @@ export function createServer(connection: Connection, serverOptions: ServerOption
         referencesProvider: true,
         documentSymbolProvider: true,
       },
-      serverInfo: { name: "jotl-language-server" },
+      serverInfo: { name: 'jotl-language-server' },
     };
   });
 
@@ -116,7 +128,7 @@ export function createServer(connection: Connection, serverOptions: ServerOption
 
   /** 客户端监听各目录下的 jotl.config.json; 任一变更后重新查找并重新诊断, 清掉缓存之后才通知预览刷新, 预览自己监听文件会读到旧配置. */
   connection.onDidChangeWatchedFiles(({ changes }) => {
-    if (!changes.some((change) => change.uri.endsWith(`/${JOTL_CONFIG_FILE}`))) return;
+    if (!changes.some(change => change.uri.endsWith(`/${JOTL_CONFIG_FILE}`))) return;
     configs.clear();
     for (const [uri, text] of documents) publish(uri, text);
     void connection.sendNotification(PREVIEW_CONFIG_CHANGED_METHOD);
@@ -161,7 +173,9 @@ export function createServer(connection: Connection, serverOptions: ServerOption
   /** 文档未打开时返回 null. */
   connection.onRequest(PREVIEW_REQUEST_METHOD, ({ textDocument }: PreviewParams): PreviewContent | null => {
     const text = documents.get(textDocument.uri);
-    return text === undefined ? null : getPreview(text, textDocument.uri, optionsFor(textDocument.uri), configs.forDocument(textDocument.uri));
+    return text === undefined
+      ? null
+      : getPreview(text, textDocument.uri, optionsFor(textDocument.uri), configs.forDocument(textDocument.uri));
   });
 }
 

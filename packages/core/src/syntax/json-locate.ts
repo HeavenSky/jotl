@@ -1,6 +1,6 @@
 // 定位 JSON 文本中第一个语法错误的位置, 供诊断给出行列; JSON.parse 的错误消息不保证带位置.
 // 另为合法 JSON 建立指针到文本偏移的映射, 供数据诊断换算行列.
-import { type JsonPointer, appendPointer } from "../schema/index.js";
+import { type JsonPointer, appendPointer } from '../schema/index.js';
 
 export interface JsonSyntaxError {
   offset: number;
@@ -13,15 +13,15 @@ class Stop {
 }
 
 const NUMBER = /-?(?:0|[1-9]\d*)(?:\.\d+)?(?:[eE][+-]?\d+)?/y;
-const LITERALS = ["true", "false", "null"] as const;
-const SIMPLE_ESCAPES = new Set(['"', "\\", "/", "b", "f", "n", "r", "t"]);
+const LITERALS = ['true', 'false', 'null'] as const;
+const SIMPLE_ESCAPES = new Set(['"', '\\', '/', 'b', 'f', 'n', 'r', 't']);
 const HEX = /^[0-9a-fA-F]{4}$/;
 
 class Scanner {
   pos = 0;
   constructor(
     private readonly text: string,
-    private readonly offsets?: Map<JsonPointer, number>,
+    private readonly offsets?: Map<JsonPointer, number>
   ) {}
 
   private mark(pointer: JsonPointer): void {
@@ -29,7 +29,7 @@ class Scanner {
   }
 
   ws(): void {
-    while (this.pos < this.text.length && " \t\n\r".includes(this.text.charAt(this.pos))) this.pos += 1;
+    while (this.pos < this.text.length && ' \t\n\r'.includes(this.text.charAt(this.pos))) this.pos += 1;
   }
 
   expect(char: string): void {
@@ -37,21 +37,21 @@ class Scanner {
     this.pos += 1;
   }
 
-  value(pointer: JsonPointer = ""): void {
+  value(pointer: JsonPointer = ''): void {
     this.ws();
     this.mark(pointer);
     const c = this.text.charAt(this.pos);
-    if (c === "{") this.object(pointer);
-    else if (c === "[") this.array(pointer);
+    if (c === '{') this.object(pointer);
+    else if (c === '[') this.array(pointer);
     else if (c === '"') this.string();
-    else if (c === "-" || (c >= "0" && c <= "9")) this.number();
+    else if (c === '-' || (c >= '0' && c <= '9')) this.number();
     else this.literal();
   }
 
   object(pointer: JsonPointer): void {
     this.pos += 1;
     this.ws();
-    if (this.text.charAt(this.pos) === "}") {
+    if (this.text.charAt(this.pos) === '}') {
       this.pos += 1;
       return;
     }
@@ -59,35 +59,38 @@ class Scanner {
       this.ws();
       const start = this.pos;
       this.string();
-      const member = this.offsets === undefined ? pointer : appendPointer(pointer, JSON.parse(this.text.slice(start, this.pos)) as string);
+      const member =
+        this.offsets === undefined
+          ? pointer
+          : appendPointer(pointer, JSON.parse(this.text.slice(start, this.pos)) as string);
       if (this.offsets !== undefined && !this.offsets.has(member)) this.offsets.set(member, start);
       this.ws();
-      this.expect(":");
+      this.expect(':');
       this.value(member);
       this.ws();
-      if (this.text.charAt(this.pos) === "}") {
+      if (this.text.charAt(this.pos) === '}') {
         this.pos += 1;
         return;
       }
-      this.expect(",");
+      this.expect(',');
     }
   }
 
   array(pointer: JsonPointer): void {
     this.pos += 1;
     this.ws();
-    if (this.text.charAt(this.pos) === "]") {
+    if (this.text.charAt(this.pos) === ']') {
       this.pos += 1;
       return;
     }
     for (let i = 0; ; i++) {
       this.value(this.offsets === undefined ? pointer : appendPointer(pointer, String(i)));
       this.ws();
-      if (this.text.charAt(this.pos) === "]") {
+      if (this.text.charAt(this.pos) === ']') {
         this.pos += 1;
         return;
       }
-      this.expect(",");
+      this.expect(',');
     }
   }
 
@@ -100,11 +103,11 @@ class Scanner {
         this.pos += 1;
         return;
       }
-      if (c < " ") throw new Stop(this.pos);
-      if (c === "\\") {
+      if (c < ' ') throw new Stop(this.pos);
+      if (c === '\\') {
         const e = this.text.charAt(this.pos + 1);
         if (SIMPLE_ESCAPES.has(e)) this.pos += 2;
-        else if (e === "u" && HEX.test(this.text.slice(this.pos + 2, this.pos + 6))) this.pos += 6;
+        else if (e === 'u' && HEX.test(this.text.slice(this.pos + 2, this.pos + 6))) this.pos += 6;
         else throw new Stop(this.pos + 1);
         continue;
       }
@@ -120,7 +123,7 @@ class Scanner {
   }
 
   literal(): void {
-    const word = LITERALS.find((w) => this.text.startsWith(w, this.pos));
+    const word = LITERALS.find(w => this.text.startsWith(w, this.pos));
     if (word === undefined) throw new Stop(this.pos);
     this.pos += word.length;
   }

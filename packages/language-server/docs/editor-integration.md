@@ -9,7 +9,7 @@ After reading this page you can wire `@jotl/language-server` into any LSP client
 `startServer()` creates a connection, registers every handler and starts listening. It picks the transport from the process arguments `--node-ipc`, `--stdio` or `--socket`, and returns the connection.
 
 ```js
-import { startServer } from "@jotl/language-server";
+import { startServer } from '@jotl/language-server';
 
 startServer();
 ```
@@ -20,12 +20,12 @@ If you already have a connection, call `createServer(connection, options?)` to r
 
 The `initialize` response declares these capabilities, with `serverInfo.name` set to `jotl-language-server`:
 
-| Capability | Value |
-|---|---|
-| `textDocumentSync` | `openClose: true`, incremental changes |
-| `completionProvider` | Trigger characters `:` `[` `,` `'` `"` `<` `\|` (`COMPLETION_TRIGGER_CHARACTERS`) |
-| `codeActionProvider` | Kind `quickfix` |
-| `hoverProvider`, `definitionProvider`, `referencesProvider`, `documentSymbolProvider` | `true` |
+| Capability                                                                            | Value                                                                             |
+| ------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| `textDocumentSync`                                                                    | `openClose: true`, incremental changes                                            |
+| `completionProvider`                                                                  | Trigger characters `:` `[` `,` `'` `"` `<` `\|` (`COMPLETION_TRIGGER_CHARACTERS`) |
+| `codeActionProvider`                                                                  | Kind `quickfix`                                                                   |
+| `hoverProvider`, `definitionProvider`, `referencesProvider`, `documentSymbolProvider` | `true`                                                                            |
 
 Two custom messages come on top: the request `jotl/preview` and the notification `jotl/configChanged`; see [Show a preview](#show-a-preview).
 
@@ -35,10 +35,10 @@ Documents live in memory. On open the server compiles the document and pushes di
 
 Send these fields in `initializationOptions`; invalid values are ignored.
 
-| Field | Type | Meaning |
-|---|---|---|
+| Field               | Type       | Meaning                                                                                                                                                                                                                                                          |
+| ------------------- | ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `registeredWidgets` | `string[]` | Widget names your project registers. Empty strings and non-strings are dropped, duplicates removed. UpperCamelCase names are also compiled as extension components with the underlying type `{ "type": "string" }`, unless `jotl.config.json` gives another type |
-| `locale` | `string` | Language tag for diagnostics, hover, completion details and preview text |
+| `locale`            | `string`   | Language tag for diagnostics, hover, completion details and preview text                                                                                                                                                                                         |
 
 The language is `initializationOptions.locale`, then the `locale` of the `initialize` params, otherwise `en`. A tag starting with `zh` means Chinese; anything else means English. The setting is process-wide: it sets the global language of `@jotl/core`.
 
@@ -68,12 +68,12 @@ For every `file:` document, the server finds the nearest `jotl.config.json`, sta
 
 Send the request `jotl/preview` (`PREVIEW_REQUEST_METHOD`) with `{ textDocument: { uri } }`. The server returns a `PreviewContent`, or `null` when the document is not open.
 
-| Field | Content |
-|---|---|
-| `schema` | Compiled JSON Schema as JSON text indented by two spaces; `undefined` when there are error-level diagnostics |
-| `typescript` | TS declarations; `undefined` when compilation or conversion fails |
-| `diagnostics` | Compile diagnostics and unregistered-widget warnings, with lines and columns starting at 1 |
-| `typescriptDiagnostics` | TS conversion diagnostics, mapped back to source positions; only `pointer` is set when they cannot be mapped |
+| Field                   | Content                                                                                                                                               |
+| ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schema`                | Compiled JSON Schema as JSON text indented by two spaces; `undefined` when there are error-level diagnostics                                          |
+| `typescript`            | TS declarations; `undefined` when compilation or conversion fails                                                                                     |
+| `diagnostics`           | Compile diagnostics and unregistered-widget warnings, with lines and columns starting at 1                                                            |
+| `typescriptDiagnostics` | TS conversion diagnostics, mapped back to source positions; only `pointer` is set when they cannot be mapped                                          |
 | `configFile`, `modules` | Absolute path of the document's `jotl.config.json` and its module declarations; relative `module` paths resolve against the directory of `configFile` |
 
 After the server has applied a `jotl.config.json` change, it sends the notification `jotl/configChanged` (`PREVIEW_CONFIG_CHANGED_METHOD`) without parameters. Request the preview again when it arrives. Do not watch the file yourself for this: you would read the preview before the server has dropped the old configuration.
@@ -91,10 +91,10 @@ A JSON language service that picks the schema from a document's root `$schema` i
 
 The server adds two warnings to the compiler's diagnostics (`JOTL1xxx` from `@jotl/core`):
 
-| Code | Meaning |
-|---|---|
+| Code       | Meaning                                                                                                                                                                                                                                   |
+| ---------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `JOTL7001` | A widget named by `widget` or `decorator` metadata (including per-scene overrides in `variants`) is not a built-in widget, not in `registeredWidgets` and not declared by the file's root `widgets` metadata, so rendering will fall back |
-| `JOTL7002` | The document's `jotl.config.json` is invalid; reported at the start of the document |
+| `JOTL7002` | The document's `jotl.config.json` is invalid; reported at the start of the document                                                                                                                                                       |
 
 All diagnostics carry `source: "jotl"`.
 

@@ -1,8 +1,8 @@
 // 格式化: Jotl 源码 → 规范排版, 保留全部注释.
-import { type Result, hasErrors } from "../../schema/index.js";
-import { byPosition } from "../diagnostics.js";
-import { parseSource } from "../parser.js";
-import { renderFile } from "./render.js";
+import { type Result, hasErrors } from '../../schema/index.js';
+import { byPosition } from '../diagnostics.js';
+import { parseSource } from '../parser.js';
+import { renderFile } from './render.js';
 
 /**
  * 按规范排版重写源码, 不改变编译结果.

@@ -1,6 +1,6 @@
 // 逐级改写规则的接口: 规则在单个 schema 节点上就地改写浅拷贝, 通过上下文报告变更, 冲突与子 schema 的移动.
-import type { UpgradeDiagnosticCode } from "./diagnostics.js";
-import type { SchemaVersion } from "./versions.js";
+import type { UpgradeDiagnosticCode } from './diagnostics.js';
+import type { SchemaVersion } from './versions.js';
 
 /** 规则改写的是节点的浅拷贝; 子 schema 与其他嵌套值仍是输入对象, 规则不得原地修改它们. */
 export type MutableSchema = Record<string, unknown>;
@@ -8,7 +8,7 @@ export type MutableSchema = Record<string, unknown>;
 export type DiagnosticParams = Readonly<Record<string, string | number>>;
 
 /** 冲突时采用的语义: 声明版本, 或 2020-12. */
-export type ConflictChoice = "declared" | "latest";
+export type ConflictChoice = 'declared' | 'latest';
 
 export interface RuleContext {
   /** 节点所属文档(或带 `$schema` 的嵌套资源)的声明版本. */

@@ -9,7 +9,15 @@
 1. 让 widget 指向一个模块，写在 `jotl.config.json` 中：
 
    ```json
-   { "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/my-image-picker?external=react,react-dom", "export": "default" } } }
+   {
+     "widgets": {
+       "ImagePicker": {
+         "base": "url",
+         "module": "https://esm.sh/my-image-picker?external=react,react-dom",
+         "export": "default"
+       }
+     }
+   }
    ```
 
    或写在文件根条目的 `widgets` 元数据中，同名时它优先于配置文件：

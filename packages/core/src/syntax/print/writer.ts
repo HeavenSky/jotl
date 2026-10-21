@@ -1,9 +1,9 @@
 // 排版输出器: 缩进, 换行, 空行, 以及把源码注释放回原来两个记号之间; 打印与格式化共用.
-import type { Comment } from "../ast.js";
+import type { Comment } from '../ast.js';
 
-const INDENT = "  ";
+const INDENT = '  ';
 
-type Break = "none" | "line" | "blank";
+type Break = 'none' | 'line' | 'blank';
 
 interface PlacedComment {
   text: string;
@@ -22,14 +22,14 @@ export interface WriterSource {
 }
 
 function isLineBreak(ch: string | undefined): boolean {
-  return ch === "\n" || ch === "\r";
+  return ch === '\n' || ch === '\r';
 }
 
 export function newlinesBefore(text: string, offset: number): { count: number; atFileStart: boolean } {
   let count = 0;
   let i = offset - 1;
   while (i >= 0 && /\s/u.test(text[i]!)) {
-    if (text[i] === "\n" || (text[i] === "\r" && text[i + 1] !== "\n")) count++;
+    if (text[i] === '\n' || (text[i] === '\r' && text[i + 1] !== '\n')) count++;
     i--;
   }
   return { count, atFileStart: i < 0 };
@@ -41,9 +41,9 @@ function placeComment(text: string, comment: Comment): PlacedComment {
   const before = newlinesBefore(text, start);
   let j = end;
   while (j < text.length && !isLineBreak(text[j]) && /\s/u.test(text[j]!)) j++;
-  const block = comment.kind === "BlockComment";
+  const block = comment.kind === 'BlockComment';
   return {
-    text: block ? comment.text.replace(/\r\n?/g, "\n") : comment.text.trimEnd(),
+    text: block ? comment.text.replace(/\r\n?/g, '\n') : comment.text.trimEnd(),
     start,
     end,
     toLineEnd: !block,
@@ -57,7 +57,7 @@ export class Writer {
   private readonly lines: string[] = [];
   private current: string | undefined;
   private level = 0;
-  private pendingBreak: Break = "none";
+  private pendingBreak: Break = 'none';
   /** 由注释强制的换行续在表达式中间, 比所在行多缩进一级. */
   private continuation = false;
   private pendingSpace = false;
@@ -66,7 +66,7 @@ export class Writer {
   private nextComment = 0;
 
   constructor(source?: WriterSource) {
-    this.comments = source ? source.comments.map((c) => placeComment(source.text, c)) : [];
+    this.comments = source ? source.comments.map(c => placeComment(source.text, c)) : [];
   }
 
   indent(): void {
@@ -83,8 +83,8 @@ export class Writer {
 
   /** 请求在下一段内容前换行; blank 为 true 时留一个空行(块首与文件开头除外). */
   breakLine(blank = false): void {
-    if (blank) this.pendingBreak = "blank";
-    else if (this.pendingBreak === "none") this.pendingBreak = "line";
+    if (blank) this.pendingBreak = 'blank';
+    else if (this.pendingBreak === 'none') this.pendingBreak = 'line';
     this.continuation = false;
   }
 
@@ -96,7 +96,7 @@ export class Writer {
 
   /** 是否还有未输出的注释完全位于 (from, to) 之间. */
   hasCommentsWithin(from: number, to: number): boolean {
-    return this.comments.slice(this.nextComment).some((c) => c.start > from && c.end <= to);
+    return this.comments.slice(this.nextComment).some(c => c.start > from && c.end <= to);
   }
 
   /**
@@ -105,7 +105,7 @@ export class Writer {
    */
   token(text: string, start?: number, blank = false): void {
     if (start !== undefined) this.flush(start);
-    if (blank && this.pendingBreak === "line") this.pendingBreak = "blank";
+    if (blank && this.pendingBreak === 'line') this.pendingBreak = 'blank';
     this.emit(text);
   }
 
@@ -120,10 +120,10 @@ export class Writer {
         continue;
       }
       this.requireBreak();
-      if (comment.blankBefore && this.pendingBreak === "line") this.pendingBreak = "blank";
+      if (comment.blankBefore && this.pendingBreak === 'line') this.pendingBreak = 'blank';
       this.emit(comment.text);
       // 不能改用 requireBreak: 它会把下一记号当作续行多缩进一级.
-      this.pendingBreak = "line";
+      this.pendingBreak = 'line';
     }
   }
 
@@ -133,25 +133,25 @@ export class Writer {
     this.flush(Number.POSITIVE_INFINITY);
     if (this.current !== undefined) this.lines.push(this.current);
     this.current = undefined;
-    return this.lines.length > 0 ? `${this.lines.join("\n")}\n` : "";
+    return this.lines.length > 0 ? `${this.lines.join('\n')}\n` : '';
   }
 
   private requireBreak(): void {
-    if (this.pendingBreak !== "none") return;
-    this.pendingBreak = "line";
+    if (this.pendingBreak !== 'none') return;
+    this.pendingBreak = 'line';
     if (this.current !== undefined) this.continuation = true;
   }
 
   private emit(text: string): void {
-    if (this.pendingBreak !== "none") {
+    if (this.pendingBreak !== 'none') {
       if (this.current !== undefined) this.lines.push(this.current);
       this.current = undefined;
-      const blank = this.pendingBreak === "blank" && !this.blockStart && this.lines.length > 0;
-      if (blank && this.lines[this.lines.length - 1] !== "") this.lines.push("");
-      this.pendingBreak = "none";
+      const blank = this.pendingBreak === 'blank' && !this.blockStart && this.lines.length > 0;
+      if (blank && this.lines[this.lines.length - 1] !== '') this.lines.push('');
+      this.pendingBreak = 'none';
     }
     if (this.current === undefined) this.current = INDENT.repeat(this.level + (this.continuation ? 1 : 0)) + text;
-    else this.current += (this.pendingSpace ? " " : "") + text;
+    else this.current += (this.pendingSpace ? ' ' : '') + text;
     this.pendingSpace = false;
     this.blockStart = false;
   }

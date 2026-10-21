@@ -9,14 +9,14 @@
 ## 升级单个文档
 
 ```ts
-import { upgradeSchema } from "@jotl/convert";
+import { upgradeSchema } from '@jotl/convert';
 
 const result = upgradeSchema({
-  $schema: "http://json-schema.org/draft-04/schema#",
-  id: "https://x.test/a.json",
-  type: "object",
-  properties: { n: { $ref: "#/definitions/n" } },
-  definitions: { n: { type: "number", minimum: 0, exclusiveMinimum: true } },
+  $schema: 'http://json-schema.org/draft-04/schema#',
+  id: 'https://x.test/a.json',
+  type: 'object',
+  properties: { n: { $ref: '#/definitions/n' } },
+  definitions: { n: { type: 'number', minimum: 0, exclusiveMinimum: true } },
 });
 // result.value.schema:
 // { $schema: "https://json-schema.org/draft/2020-12/schema", $id: "https://x.test/a.json", type: "object",
@@ -32,10 +32,10 @@ const result = upgradeSchema({
 跨文件引用用 `upgradeDocuments`，并提供按 URI 取文档的回调：
 
 ```ts
-import { upgradeDocuments } from "@jotl/convert";
+import { upgradeDocuments } from '@jotl/convert';
 
-const result = await upgradeDocuments("https://x.test/main.json", {
-  load: async (uri) => ({ value: await fetchJson(uri), diagnostics: [] }),
+const result = await upgradeDocuments('https://x.test/main.json', {
+  load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
 });
 // result.value.documents: 键为文档 URI, 按加载顺序排列, 第一项为入口; 每个文档按自己的 $schema 识别版本
 ```
@@ -62,25 +62,25 @@ const result = await upgradeDocuments("https://x.test/main.json", {
 
 ## API
 
-| 导出 | 作用 |
-|---|---|
-| `upgradeSchema(schema, options?)` | 升级单个文档；返回 `Result<UpgradedSchema>`：`{ schema, version, versionSource }` |
-| `upgradeDocuments(entry, options)` | 升级入口及经 `$ref` 可达的全部文档；返回 `Promise<Result<UpgradedDocuments>>`：`{ entry, documents }` |
-| `detectVersion(schema, options?)` | 只识别版本；返回 `Result<VersionDetection>`：`{ version, source }` |
-| `DEFAULT_UPGRADE_OPTIONS` | 选项默认值 |
-| `RECURSIVE_ANCHOR_NAME` | `$recursiveAnchor: true` 改写成的 `$dynamicAnchor` 名字 |
-| `UPGRADE_DIAGNOSTICS`、`upgradeDiagnostic` | 代码表，以及按代码生成诊断的工具 |
+| 导出                                       | 作用                                                                                                  |
+| ------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
+| `upgradeSchema(schema, options?)`          | 升级单个文档；返回 `Result<UpgradedSchema>`：`{ schema, version, versionSource }`                     |
+| `upgradeDocuments(entry, options)`         | 升级入口及经 `$ref` 可达的全部文档；返回 `Promise<Result<UpgradedDocuments>>`：`{ entry, documents }` |
+| `detectVersion(schema, options?)`          | 只识别版本；返回 `Result<VersionDetection>`：`{ version, source }`                                    |
+| `DEFAULT_UPGRADE_OPTIONS`                  | 选项默认值                                                                                            |
+| `RECURSIVE_ANCHOR_NAME`                    | `$recursiveAnchor: true` 改写成的 `$dynamicAnchor` 名字                                               |
+| `UPGRADE_DIAGNOSTICS`、`upgradeDiagnostic` | 代码表，以及按代码生成诊断的工具                                                                      |
 
 ## 设置升级选项
 
 `UpgradeOptions`：
 
-| 选项 | 默认 | 含义 |
-|---|---|---|
-| `version` | 无 | 没有可识别的 `$schema` 时采用的版本；OpenAPI 3.0 / Swagger 2.0 的 Schema Object 通常需要指定 |
-| `acceptNewerKeywords` | `true` | 声明版本中不存在的高版本关键字：`true` 按 2020-12 语义保留并报 `JOTL3201`；`false` 移除并报 `JOTL3202`。`$defs` 在两种取值下都保留，因为它只是被 `$ref` 引用的容器 |
-| `onConflict` | `"error"` | 新旧语义冲突（`JOTL33xx`）时：`"error"` 报 error 并失败；`"preferDeclared"` 按声明版本处理；`"preferLatest"` 按 2020-12 处理。后两者报 warning，并在 `related` 写明处理方式 |
-| `uri` | 无 | 文档 URI：解析相对 `$id` / `$ref` 的基准，也写入诊断位置的 `document` |
+| 选项                  | 默认      | 含义                                                                                                                                                                        |
+| --------------------- | --------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `version`             | 无        | 没有可识别的 `$schema` 时采用的版本；OpenAPI 3.0 / Swagger 2.0 的 Schema Object 通常需要指定                                                                                |
+| `acceptNewerKeywords` | `true`    | 声明版本中不存在的高版本关键字：`true` 按 2020-12 语义保留并报 `JOTL3201`；`false` 移除并报 `JOTL3202`。`$defs` 在两种取值下都保留，因为它只是被 `$ref` 引用的容器          |
+| `onConflict`          | `"error"` | 新旧语义冲突（`JOTL33xx`）时：`"error"` 报 error 并失败；`"preferDeclared"` 按声明版本处理；`"preferLatest"` 按 2020-12 处理。后两者报 warning，并在 `related` 写明处理方式 |
+| `uri`                 | 无        | 文档 URI：解析相对 `$id` / `$ref` 的基准，也写入诊断位置的 `document`                                                                                                       |
 
 例：draft-07 中写在 `$ref` 旁的 `minLength` 会被忽略，而 2020-12 中会生效。默认报 `JOTL3303` error；`preferDeclared` 删除 `minLength`，`preferLatest` 保留它。
 
@@ -90,13 +90,13 @@ const result = await upgradeDocuments("https://x.test/main.json", {
 
 升级的代码为 `JOTL3xxx`；代码表是 [`src/migrate/upgrade/diagnostics.ts`](../../src/migrate/upgrade/diagnostics.ts) 的 `UPGRADE_DIAGNOSTICS`。位置为 JSON Pointer（`location.kind === "pointer"`），涉及多个文档时带 `document`。
 
-| 段 | 含义 |
-|---|---|
-| `30xx` | 输入与版本识别 |
-| `31xx` | 逐级改写，每处一条 info |
+| 段     | 含义                                                       |
+| ------ | ---------------------------------------------------------- |
+| `30xx` | 输入与版本识别                                             |
+| `31xx` | 逐级改写，每处一条 info                                    |
 | `32xx` | 宽松模式：高版本关键字的接受或移除，高版本文档中的旧版写法 |
-| `33xx` | 新旧语义冲突；级别随 `onConflict` 变化 |
-| `34xx` | 多文档加载 |
+| `33xx` | 新旧语义冲突；级别随 `onConflict` 变化                     |
+| `34xx` | 多文档加载                                                 |
 
 ## 已知限制
 

@@ -16,24 +16,24 @@ export interface PreviewModules {
 }
 
 /** 必须等于 package.json 中 `contributes.configuration` 的设置名. */
-export const LOAD_WIDGET_MODULES_SETTING = "preview.loadWidgetModules";
+export const LOAD_WIDGET_MODULES_SETTING = 'preview.loadWidgetModules';
 
 /**
  * webview 中由预览脚本挂到 globalThis 上的模块表(说明符 → 模块对象), 垫片模块从这里取出同一份 React 再导出;
  * 必须等于 build.mjs 中生成垫片时读取的全局名.
  */
-export const SHARED_MODULES_GLOBAL = "__jotlPreviewModules";
+export const SHARED_MODULES_GLOBAL = '__jotlPreviewModules';
 
 /** import map 说明符 → dist 下的垫片文件名; 必须等于 build.mjs 中 SHIMS 的说明符与文件名. */
 export const SHARED_MODULE_SHIMS: Readonly<Record<string, string>> = {
-  react: "preview-shim-react.js",
-  "react/jsx-runtime": "preview-shim-react-jsx-runtime.js",
-  "react-dom": "preview-shim-react-dom.js",
-  "react-dom/client": "preview-shim-react-dom-client.js",
+  react: 'preview-shim-react.js',
+  'react/jsx-runtime': 'preview-shim-react-jsx-runtime.js',
+  'react-dom': 'preview-shim-react-dom.js',
+  'react-dom/client': 'preview-shim-react-dom-client.js',
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
 /** 名字 → 声明的对象中带非空 module 的项; 字符串与不带 module 的 schema 对象只声明底层类型, 跳过. */
@@ -43,8 +43,8 @@ export function widgetModuleRefs(widgets: unknown): Record<string, WidgetModuleR
   for (const [name, value] of Object.entries(widgets)) {
     if (!isRecord(value)) continue;
     const { module, export: exportName } = value;
-    if (typeof module !== "string" || module === "") continue;
-    out[name] = typeof exportName === "string" && exportName !== "" ? { module, export: exportName } : { module };
+    if (typeof module !== 'string' || module === '') continue;
+    out[name] = typeof exportName === 'string' && exportName !== '' ? { module, export: exportName } : { module };
   }
   return out;
 }
@@ -52,7 +52,7 @@ export function widgetModuleRefs(widgets: unknown): Record<string, WidgetModuleR
 /** schema 根 x-ui.widgets 中的模块声明. */
 export function schemaModuleRefs(schema: unknown): Record<string, WidgetModuleRef> {
   if (!isRecord(schema)) return {};
-  const xUi = schema["x-ui"];
+  const xUi = schema['x-ui'];
   return isRecord(xUi) ? widgetModuleRefs(xUi.widgets) : {};
 }
 
@@ -67,9 +67,10 @@ export function isDrivePath(module: string): boolean {
 }
 
 export function isPreviewModules(value: unknown): value is PreviewModules {
-  if (!isRecord(value) || typeof value.load !== "boolean" || !isRecord(value.config)) return false;
-  if (value.baseUrl !== undefined && typeof value.baseUrl !== "string") return false;
+  if (!isRecord(value) || typeof value.load !== 'boolean' || !isRecord(value.config)) return false;
+  if (value.baseUrl !== undefined && typeof value.baseUrl !== 'string') return false;
   return Object.values(value.config).every(
-    (ref) => isRecord(ref) && typeof ref.module === "string" && (ref.export === undefined || typeof ref.export === "string"),
+    ref =>
+      isRecord(ref) && typeof ref.module === 'string' && (ref.export === undefined || typeof ref.export === 'string')
   );
 }

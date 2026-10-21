@@ -4,15 +4,15 @@
 
 本页列出 `jotl` 每个命令的选项、默认值与示例，并说明输入格式怎么判定。前提是已按[快速开始](../README.md)装好 `jotl`；`jotl <command> --help` 离线给出同样的选项。
 
-| 命令 | 作用 |
-|---|---|
-| [`compile`](#compile) | Jotl 编译为 JSON Schema 2020-12（默认）或 TS 声明 |
-| [`convert`](#convert) | 在 Jotl、JSON Schema 与 TS 声明之间任意互转 |
-| [`check`](#check) | 只报告诊断，不输出结果 |
-| [`validate`](#validate) | 按 schema 校验 JSON 数据文件 |
-| [`defaults`](#defaults) | 以 JSON 输出 schema 的默认数据 |
+| 命令                                | 作用                                                    |
+| ----------------------------------- | ------------------------------------------------------- |
+| [`compile`](#compile)               | Jotl 编译为 JSON Schema 2020-12（默认）或 TS 声明       |
+| [`convert`](#convert)               | 在 Jotl、JSON Schema 与 TS 声明之间任意互转             |
+| [`check`](#check)                   | 只报告诊断，不输出结果                                  |
+| [`validate`](#validate)             | 按 schema 校验 JSON 数据文件                            |
+| [`defaults`](#defaults)             | 以 JSON 输出 schema 的默认数据                          |
 | [`migrate-schema`](#migrate-schema) | 把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl 或 2020-12 |
-| [`format`](#format) | 格式化 Jotl 源码，保留注释 |
+| [`format`](#format)                 | 格式化 Jotl 源码，保留注释                              |
 
 全局选项对所有命令有效：`-h, --help` 显示帮助（写在命令后显示该命令的帮助，`jotl help <command>` 效果相同），`-v, --version` 显示版本号，`--lang <zh|en>` 选择输出语言（见[在脚本与 CI 中使用 jotl](scripting.md#选择输出语言)）。
 
@@ -60,12 +60,12 @@ jotl convert <input> --to jotl|schema|ts [--from jotl|schema|ts] [--schema-versi
 
 在 Jotl、JSON Schema 2020-12 与 TS 声明之间互转。`--to` 必填。
 
-| 选项 | 含义 |
-|---|---|
-| `--from <jotl\|schema\|ts>` | 输入格式；不写时按[输入怎么读](#输入怎么读)判断 |
-| `--schema-version <version>` | 未声明 `$schema` 的 JSON Schema 输入按哪个版本处理 |
-| `--on-conflict <policy>` | 升级 JSON Schema 时新旧关键字语义冲突的处理：`preferDeclared` 按声明版本（默认），`preferLatest` 按 2020-12，`error` 报错 |
-| `--typia-tags` | TS 输出使用 typia 类型标签；只能与 `--to ts` 同用 |
+| 选项                         | 含义                                                                                                                      |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `--from <jotl\|schema\|ts>`  | 输入格式；不写时按[输入怎么读](#输入怎么读)判断                                                                           |
+| `--schema-version <version>` | 未声明 `$schema` 的 JSON Schema 输入按哪个版本处理                                                                        |
+| `--on-conflict <policy>`     | 升级 JSON Schema 时新旧关键字语义冲突的处理：`preferDeclared` 按声明版本（默认），`preferLatest` 按 2020-12，`error` 报错 |
+| `--typia-tags`               | TS 输出使用 typia 类型标签；只能与 `--to ts` 同用                                                                         |
 
 ```sh
 jotl convert legacy.json --to jotl --out legacy.jotl
@@ -115,11 +115,11 @@ jotl defaults <schema> [--strategy explicit|required|all] [--schema-version <ver
 
 按 schema 生成默认数据，以 JSON 输出。
 
-| `--strategy` | 产出 |
-|---|---|
-| `explicit`（默认） | 只取显式的 `default` |
-| `required` | 显式默认值，加上必填字段的零值 |
-| `all` | 显式默认值，加上所有字段的零值 |
+| `--strategy`       | 产出                           |
+| ------------------ | ------------------------------ |
+| `explicit`（默认） | 只取显式的 `default`           |
+| `required`         | 显式默认值，加上必填字段的零值 |
+| `all`              | 显式默认值，加上所有字段的零值 |
 
 schema 中没有可生成的默认数据时不输出，报 `JOTL9054` 提示。具体规则见 [`@jotl/data` 的 README](../../../data/zh/README.md) 中 getDefaults 一节。
 
@@ -136,19 +136,19 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
 
 把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl（`--to jotl`，默认）或 JSON Schema 2020-12（`--to schema`）。输入类型自动判定，判定结果与依据以 `JOTL9055` 提示写到 stderr：
 
-| 判定为 | 条件 | 处理 |
-|---|---|---|
-| 凤蝶源码 | 不以 `{` 或 `[` 开头（不是 JSON 文本） | 按 umo-edit-sdk 文法解析，规则见 [`@jotl/convert` 的 README](../../../convert/zh/README.md) |
-| 凤蝶 toJson JSON（umo JSON） | 是 JSON，且任一字段带与属性名相同的 `key`、类型为凤蝶类型（如 `image`、`text`、`richtext`、`url`、`color`、`date`、`enum`、`box`），或枚举成员为 `{label, value}` | 同上，跳过解析 |
-| 常规 JSON Schema | 其余 JSON；以 `{` 开头但不是合法 JSON 时报 `JOTL9052` | draft-04 至 2019-09、OpenAPI 3.0 / 3.1 / Swagger 2.0 的 Schema Object 先升级到 2020-12 |
+| 判定为                       | 条件                                                                                                                                                              | 处理                                                                                        |
+| ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| 凤蝶源码                     | 不以 `{` 或 `[` 开头（不是 JSON 文本）                                                                                                                            | 按 umo-edit-sdk 文法解析，规则见 [`@jotl/convert` 的 README](../../../convert/zh/README.md) |
+| 凤蝶 toJson JSON（umo JSON） | 是 JSON，且任一字段带与属性名相同的 `key`、类型为凤蝶类型（如 `image`、`text`、`richtext`、`url`、`color`、`date`、`enum`、`box`），或枚举成员为 `{label, value}` | 同上，跳过解析                                                                              |
+| 常规 JSON Schema             | 其余 JSON；以 `{` 开头但不是合法 JSON 时报 `JOTL9052`                                                                                                             | draft-04 至 2019-09、OpenAPI 3.0 / 3.1 / Swagger 2.0 的 Schema Object 先升级到 2020-12      |
 
 常规 JSON Schema 输入可用的选项：
 
-| 选项 | 含义 |
-|---|---|
-| `--schema-version <version>` | 未声明 `$schema` 时的版本，取值同[输入怎么读](#输入怎么读) |
-| `--accept-newer-keywords=true\|false` | 是否按 2020-12 语义接受比声明版本更新的关键字；默认 `true` |
-| `--on-conflict <policy>` | `error`、`preferDeclared` 或 `preferLatest`；`--to jotl` 时默认 `preferDeclared`（与 `convert` 一致），`--to schema` 时默认 `error` |
+| 选项                                  | 含义                                                                                                                                |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `--schema-version <version>`          | 未声明 `$schema` 时的版本，取值同[输入怎么读](#输入怎么读)                                                                          |
+| `--accept-newer-keywords=true\|false` | 是否按 2020-12 语义接受比声明版本更新的关键字；默认 `true`                                                                          |
+| `--on-conflict <policy>`              | `error`、`preferDeclared` 或 `preferLatest`；`--to jotl` 时默认 `preferDeclared`（与 `convert` 一致），`--to schema` 时默认 `error` |
 
 - 这三个选项只适用于常规 JSON Schema，用于凤蝶输入时报用法错误 `JOTL9013`。
 - 常规 JSON Schema 且 `--to schema` 时，变更清单（每处改写一条 info 级诊断）也写到 stderr。

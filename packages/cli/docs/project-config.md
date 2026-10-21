@@ -39,10 +39,10 @@ For each Jotl source file, `jotl` looks for the nearest `jotl.config.json`, star
 
 Two options override the search:
 
-| Option | Effect |
-|---|---|
+| Option            | Effect                                    |
+| ----------------- | ----------------------------------------- |
 | `--config <file>` | Use this file for every source; no search |
-| `--no-config` | Read no configuration |
+| `--no-config`     | Read no configuration                     |
 
 Using both is usage error `JOTL9017`.
 
@@ -50,10 +50,10 @@ Using both is usage error `JOTL9017`.
 
 A broken configuration stops every source file that uses it from compiling, and the command exits with `1`. Each configuration file is read once per invocation, so its problems are reported once.
 
-| Code | Meaning |
-|---|---|
-| `JOTL9050` | The file cannot be read |
-| `JOTL9052` | The file is not valid JSON |
+| Code       | Meaning                                                                     |
+| ---------- | --------------------------------------------------------------------------- |
+| `JOTL9050` | The file cannot be read                                                     |
+| `JOTL9052` | The file is not valid JSON                                                  |
 | `JOTL9056` | An entry is invalid; located at the offending key in the configuration file |
 
 ```console

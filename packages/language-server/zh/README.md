@@ -14,10 +14,10 @@
 
 ```js
 // diagnose.mjs
-import { getDiagnostics } from "@jotl/language-server";
+import { getDiagnostics } from '@jotl/language-server';
 
 const text = "Home: {\n  title: strng\n  logo: string[widget: 'uploader']\n}\n";
-for (const d of getDiagnostics(text, "file:///home.jotl")) {
+for (const d of getDiagnostics(text, 'file:///home.jotl')) {
   console.log(d.range.start.line, d.range.start.character, d.code, d.message);
 }
 ```

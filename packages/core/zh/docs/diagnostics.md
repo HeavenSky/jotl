@@ -9,9 +9,9 @@
 所有 Jotl 包的公开函数都返回 `Result<T>`，即 `{ value, diagnostics }`，不抛异常。
 
 ```ts
-import { compile, hasErrors } from "@jotl/core";
+import { compile, hasErrors } from '@jotl/core';
 
-const result = compile("A: strng", "a.jotl");
+const result = compile('A: strng', 'a.jotl');
 if (result.value === undefined || hasErrors(result.diagnostics)) {
   for (const d of result.diagnostics) console.log(d.code, d.severity, d.message);
 }
@@ -42,10 +42,10 @@ if (result.value === undefined || hasErrors(result.diagnostics)) {
 消息与生成的文字有英文（`"en"`，即默认值 `DEFAULT_LOCALE`）和中文（`"zh-CN"`）两种。语言是全局设置，各包创建诊断与生成文字时都读取它。
 
 ```ts
-import { compile, setLocale } from "@jotl/core";
+import { compile, setLocale } from '@jotl/core';
 
-setLocale("zh-CN");
-compile("A: strng", "a.jotl").diagnostics[0].message; // "未知组件 `strng`"
+setLocale('zh-CN');
+compile('A: strng', 'a.jotl').diagnostics[0].message; // "未知组件 `strng`"
 ```
 
 - `getLocale()` 返回当前语言，类型为 `Locale`。
@@ -59,12 +59,12 @@ compile("A: strng", "a.jotl").diagnostics[0].message; // "未知组件 `strng`"
 每个包（或包内模块）在自己的 `diagnostics.ts` 里用 `defineDiagnostics` 定义代码表。消息只写在代码表里：`message` 是中文模板，可选的 `en` 是英文模板。
 
 ```ts
-import { defineDiagnostics, hasErrors } from "@jotl/core";
+import { defineDiagnostics, hasErrors } from '@jotl/core';
 
 const diagnostic = defineDiagnostics({
-  JOTL9999: { severity: "warning", message: "字段 {name} 已弃用", en: "Field {name} is deprecated" },
+  JOTL9999: { severity: 'warning', message: '字段 {name} 已弃用', en: 'Field {name} is deprecated' },
 });
-const d = diagnostic("JOTL9999", { name: "title" });
+const d = diagnostic('JOTL9999', { name: 'title' });
 // { code: "JOTL9999", severity: "warning", message: "Field title is deprecated" }
 hasErrors([d]); // false
 ```
@@ -76,17 +76,17 @@ hasErrors([d]); // false
 
 ## 查代码属于哪个包
 
-| 代码段 | 所属包 | 代码表 |
-|---|---|---|
-| `JOTL0xxx` | `@jotl/core`（契约） | `packages/core/src/schema/diagnostics.ts` 的 `SCHEMA_DIAGNOSTICS` |
-| `JOTL1xxx` | `@jotl/core`（语法） | `packages/core/src/syntax/diagnostics.ts` 的 `SYNTAX_DIAGNOSTICS` |
-| `JOTL2xxx` | `@jotl/convert`（TS 互转） | `packages/convert/src/ts/diagnostics.ts` |
-| `JOTL3xxx` | `@jotl/convert`（版本升级） | `packages/convert/src/migrate/upgrade/diagnostics.ts` |
-| `JOTL4xxx` | `@jotl/data` | `packages/data/src/diagnostics.ts` |
-| `JOTL5xxx` | `@jotl/form/core` | `packages/form/src/core/diagnostics.ts` |
-| `JOTL6xxx` | `@jotl/form`（React 渲染器） | `packages/form/src/react/diagnostics.ts` |
-| `JOTL7xxx` | `@jotl/language-server` | `packages/language-server/src/diagnostics.ts` |
-| `JOTL8xxx` | `@jotl/convert`（凤蝶迁移） | `packages/convert/src/migrate/fengdie/diagnostics.ts` |
-| `JOTL9xxx` | `jotl` 命令行 | `packages/cli/src/diagnostics.ts` |
+| 代码段     | 所属包                       | 代码表                                                            |
+| ---------- | ---------------------------- | ----------------------------------------------------------------- |
+| `JOTL0xxx` | `@jotl/core`（契约）         | `packages/core/src/schema/diagnostics.ts` 的 `SCHEMA_DIAGNOSTICS` |
+| `JOTL1xxx` | `@jotl/core`（语法）         | `packages/core/src/syntax/diagnostics.ts` 的 `SYNTAX_DIAGNOSTICS` |
+| `JOTL2xxx` | `@jotl/convert`（TS 互转）   | `packages/convert/src/ts/diagnostics.ts`                          |
+| `JOTL3xxx` | `@jotl/convert`（版本升级）  | `packages/convert/src/migrate/upgrade/diagnostics.ts`             |
+| `JOTL4xxx` | `@jotl/data`                 | `packages/data/src/diagnostics.ts`                                |
+| `JOTL5xxx` | `@jotl/form/core`            | `packages/form/src/core/diagnostics.ts`                           |
+| `JOTL6xxx` | `@jotl/form`（React 渲染器） | `packages/form/src/react/diagnostics.ts`                          |
+| `JOTL7xxx` | `@jotl/language-server`      | `packages/language-server/src/diagnostics.ts`                     |
+| `JOTL8xxx` | `@jotl/convert`（凤蝶迁移）  | `packages/convert/src/migrate/fengdie/diagnostics.ts`             |
+| `JOTL9xxx` | `jotl` 命令行                | `packages/cli/src/diagnostics.ts`                                 |
 
 每个 `JOTL1xxx` 代码的含义见 [Jotl 语法规范](../../../../zh/docs/spec/jotl.md#诊断)。

@@ -7,31 +7,31 @@
 ## 经 ref 读写值
 
 ```tsx
-import { useRef } from "react";
-import { JotlForm, type JotlFormHandle, type JotlFormProps } from "@jotl/form";
-import "@jotl/form/style.css";
+import { useRef } from 'react';
+import { JotlForm, type JotlFormHandle, type JotlFormProps } from '@jotl/form';
+import '@jotl/form/style.css';
 
-const schema: JotlFormProps["schema"] = {
-  type: "object",
-  properties: { title: { type: "string", title: "标题", maxLength: 20 } },
-  required: ["title"],
+const schema: JotlFormProps['schema'] = {
+  type: 'object',
+  properties: { title: { type: 'string', title: '标题', maxLength: 20 } },
+  required: ['title'],
 };
 
 export function Page() {
   const form = useRef<JotlFormHandle>(null);
-  return <JotlForm ref={form} schema={schema} defaultValue={{}} onSubmit={(value) => console.log(value)} />;
+  return <JotlForm ref={form} schema={schema} defaultValue={{}} onSubmit={value => console.log(value)} />;
 }
 ```
 
 `ref` 暴露实例 API：
 
-| 方法 | 作用 |
-|---|---|
-| `getValues()` | 返回当前值 |
-| `setValues(value)` | 整体替换表单值并通知 `onChange`；不填充默认值 |
-| `validate()` | 校验整个表单并显示全部错误，返回 `ValidationResult` |
-| `reset()` | 回到初始值（已填充默认值），清除错误与触碰记录 |
-| `submit()` | 校验，通过时调用 `onSubmit`；返回 `ValidationResult` |
+| 方法               | 作用                                                 |
+| ------------------ | ---------------------------------------------------- |
+| `getValues()`      | 返回当前值                                           |
+| `setValues(value)` | 整体替换表单值并通知 `onChange`；不填充默认值        |
+| `validate()`       | 校验整个表单并显示全部错误，返回 `ValidationResult`  |
+| `reset()`          | 回到初始值（已填充默认值），清除错误与触碰记录       |
+| `submit()`         | 校验，通过时调用 `onSubmit`；返回 `ValidationResult` |
 
 ## 选择受控或非受控
 

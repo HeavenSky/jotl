@@ -7,8 +7,8 @@ This page tells you which props your component receives and what it must do with
 ## A minimal field widget
 
 ```tsx
-import type { FieldProps } from "@jotl/form/core";
-import type { ReactNode } from "react";
+import type { FieldProps } from '@jotl/form/core';
+import type { ReactNode } from 'react';
 
 export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldProps<boolean, ReactNode>) {
   return (
@@ -17,9 +17,9 @@ export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldPro
       type="checkbox"
       role="switch"
       checked={value === true}
-      disabled={mode !== "edit"}
+      disabled={mode !== 'edit'}
       aria-invalid={errors.length > 0}
-      onChange={(event) => onChange(event.target.checked)}
+      onChange={event => onChange(event.target.checked)}
       onBlur={onBlur}
     />
   );
@@ -40,13 +40,13 @@ Register it with `{ name: "switch", level: "field", component: MySwitch }`. The 
 
 The level you register decides the props type. All types are exported from `@jotl/form/core` and defined in [`src/core/contracts.ts`](../src/core/contracts.ts); `N` is the node type, `ReactNode` in React.
 
-| Level | Props | Built-in names | What the widget gets beyond `BaseProps` |
-|---|---|---|---|
-| `view` | `ViewProps<N>` | `form` | `submit()` `reset()` `children`; `errors` that belong to no visible field; optional `goToError(error)` to jump to one |
-| `decorator` | `DecoratorProps<N>` (not `BaseProps`) | `field` | `id` `label?` `description?` `required` `errors` `hidden` `children` |
-| `layout` | `LayoutProps<N>` | `page` `inline` | `fields` (ordered, with `hidden` and `errorCount`), `groups`, `layout`, `columns`, optional `additional` for keys outside `properties` |
-| `field` | `FieldProps<V, N>` | `input` `number` `switch` `select` `date` and the other scalar names | `required` `value` `onChange(value)` `onBlur()` `errors` `thousands?` |
-| `composite` | `ArrayProps` `TupleProps` `MapProps` `UnionProps` `NullableProps` `TreeProps` | `list` `tuple` `kv` `union` `nullable` `tree` | Item lists with stable keys and add / remove / move operations, or branch, null and expand state with a `renderContent()` |
+| Level       | Props                                                                         | Built-in names                                                       | What the widget gets beyond `BaseProps`                                                                                                |
+| ----------- | ----------------------------------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `view`      | `ViewProps<N>`                                                                | `form`                                                               | `submit()` `reset()` `children`; `errors` that belong to no visible field; optional `goToError(error)` to jump to one                  |
+| `decorator` | `DecoratorProps<N>` (not `BaseProps`)                                         | `field`                                                              | `id` `label?` `description?` `required` `errors` `hidden` `children`                                                                   |
+| `layout`    | `LayoutProps<N>`                                                              | `page` `inline`                                                      | `fields` (ordered, with `hidden` and `errorCount`), `groups`, `layout`, `columns`, optional `additional` for keys outside `properties` |
+| `field`     | `FieldProps<V, N>`                                                            | `input` `number` `switch` `select` `date` and the other scalar names | `required` `value` `onChange(value)` `onBlur()` `errors` `thousands?`                                                                  |
+| `composite` | `ArrayProps` `TupleProps` `MapProps` `UnionProps` `NullableProps` `TreeProps` | `list` `tuple` `kv` `union` `nullable` `tree`                        | Item lists with stable keys and add / remove / move operations, or branch, null and expand state with a `renderContent()`              |
 
 `BaseProps<N>`, shared by every level except `decorator`, carries `id`, `schema`, `dataPath` (the actual path, with numeric array indexes), `mode`, `props` (the merged `x-ui.props`), `adapters` and `renderChild(relativePath)`.
 

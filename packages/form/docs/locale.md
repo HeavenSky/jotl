@@ -15,7 +15,7 @@ This page shows how to show widget text and validation messages in English or Ch
 ## For the whole app
 
 ```ts
-import { resolveLocale, setLocale } from "@jotl/form";
+import { resolveLocale, setLocale } from '@jotl/form';
 
 setLocale(resolveLocale(navigator.language));
 ```
@@ -29,11 +29,15 @@ setLocale(resolveLocale(navigator.language));
 - Both read `LocaleContext` and fall back to the global language outside a form.
 
 ```tsx
-import { useL10n } from "@jotl/form";
+import { useL10n } from '@jotl/form';
 
 function ClearButton({ onClick }: { onClick: () => void }) {
   const t = useL10n();
-  return <button type="button" onClick={onClick}>{t("清空", "Clear")}</button>;
+  return (
+    <button type="button" onClick={onClick}>
+      {t('清空', 'Clear')}
+    </button>
+  );
 }
 ```
 

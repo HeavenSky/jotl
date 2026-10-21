@@ -1,7 +1,7 @@
 // 源码, jotl.config.json 与界面语言在 localStorage 中的读写; 存储不可用(隐私模式, 配额满, 被禁用)时不抛异常.
-export const SOURCE_STORAGE_KEY = "jotl-playground:source";
-export const CONFIG_STORAGE_KEY = "jotl-playground:config";
-export const LOCALE_STORAGE_KEY = "jotl-playground:locale";
+export const SOURCE_STORAGE_KEY = 'jotl-playground:source';
+export const CONFIG_STORAGE_KEY = 'jotl-playground:config';
+export const LOCALE_STORAGE_KEY = 'jotl-playground:locale';
 
 function storage(): Storage | undefined {
   try {

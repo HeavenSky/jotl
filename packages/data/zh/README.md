@@ -13,23 +13,23 @@
 ## 一份 schema，四种用途
 
 ```js
-import { getDefaults, migrate, validate } from "@jotl/data";
+import { getDefaults, migrate, validate } from '@jotl/data';
 
 const schema = {
-  type: "object",
+  type: 'object',
   properties: {
-    title: { type: "string", title: "Title", maxLength: 5, default: "Home" },
-    count: { type: "integer", minimum: 1 },
-    color: { type: "string", format: "color", errorMessage: "Use a hex color" },
+    title: { type: 'string', title: 'Title', maxLength: 5, default: 'Home' },
+    count: { type: 'integer', minimum: 1 },
+    color: { type: 'string', format: 'color', errorMessage: 'Use a hex color' },
   },
-  required: ["title", "count"],
+  required: ['title', 'count'],
 };
 
-console.log(getDefaults(schema, { strategy: "required" }).value);
-for (const d of validate(schema, { title: 1, count: 0, color: "red" }).diagnostics) {
+console.log(getDefaults(schema, { strategy: 'required' }).value);
+for (const d of validate(schema, { title: 1, count: 0, color: 'red' }).diagnostics) {
   console.log(d.code, d.location?.pointer, d.message);
 }
-console.log(migrate(schema, { title: 12, count: "3", old: true }).value);
+console.log(migrate(schema, { title: 12, count: '3', old: true }).value);
 ```
 
 输出：
@@ -60,14 +60,14 @@ JOTL4009 /color Use a hex color
 2. 把下面的代码保存为 `check.mjs`：
 
    ```js
-   import { validate } from "@jotl/data";
+   import { validate } from '@jotl/data';
 
    const schema = {
-     type: "object",
-     properties: { email: { type: "string", title: "Email", format: "email" } },
-     required: ["email"],
+     type: 'object',
+     properties: { email: { type: 'string', title: 'Email', format: 'email' } },
+     required: ['email'],
    };
-   for (const d of validate(schema, { email: "not-an-email" }).diagnostics) {
+   for (const d of validate(schema, { email: 'not-an-email' }).diagnostics) {
      console.log(d.code, d.location?.pointer, d.message);
    }
    ```

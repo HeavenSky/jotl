@@ -1,24 +1,24 @@
 // jotl 命令行面向使用者的文案(中英双语): 帮助文本, 诊断级别标签与结果行; 按 getLocale() 取当前语言.
-import { type Locale, type Severity, getLocale } from "@jotl/core";
+import { type Locale, type Severity, getLocale } from '@jotl/core';
 
 export const COMMAND_NAMES = [
-  "compile",
-  "convert",
-  "check",
-  "validate",
-  "defaults",
-  "migrate-schema",
-  "format",
+  'compile',
+  'convert',
+  'check',
+  'validate',
+  'defaults',
+  'migrate-schema',
+  'format',
 ] as const;
 
 export type CommandName = (typeof COMMAND_NAMES)[number];
 
 /** --lang 归一后的取值, 用于用法错误中列出可选项. */
-export const LOCALES: readonly Locale[] = ["zh-CN", "en"];
+export const LOCALES: readonly Locale[] = ['zh-CN', 'en'];
 
 const SEVERITY_LABELS: Readonly<Record<Locale, Readonly<Record<Severity, string>>>> = {
-  "zh-CN": { error: "错误", warning: "警告", info: "提示" },
-  en: { error: "error", warning: "warning", info: "info" },
+  'zh-CN': { error: '错误', warning: '警告', info: '提示' },
+  en: { error: 'error', warning: 'warning', info: 'info' },
 };
 
 export function severityLabel(severity: Severity): string {
@@ -36,60 +36,60 @@ export interface CliText {
   internalErrorHint: string;
   fsReasons: Readonly<Record<string, string>>;
   fsUnknownReason: string;
-  migrateInputKinds: Readonly<Record<"fengdie" | "fengdie-json" | "json-schema", string>>;
+  migrateInputKinds: Readonly<Record<'fengdie' | 'fengdie-json' | 'json-schema', string>>;
 }
 
 const TEXT: Readonly<Record<Locale, CliText>> = {
-  "zh-CN": {
-    usageHint: "运行 `jotl {command} --help` 查看用法",
-    globalUsageHint: "运行 `jotl --help` 查看用法",
-    validatePassed: "{file}: 通过",
-    validateFailed: "{file}: 未通过",
-    jsonUnexpectedChar: "意外的字符 `{char}`",
-    jsonUnexpectedEnd: "意外的文件结尾",
-    dataLocation: "数据所在位置",
-    internalErrorHint: "这是 jotl 的缺陷, 请附上以上输出报告问题",
+  'zh-CN': {
+    usageHint: '运行 `jotl {command} --help` 查看用法',
+    globalUsageHint: '运行 `jotl --help` 查看用法',
+    validatePassed: '{file}: 通过',
+    validateFailed: '{file}: 未通过',
+    jsonUnexpectedChar: '意外的字符 `{char}`',
+    jsonUnexpectedEnd: '意外的文件结尾',
+    dataLocation: '数据所在位置',
+    internalErrorHint: '这是 jotl 的缺陷, 请附上以上输出报告问题',
     fsReasons: {
-      ENOENT: "文件不存在",
-      EISDIR: "这是一个目录",
-      ENOTDIR: "路径中的某一级不是目录",
-      EACCES: "没有权限",
-      EPERM: "没有权限",
-      EEXIST: "文件已存在",
-      ENOSPC: "磁盘空间不足",
-      EROFS: "文件系统只读",
+      ENOENT: '文件不存在',
+      EISDIR: '这是一个目录',
+      ENOTDIR: '路径中的某一级不是目录',
+      EACCES: '没有权限',
+      EPERM: '没有权限',
+      EEXIST: '文件已存在',
+      ENOSPC: '磁盘空间不足',
+      EROFS: '文件系统只读',
     },
-    fsUnknownReason: "系统错误 {code}",
+    fsUnknownReason: '系统错误 {code}',
     migrateInputKinds: {
-      fengdie: "凤蝶源码",
-      "fengdie-json": "凤蝶 toJson JSON(umo JSON)",
-      "json-schema": "常规 JSON Schema",
+      fengdie: '凤蝶源码',
+      'fengdie-json': '凤蝶 toJson JSON(umo JSON)',
+      'json-schema': '常规 JSON Schema',
     },
   },
   en: {
-    usageHint: "Run `jotl {command} --help` for usage",
-    globalUsageHint: "Run `jotl --help` for usage",
-    validatePassed: "{file}: passed",
-    validateFailed: "{file}: failed",
-    jsonUnexpectedChar: "unexpected character `{char}`",
-    jsonUnexpectedEnd: "unexpected end of file",
-    dataLocation: "location in the data file",
-    internalErrorHint: "This is a bug in jotl; please report it with the output above",
+    usageHint: 'Run `jotl {command} --help` for usage',
+    globalUsageHint: 'Run `jotl --help` for usage',
+    validatePassed: '{file}: passed',
+    validateFailed: '{file}: failed',
+    jsonUnexpectedChar: 'unexpected character `{char}`',
+    jsonUnexpectedEnd: 'unexpected end of file',
+    dataLocation: 'location in the data file',
+    internalErrorHint: 'This is a bug in jotl; please report it with the output above',
     fsReasons: {
-      ENOENT: "file not found",
-      EISDIR: "is a directory",
-      ENOTDIR: "a component of the path is not a directory",
-      EACCES: "permission denied",
-      EPERM: "permission denied",
-      EEXIST: "file already exists",
-      ENOSPC: "no space left on device",
-      EROFS: "read-only file system",
+      ENOENT: 'file not found',
+      EISDIR: 'is a directory',
+      ENOTDIR: 'a component of the path is not a directory',
+      EACCES: 'permission denied',
+      EPERM: 'permission denied',
+      EEXIST: 'file already exists',
+      ENOSPC: 'no space left on device',
+      EROFS: 'read-only file system',
     },
-    fsUnknownReason: "system error {code}",
+    fsUnknownReason: 'system error {code}',
     migrateInputKinds: {
-      fengdie: "Fengdie source",
-      "fengdie-json": "Fengdie toJson JSON (umo JSON)",
-      "json-schema": "plain JSON Schema",
+      fengdie: 'Fengdie source',
+      'fengdie-json': 'Fengdie toJson JSON (umo JSON)',
+      'json-schema': 'plain JSON Schema',
     },
   },
 };
@@ -99,7 +99,7 @@ export function cliText(): CliText {
 }
 
 const GLOBAL_HELP: Readonly<Record<Locale, string>> = {
-  "zh-CN": `jotl {version}: Jotl 命令行工具
+  'zh-CN': `jotl {version}: Jotl 命令行工具
 
 用法: jotl <命令> [选项]
 
@@ -255,7 +255,7 @@ ${SCHEMA_INPUT_NOTE_ZH}
 示例:
   jotl defaults home.jotl --strategy required
 `,
-  "migrate-schema": `用法: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <版本>]
+  'migrate-schema': `用法: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <版本>]
                            [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 
 把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl(默认)或 JSON Schema 2020-12.
@@ -387,7 +387,7 @@ Options:
 Examples:
   jotl defaults home.jotl --strategy required
 `,
-  "migrate-schema": `Usage: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <version>]
+  'migrate-schema': `Usage: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <version>]
                                  [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 
 Migrate a Fengdie schema or a legacy JSON Schema to Jotl (default) or JSON Schema 2020-12.
@@ -433,5 +433,5 @@ Examples:
 
 /** 命令帮助模板, `{versions}` 由调用方替换. */
 export function commandHelpTemplate(name: CommandName): string {
-  return (getLocale() === "en" ? COMMAND_HELP_EN : COMMAND_HELP_ZH)[name];
+  return (getLocale() === 'en' ? COMMAND_HELP_EN : COMMAND_HELP_ZH)[name];
 }

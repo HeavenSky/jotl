@@ -9,7 +9,15 @@ After this page, the preview form renders your own React widget components inste
 1. Point the widget at a module, either in `jotl.config.json`:
 
    ```json
-   { "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/my-image-picker?external=react,react-dom", "export": "default" } } }
+   {
+     "widgets": {
+       "ImagePicker": {
+         "base": "url",
+         "module": "https://esm.sh/my-image-picker?external=react,react-dom",
+         "export": "default"
+       }
+     }
+   }
    ```
 
    or in the `widgets` metadata of the file's root entry, which wins over the config for the same name:

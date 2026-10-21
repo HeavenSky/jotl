@@ -1,29 +1,29 @@
 // 公开类型: 表单属性, 实例 API, 降级事件, 以及 React 下的注册表与适配器别名.
-import type { ComponentType, ReactNode } from "react";
-import type { DefaultsOptions, JsonPointer, JsonSchema, Locale } from "@jotl/core";
-import type { Adapters, PlanDegradeReason, Registry, RenderMode } from "../core/index.js";
-import type { ValidateTrigger, ValidationResult } from "./form-store.js";
-import type { ModuleWidgetOptions } from "./module-widgets.js";
+import type { ComponentType, ReactNode } from 'react';
+import type { DefaultsOptions, JsonPointer, JsonSchema, Locale } from '@jotl/core';
+import type { Adapters, PlanDegradeReason, Registry, RenderMode } from '../core/index.js';
+import type { ValidateTrigger, ValidationResult } from './form-store.js';
+import type { ModuleWidgetOptions } from './module-widgets.js';
 
 export type { ValidateTrigger, ValidationResult };
 
 /** 各层组件按 core/ 的 props 契约接收属性. */
-// biome-ignore lint/suspicious/noExplicitAny: 各组件 props 不同, 换成 unknown 会因参数逆变使具体组件无法赋值
+// oxlint-disable-next-line typescript/no-explicit-any -- 各组件 props 不同, 换成 unknown 会因参数逆变使具体组件无法赋值
 export type ReactWidgetComponent = ComponentType<any>;
 export type ReactRegistry = Registry<ReactWidgetComponent>;
 export type ReactAdapters = Adapters<ReactNode>;
 
 /** plan() 期的 F1 F2 F3 F7, 以及渲染期的 F4 F5 F8 F9. */
-export type DegradeCode = PlanDegradeReason | "F4" | "F5" | "F8" | "F9";
+export type DegradeCode = PlanDegradeReason | 'F4' | 'F5' | 'F8' | 'F9';
 
 /** 渲染器内置的替代形态, 作为 DegradeEvent.to 的取值. */
 export const DEGRADE_TARGETS = {
   /** F5: 复合组件被拆开, 子节点逐个渲染. */
-  split: "split",
+  split: 'split',
   /** 注册表中没有可用的 json 组件时的内置最小兜底. */
-  minimalJson: "minimal-json",
+  minimalJson: 'minimal-json',
   /** 外壳不可用时不再包外壳. */
-  none: "none",
+  none: 'none',
 } as const;
 
 export interface DegradeEvent {
@@ -91,7 +91,7 @@ export interface JotlFormProps {
    */
   collapsible?: boolean;
   /** 未传 value 与 defaultValue 时初始数据的来源: "defaults"(默认)按 schema 默认值补全; "mock" 用 @jotl/data 的 mock() 生成. 新增数据仍按默认值. */
-  initialData?: "defaults" | "mock";
+  initialData?: 'defaults' | 'mock';
   /** initialData 为 "mock" 时的随机种子, 同一种子生成同样的数据; 不传时每次挂载随机. */
   mockSeed?: number;
   /** 当前页变化(点击入口行或面包屑, 提交失败跳到错误所在层, 数组元素被删除后退回)时调用. */

@@ -9,29 +9,41 @@ This page shows how to turn a JSON Schema 2020-12 document into TS declarations 
 ## Convert a schema and read it back
 
 ```ts
-import { schemaToTs } from "@jotl/convert";
-import { tsToSchema } from "@jotl/convert/from-ts";
+import { schemaToTs } from '@jotl/convert';
+import { tsToSchema } from '@jotl/convert/from-ts';
 
 const schema = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $ref: "#/$defs/Page",
-  "x-ui": { version: 1 },
+  $schema: 'https://json-schema.org/draft/2020-12/schema',
+  $ref: '#/$defs/Page',
+  'x-ui': { version: 1 },
   $defs: {
     Page: {
-      type: "object",
+      type: 'object',
       properties: {
-        title: { title: "标题", type: "string", maxLength: 20, default: "欢迎", errorMessage: { maxLength: "最多 20 字" } },
-        count: { type: "integer", minimum: 1 },
-        mode: { type: "string", oneOf: [{ const: "light", title: "浅色" }, { const: "dark", title: "深色" }] },
-        cover: { type: "string", format: "uri", "x-ui": { widget: "image" } },
+        title: {
+          title: '标题',
+          type: 'string',
+          maxLength: 20,
+          default: '欢迎',
+          errorMessage: { maxLength: '最多 20 字' },
+        },
+        count: { type: 'integer', minimum: 1 },
+        mode: {
+          type: 'string',
+          oneOf: [
+            { const: 'light', title: '浅色' },
+            { const: 'dark', title: '深色' },
+          ],
+        },
+        cover: { type: 'string', format: 'uri', 'x-ui': { widget: 'image' } },
       },
-      required: ["title"],
+      required: ['title'],
     },
   },
 };
 
 const ts = schemaToTs(schema); // diagnostics: []
-const back = tsToSchema(ts.value!, { fileName: "page.d.ts" }); // back.value is deeply equal to schema
+const back = tsToSchema(ts.value!, { fileName: 'page.d.ts' }); // back.value is deeply equal to schema
 ```
 
 `ts.value` (with the default `en` language):
@@ -55,7 +67,7 @@ export interface Page {
   /**
    * @enumTitles `{"light":"浅色","dark":"深色"}`
    */
-  mode?: "light" | "dark";
+  mode?: 'light' | 'dark';
   /**
    * @format uri
    * @widget image
@@ -76,18 +88,18 @@ The main entry, including `schemaToTs` and all migration APIs, does not referenc
 
 ## API
 
-| Export | Signature | Notes |
-|---|---|---|
-| `schemaToTs` | `(schema, options?: SchemaToTsOptions) => Result<string>` | Reports `JOTL2001` when the input is not a schema object; inexpressible keywords are dropped with a `JOTL2002` warning, without affecting output |
-| `SchemaToTsOptions.typiaTags` | `boolean`, default `false` | See [Write typia type tags](#write-typia-type-tags) |
-| `SchemaToTsOptions.defaultExport` | `string`, a key of `$defs` | The type to default-export; take `defaultExport` from `@jotl/core`'s `compile` result (Jotl's `<default/>`). When absent or not in `$defs`, the root is default-exported; when it differs from the root, the root type's comment gets `@root` |
+| Export                                                    | Signature                                                   | Notes                                                                                                                                                                                                                                                                                                                                       |
+| --------------------------------------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `schemaToTs`                                              | `(schema, options?: SchemaToTsOptions) => Result<string>`   | Reports `JOTL2001` when the input is not a schema object; inexpressible keywords are dropped with a `JOTL2002` warning, without affecting output                                                                                                                                                                                            |
+| `SchemaToTsOptions.typiaTags`                             | `boolean`, default `false`                                  | See [Write typia type tags](#write-typia-type-tags)                                                                                                                                                                                                                                                                                         |
+| `SchemaToTsOptions.defaultExport`                         | `string`, a key of `$defs`                                  | The type to default-export; take `defaultExport` from `@jotl/core`'s `compile` result (Jotl's `<default/>`). When absent or not in `$defs`, the root is default-exported; when it differs from the root, the root type's comment gets `@root`                                                                                               |
 | `tsToSchema` (exported only from `@jotl/convert/from-ts`) | `(source, options?: TsToSchemaOptions) => TsToSchemaResult` | Input is the text of a single declaration file; with error-level diagnostics `value` is `undefined`. `TsToSchemaResult` extends `Result<JsonSchemaObject>` with `defaultExport?` (the default export's type name, not in the schema; pass it to `@jotl/core`'s `print(schema, { defaultExport })` when printing Jotl to write `<default/>`) |
-| `TsToSchemaOptions.fileName` | `string` | Used only as the file name in diagnostic locations |
-| `GENERATED_HEADER` `GENERATED_HEADER_EN` | `string` | The first line of generated files (`// 由 Jotl 生成, 不要手改.` / `// Generated by Jotl. Do not edit.`), chosen by the global language |
-| `CUSTOM_TAGS` | `readonly CustomTagDefinition[]` | Custom tag names and syntax (`block` / `modifier`) defined by the protocol |
-| `TS_DIAGNOSTICS` `tsDiagnostic` `TsDiagnosticCode` | | Code table and diagnostic factory |
-| `definedTags` of `@jotl/convert/eslint` | `readonly string[]` | See [Configure TSDoc and ESLint](./lint-presets.md) |
-| `@jotl/convert/tsdoc.json` | TSDoc configuration file | See [Configure TSDoc and ESLint](./lint-presets.md) |
+| `TsToSchemaOptions.fileName`                              | `string`                                                    | Used only as the file name in diagnostic locations                                                                                                                                                                                                                                                                                          |
+| `GENERATED_HEADER` `GENERATED_HEADER_EN`                  | `string`                                                    | The first line of generated files (`// 由 Jotl 生成, 不要手改.` / `// Generated by Jotl. Do not edit.`), chosen by the global language                                                                                                                                                                                                      |
+| `CUSTOM_TAGS`                                             | `readonly CustomTagDefinition[]`                            | Custom tag names and syntax (`block` / `modifier`) defined by the protocol                                                                                                                                                                                                                                                                  |
+| `TS_DIAGNOSTICS` `tsDiagnostic` `TsDiagnosticCode`        |                                                             | Code table and diagnostic factory                                                                                                                                                                                                                                                                                                           |
+| `definedTags` of `@jotl/convert/eslint`                   | `readonly string[]`                                         | See [Configure TSDoc and ESLint](./lint-presets.md)                                                                                                                                                                                                                                                                                         |
+| `@jotl/convert/tsdoc.json`                                | TSDoc configuration file                                    | See [Configure TSDoc and ESLint](./lint-presets.md)                                                                                                                                                                                                                                                                                         |
 
 ## What schemaToTs outputs
 

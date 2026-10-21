@@ -8,13 +8,13 @@
 
 每个函数都返回 `@jotl/core` 的 `Result`，不抛异常，也不修改传入的 schema 与数据。`Result` 的读法见[处理结果与诊断](../../../core/zh/docs/diagnostics.md)。
 
-| 函数 | `value` 的内容 | 指南 |
-|---|---|---|
-| `getDefaults(schema, opts?)` | 默认数据 | [生成默认数据](./default-data.md) |
-| `fillDefaults(schema, data, opts?)` | `{ data, filled }`：补全后的数据与补上的位置 | [生成默认数据](./default-data.md) |
-| `validate(schema, data, opts?)` | `{ valid }`；错误是 `location.kind: "pointer"` 的诊断 | [校验数据](./validation.md) |
-| `migrate(schema, data, opts?)` | `{ data, changed }`：修正后的数据与改动的位置 | [迁移旧数据](./migration.md) |
-| `mock(schema, opts?)` | 满足 schema 的数据 | [生成 Mock 数据](./mock.md) |
+| 函数                                | `value` 的内容                                        | 指南                              |
+| ----------------------------------- | ----------------------------------------------------- | --------------------------------- |
+| `getDefaults(schema, opts?)`        | 默认数据                                              | [生成默认数据](./default-data.md) |
+| `fillDefaults(schema, data, opts?)` | `{ data, filled }`：补全后的数据与补上的位置          | [生成默认数据](./default-data.md) |
+| `validate(schema, data, opts?)`     | `{ valid }`；错误是 `location.kind: "pointer"` 的诊断 | [校验数据](./validation.md)       |
+| `migrate(schema, data, opts?)`      | `{ data, changed }`：修正后的数据与改动的位置         | [迁移旧数据](./migration.md)      |
+| `mock(schema, opts?)`               | 满足 schema 的数据                                    | [生成 Mock 数据](./mock.md)       |
 
 `dataApi` 把这五个函数打包成 `@jotl/core` 的 `DataApi`，供以参数接收实现的代码使用。
 
@@ -29,10 +29,10 @@
 选项 `locale`（`"zh-CN"` 或 `"en"`，类型 `LocaleOptions`）只决定本次调用产生的诊断与消息的语言。不传时取 `@jotl/core` 的全局 `getLocale()`，默认 `en`。
 
 ```js
-import { validate } from "@jotl/data";
+import { validate } from '@jotl/data';
 
-const schema = { type: "object", properties: { title: { type: "string", title: "Title" } } };
-validate(schema, { title: 1 }, { locale: "zh-CN" }).diagnostics[0].message; // "Title 的类型应为字符串"
+const schema = { type: 'object', properties: { title: { type: 'string', title: 'Title' } } };
+validate(schema, { title: 1 }, { locale: 'zh-CN' }).diagnostics[0].message; // "Title 的类型应为字符串"
 ```
 
 ## 只处理文档的一部分
@@ -40,19 +40,22 @@ validate(schema, { title: 1 }, { locale: "zh-CN" }).diagnostics[0].message; // "
 `getDefaults` 与 `validate` 接受选项 `at`（类型 `SubschemaOptions`，即 `{ at?: JsonPointer | JsonSchema }`），只针对大文档中的某个子 schema 求默认值或校验。
 
 ```js
-import { getDefaults, validate } from "@jotl/data";
+import { getDefaults, validate } from '@jotl/data';
 
 const doc = {
   $defs: {
     Address: {
-      type: "object",
-      properties: { city: { type: "string", title: "City", default: "Paris" }, zip: { type: "string", pattern: "^[0-9]{5}$" } },
-      required: ["city"],
+      type: 'object',
+      properties: {
+        city: { type: 'string', title: 'City', default: 'Paris' },
+        zip: { type: 'string', pattern: '^[0-9]{5}$' },
+      },
+      required: ['city'],
     },
   },
 };
-getDefaults(doc, { at: "/$defs/Address" }).value; // { city: "Paris" }
-validate(doc, { city: 1, zip: "x" }, { at: "/$defs/Address" }).diagnostics.map((d) => d.location.pointer); // ["/city", "/zip"]
+getDefaults(doc, { at: '/$defs/Address' }).value; // { city: "Paris" }
+validate(doc, { city: 1, zip: 'x' }, { at: '/$defs/Address' }).diagnostics.map(d => d.location.pointer); // ["/city", "/zip"]
 ```
 
 - 传 JSON 指针时取文档中该处的子 schema；传 schema 值时原样使用，例如你由文档节点合成的有效 schema。

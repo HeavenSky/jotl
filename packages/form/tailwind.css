@@ -3,7 +3,7 @@
  * (计数器, 伪元素内容, 原生下拉的 base-select 外观与弹层, 钻取页头面包屑与折叠面板的伪元素及跨组件的隐藏, 覆盖规则). 不含 theme 与 utilities 的引入, 由入口文件统一引入一次;
  * 预编译入口见 style.entry.css, 宿主自行编译的写法见 README.
  */
-@import "./theme.css";
+@import './theme.css';
 @source "./src";
 
 @layer components {
@@ -48,7 +48,10 @@
       border: 0;
       border-radius: var(--jotl-radius, 2px);
       background: var(--jotl-surface, #ffffff);
-      box-shadow: 0 3px 6px -4px rgba(0, 0, 0, 0.12), 0 6px 16px 0 rgba(0, 0, 0, 0.08), 0 9px 28px 8px rgba(0, 0, 0, 0.05);
+      box-shadow:
+        0 3px 6px -4px rgba(0, 0, 0, 0.12),
+        0 6px 16px 0 rgba(0, 0, 0, 0.08),
+        0 9px 28px 8px rgba(0, 0, 0, 0.05);
     }
 
     :where(.jotl-select:not([multiple]) option) {
@@ -90,13 +93,13 @@
   }
 
   :where(.jotl-array-item)::before {
-    content: counter(jotl-item) ".";
+    content: counter(jotl-item) '.';
     flex: none;
     min-width: 1.25rem;
   }
 
   :where(.jotl-array-add, .jotl-map-add)::before {
-    content: "+ " / "";
+    content: '+ ' / '';
   }
 }
 
@@ -104,7 +107,7 @@
 
 @layer components {
   :where(.jotl-breadcrumb-item + .jotl-breadcrumb-item)::before {
-    content: "/" / "";
+    content: '/' / '';
     padding: 0 0.5rem;
     color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
   }
@@ -119,7 +122,7 @@
   }
 
   :where(.jotl-panel-header)::before {
-    content: "›" / "";
+    content: '›' / '';
     flex: none;
     width: 1em;
     color: var(--jotl-muted, rgba(0, 0, 0, 0.45));

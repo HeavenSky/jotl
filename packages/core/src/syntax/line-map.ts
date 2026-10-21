@@ -1,12 +1,12 @@
 // 源码偏移到行列位置的换算; 行列从 1 起, 列按 UTF-16 代码单元计.
-import type { SourcePosition, SourceRange } from "../schema/index.js";
+import type { SourcePosition, SourceRange } from '../schema/index.js';
 
 export class LineMap {
   private readonly lineStarts: number[] = [0];
 
   constructor(
     private readonly text: string,
-    readonly file: string,
+    readonly file: string
   ) {
     for (let i = 0; i < text.length; i++) {
       const c = text.charCodeAt(i);

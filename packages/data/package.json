@@ -2,12 +2,15 @@
   "name": "@jotl/data",
   "version": "0.0.2",
   "description": "Generate defaults, validate, migrate and mock data from a JSON Schema 2020-12, with errors that name the field and say what is wrong.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/data"
   },
-  "license": "MIT",
+  "files": [
+    "dist"
+  ],
   "type": "module",
   "exports": {
     ".": {
@@ -15,9 +18,6 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
   "scripts": {
     "build": "tsc -b",
     "typecheck:test": "tsc -p tsconfig.test.json"

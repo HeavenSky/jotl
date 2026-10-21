@@ -14,23 +14,23 @@
 
 ## 覆盖表
 
-| widget 名 | antd 组件 | 要点 |
-|---|---|---|
-| `form` | 原生 `<form>` + `Form`（`component={false}`，纵向布局）+ `Button` + `Alert` | 提交与重置按钮；不属于可见字段的错误显示在 `Alert` 中；`mode="disabled"` 经 `Form` 的 `disabled` 禁用 antd 控件 |
-| `field` | `Form.Item` | 标签、必填标记，`description` 作为 `extra`，错误作为 `help` 并设 `validateStatus="error"` |
-| `page` `inline` | 分组用 `Card`，`layout: "tabs"` 用 `Tabs`，`layout: "grid"` 用 CSS grid | 其他键（`additional`）复用 `@jotl/form` 的 `EntryEditor` |
-| `list` | 每项一张 `Card`，`Button` | 上移、下移、复制（渲染器提供时）、删除、新增 |
-| `input` `password` `textarea` | `Input`、`Input.Password`、`Input.TextArea` | 透传 `maxLength` |
-| `url` `email` | 带 `type` 的 `Input` | 清空时写回 `undefined` |
-| `number` | `InputNumber` | 空值写回 `undefined`；`minimum` / `maximum`；整数与 `x-decimals` 经 `precision`；`thousands` 经 formatter |
-| `range` | `Slider` | |
-| `switch` | `Switch` | |
-| `checkbox` | `Checkbox`；枚举数组用 `Checkbox.Group` | |
-| `radio` | `Radio.Group` | |
-| `select` | `Select`；枚举数组用 `mode="multiple"` | 非必填时可清除；不在选项中的已有值保留在末尾 |
-| `date` `time` `datetime` | `DatePicker`、`TimePicker`、`DatePicker showTime` | 仅在传入 `options.dayjs` 时。按存储格式（`x-valueFormat`，没有时按 `format`）读写，本地时区；解析不了的存量值交给原生 widget 原样显示，不改写数据 |
-| `color` | `ColorPicker` | 写回 `#rrggbb`；清除时写回 `undefined` |
-| 其余：`richtext` `money` `bigint` `output` `image` `file` `json` `kv` `union` `nullable` `tree` `tuple` | `@jotl/form` 的原生 widget | 经父级注册表；见[默认 HTML widget](../../../form/zh/docs/default-widgets.md) |
+| widget 名                                                                                               | antd 组件                                                                   | 要点                                                                                                                                              |
+| ------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `form`                                                                                                  | 原生 `<form>` + `Form`（`component={false}`，纵向布局）+ `Button` + `Alert` | 提交与重置按钮；不属于可见字段的错误显示在 `Alert` 中；`mode="disabled"` 经 `Form` 的 `disabled` 禁用 antd 控件                                   |
+| `field`                                                                                                 | `Form.Item`                                                                 | 标签、必填标记，`description` 作为 `extra`，错误作为 `help` 并设 `validateStatus="error"`                                                         |
+| `page` `inline`                                                                                         | 分组用 `Card`，`layout: "tabs"` 用 `Tabs`，`layout: "grid"` 用 CSS grid     | 其他键（`additional`）复用 `@jotl/form` 的 `EntryEditor`                                                                                          |
+| `list`                                                                                                  | 每项一张 `Card`，`Button`                                                   | 上移、下移、复制（渲染器提供时）、删除、新增                                                                                                      |
+| `input` `password` `textarea`                                                                           | `Input`、`Input.Password`、`Input.TextArea`                                 | 透传 `maxLength`                                                                                                                                  |
+| `url` `email`                                                                                           | 带 `type` 的 `Input`                                                        | 清空时写回 `undefined`                                                                                                                            |
+| `number`                                                                                                | `InputNumber`                                                               | 空值写回 `undefined`；`minimum` / `maximum`；整数与 `x-decimals` 经 `precision`；`thousands` 经 formatter                                         |
+| `range`                                                                                                 | `Slider`                                                                    |                                                                                                                                                   |
+| `switch`                                                                                                | `Switch`                                                                    |                                                                                                                                                   |
+| `checkbox`                                                                                              | `Checkbox`；枚举数组用 `Checkbox.Group`                                     |                                                                                                                                                   |
+| `radio`                                                                                                 | `Radio.Group`                                                               |                                                                                                                                                   |
+| `select`                                                                                                | `Select`；枚举数组用 `mode="multiple"`                                      | 非必填时可清除；不在选项中的已有值保留在末尾                                                                                                      |
+| `date` `time` `datetime`                                                                                | `DatePicker`、`TimePicker`、`DatePicker showTime`                           | 仅在传入 `options.dayjs` 时。按存储格式（`x-valueFormat`，没有时按 `format`）读写，本地时区；解析不了的存量值交给原生 widget 原样显示，不改写数据 |
+| `color`                                                                                                 | `ColorPicker`                                                               | 写回 `#rrggbb`；清除时写回 `undefined`                                                                                                            |
+| 其余：`richtext` `money` `bigint` `output` `image` `file` `json` `kv` `union` `nullable` `tree` `tuple` | `@jotl/form` 的原生 widget                                                  | 经父级注册表；见[默认 HTML widget](../../../form/zh/docs/default-widgets.md)                                                                      |
 
 ## 与 schema 的已知差异
 

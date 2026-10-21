@@ -10,18 +10,25 @@ import {
   type Diagnostic,
   type JsonPointer,
   type JsonSchema,
-} from "@jotl/core";
-import { DECORATOR_WIDGET, FALLBACK_WIDGET, ROOT_WIDGET } from "./builtin-widgets.js";
-import type { ExpandFunction, PlanFunction, PlanOptions, RenderPlanNode, ResolveContext, WidgetLevel } from "./contracts.js";
-import { uiCoreDiagnostic } from "./diagnostics.js";
-import { createEnv, resolveSite, selectWidget, type ResolveEnv } from "./resolve.js";
-import { refIdentity, resolveNode, resolveSchemaAt, type ResolvedNode, type SchemaSite } from "./schema-node.js";
-import { childSites, type ChildSite } from "./schema-shape.js";
+} from '@jotl/core';
+import { DECORATOR_WIDGET, FALLBACK_WIDGET, ROOT_WIDGET } from './builtin-widgets.js';
+import type {
+  ExpandFunction,
+  PlanFunction,
+  PlanOptions,
+  RenderPlanNode,
+  ResolveContext,
+  WidgetLevel,
+} from './contracts.js';
+import { uiCoreDiagnostic } from './diagnostics.js';
+import { createEnv, resolveSite, selectWidget, type ResolveEnv } from './resolve.js';
+import { refIdentity, resolveNode, resolveSchemaAt, type ResolvedNode, type SchemaSite } from './schema-node.js';
+import { childSites, type ChildSite } from './schema-shape.js';
 
 /** 同一类型的递归引用在一条路径上最多展开的层数; 超过时节点标 lazy. */
 export const DEFAULT_MAX_DEPTH = 2;
 
-const CONTAINER_LEVELS: ReadonlySet<WidgetLevel> = new Set(["view", "layout", "composite"]);
+const CONTAINER_LEVELS: ReadonlySet<WidgetLevel> = new Set(['view', 'layout', 'composite']);
 
 interface Frame {
   site: SchemaSite;
@@ -46,7 +53,7 @@ interface PlanState {
 interface LazyContext {
   frame: Frame;
   scene: string;
-  mode: ResolveEnv["mode"];
+  mode: ResolveEnv['mode'];
   maxDepth: number;
 }
 
@@ -88,8 +95,8 @@ function contextOf(state: PlanState, frame: Frame): ResolveContext {
 function claimedPaths(base: JsonPointer, claims: unknown): JsonPointer[] {
   if (!Array.isArray(claims)) return [];
   return claims
-    .filter((p): p is string => typeof p === "string" && p !== "" && p !== "/")
-    .map((p) => base + (p.startsWith("/") ? p : `/${p}`));
+    .filter((p): p is string => typeof p === 'string' && p !== '' && p !== '/')
+    .map(p => base + (p.startsWith('/') ? p : `/${p}`));
 }
 
 function orderChildren(children: ChildSite[], order: readonly string[] | undefined): ChildSite[] {
@@ -103,7 +110,7 @@ function orderChildren(children: ChildSite[], order: readonly string[] | undefin
 }
 
 function count(stack: readonly JsonPointer[], item: JsonPointer): number {
-  return stack.filter((p) => p === item).length;
+  return stack.filter(p => p === item).length;
 }
 
 function planNode(state: PlanState, frame: Frame): RenderPlanNode {
@@ -127,16 +134,21 @@ function planNode(state: PlanState, frame: Frame): RenderPlanNode {
     children: [],
   };
   nodeSites.set(out, frame.site);
-  if (shape.kind === "object") {
-    out.layout = ui.layout ?? "stack";
+  if (shape.kind === 'object') {
+    out.layout = ui.layout ?? 'stack';
     out.columns = ui.columns ?? DEFAULT_GRID_COLUMNS;
     out.groups = ui.groups ?? [];
   }
   if (ui.visibleIf !== undefined) out.visibleIf = ui.visibleIf;
-  if (shape.kind === "union" && shape.discriminator !== undefined) out.discriminator = shape.discriminator;
-  if (ui.summary !== undefined && (shape.kind === "object" || shape.kind === "array" || shape.kind === "map")) out.summary = ui.summary;
-  if (shape.kind === "money") out.thousands = ui.thousands ?? true;
-  else if (shape.kind === "bigint" || (shape.kind === "scalar" && (shape.type === "number" || shape.type === "integer"))) out.thousands = ui.thousands ?? false;
+  if (shape.kind === 'union' && shape.discriminator !== undefined) out.discriminator = shape.discriminator;
+  if (ui.summary !== undefined && (shape.kind === 'object' || shape.kind === 'array' || shape.kind === 'map'))
+    out.summary = ui.summary;
+  if (shape.kind === 'money') out.thousands = ui.thousands ?? true;
+  else if (
+    shape.kind === 'bigint' ||
+    (shape.kind === 'scalar' && (shape.type === 'number' || shape.type === 'integer'))
+  )
+    out.thousands = ui.thousands ?? false;
 
   if (occurrences > state.maxDepth && frame.forceExpand !== true) {
     out.lazy = true;
@@ -147,16 +159,19 @@ function planNode(state: PlanState, frame: Frame): RenderPlanNode {
 
   const claims = resolution.registration?.claims;
   const claimed = claims === undefined ? [] : guardedClaims(() => claims(resolution.node.effective));
-  if (claimed === "all") return out;
+  if (claimed === 'all') return out;
   const claimedSet = new Set([...frame.claimed, ...claimedPaths(frame.dataPath, claimed)]);
 
   const refStack = identity === undefined ? frame.refStack : [...frame.refStack, identity];
   let sites: ChildSite[];
-  if (recursive && widget === "tree") {
+  if (recursive && widget === 'tree') {
     const target = resolution.node.targets[resolution.node.targets.length - 1]!;
     sites = [{ site: { pointer: target.pointer, schema: target.schema } }];
   } else {
-    sites = orderChildren(childSites(env.document, resolution.node, shape), shape.kind === "object" ? ui.order : undefined);
+    sites = orderChildren(
+      childSites(env.document, resolution.node, shape),
+      shape.kind === 'object' ? ui.order : undefined
+    );
   }
   for (const child of sites) {
     const dataPath = child.dataToken === undefined ? frame.dataPath : appendPointer(frame.dataPath, child.dataToken);
@@ -170,7 +185,7 @@ function planNode(state: PlanState, frame: Frame): RenderPlanNode {
         refStack,
         claimed: claimedSet,
         defaultDecorator: child.dataToken === undefined ? false : DECORATOR_WIDGET,
-      }),
+      })
     );
   }
   return out;
@@ -188,7 +203,7 @@ function guardedClaims(call: () => unknown): unknown {
 function planView(state: PlanState, frame: Frame): RenderPlanNode {
   const { env } = state;
   const schema = resolveNode(env.document, frame.site).effective;
-  const selection = selectWidget(env, [{ name: ROOT_WIDGET, source: "builtin" }], schema, frame.site.pointer);
+  const selection = selectWidget(env, [{ name: ROOT_WIDGET, source: 'builtin' }], schema, frame.site.pointer);
   const out: RenderPlanNode = {
     schemaPointer: frame.site.pointer,
     dataPath: frame.dataPath,
@@ -205,17 +220,17 @@ function planView(state: PlanState, frame: Frame): RenderPlanNode {
   nodeSites.set(out, frame.site);
   if (!CONTAINER_LEVELS.has(selection.level) || selection.widget === FALLBACK_WIDGET) return out;
   const claims = selection.registration?.claims;
-  if (claims !== undefined && guardedClaims(() => claims(schema)) === "all") return out;
+  if (claims !== undefined && guardedClaims(() => claims(schema)) === 'all') return out;
   out.children.push(planNode(state, { ...frame, depth: frame.depth + 1, parentWidget: selection.widget }));
   return out;
 }
 
 function isSchema(value: unknown): value is JsonSchema {
-  return typeof value === "boolean" || isSchemaObject(value);
+  return typeof value === 'boolean' || isSchemaObject(value);
 }
 
 function isCount(value: unknown): value is number {
-  return typeof value === "number" && Number.isInteger(value) && value >= 0;
+  return typeof value === 'number' && Number.isInteger(value) && value >= 0;
 }
 
 function lookupSite(schema: JsonSchema, pointer: JsonPointer): SchemaSite | undefined {
@@ -231,31 +246,36 @@ function lookupSite(schema: JsonSchema, pointer: JsonPointer): SchemaSite | unde
 export const plan: PlanFunction = (schema, registry, options = {}) => {
   const errors = validateOptions(schema, options);
   if (errors.length > 0) return fail(errors);
-  const schemaPointer = options.schemaPointer ?? "";
+  const schemaPointer = options.schemaPointer ?? '';
   const site = lookupSite(schema, schemaPointer);
-  if (site === undefined) return fail([uiCoreDiagnostic("JOTL5102", { pointer: schemaPointer })]);
-  const state: PlanState = { env: createEnv(schema, registry, options.scene, options.mode), maxDepth: options.maxDepth ?? DEFAULT_MAX_DEPTH };
+  if (site === undefined) return fail([uiCoreDiagnostic('JOTL5102', { pointer: schemaPointer })]);
+  const state: PlanState = {
+    env: createEnv(schema, registry, options.scene, options.mode),
+    maxDepth: options.maxDepth ?? DEFAULT_MAX_DEPTH,
+  };
   const frame: Frame = {
     site,
-    dataPath: options.dataPath ?? "",
+    dataPath: options.dataPath ?? '',
     depth: options.depth ?? 0,
     refStack: [],
     claimed: new Set(),
-    defaultDecorator: schemaPointer === "" ? false : DECORATOR_WIDGET,
+    defaultDecorator: schemaPointer === '' ? false : DECORATOR_WIDGET,
   };
   if (options.parentWidget !== undefined) frame.parentWidget = options.parentWidget;
-  const root = schemaPointer === "" ? planView(state, frame) : planNode(state, frame);
+  const root = schemaPointer === '' ? planView(state, frame) : planNode(state, frame);
   return ok(root, state.env.diagnostics);
 };
 
 function validateOptions(schema: unknown, options: PlanOptions): Diagnostic[] {
   const errors: Diagnostic[] = [];
-  if (!isSchema(schema)) errors.push(uiCoreDiagnostic("JOTL5101"));
+  if (!isSchema(schema)) errors.push(uiCoreDiagnostic('JOTL5101'));
   if (options.dataPath !== undefined && tryParsePointer(options.dataPath) === undefined) {
-    errors.push(uiCoreDiagnostic("JOTL5103", { pointer: String(options.dataPath) }));
+    errors.push(uiCoreDiagnostic('JOTL5103', { pointer: String(options.dataPath) }));
   }
-  if (options.maxDepth !== undefined && !isCount(options.maxDepth)) errors.push(uiCoreDiagnostic("JOTL5104", { value: String(options.maxDepth) }));
-  if (options.depth !== undefined && !isCount(options.depth)) errors.push(uiCoreDiagnostic("JOTL5105", { value: String(options.depth) }));
+  if (options.maxDepth !== undefined && !isCount(options.maxDepth))
+    errors.push(uiCoreDiagnostic('JOTL5104', { value: String(options.maxDepth) }));
+  if (options.depth !== undefined && !isCount(options.depth))
+    errors.push(uiCoreDiagnostic('JOTL5105', { value: String(options.depth) }));
   return errors;
 }
 
@@ -264,10 +284,10 @@ function validateOptions(schema: unknown, options: PlanOptions): Diagnostic[] {
  * 节点以 schemaPointer 定位; ctx 给出的场景, 模式与 maxDepth 优先, 其次沿用本进程 plan() 生成该节点时的值与接管登记, 否则取默认值.
  */
 export const expand: ExpandFunction = (node, schema, registry, ctx = {}) => {
-  if (!isSchema(schema)) return fail([uiCoreDiagnostic("JOTL5101")]);
+  if (!isSchema(schema)) return fail([uiCoreDiagnostic('JOTL5101')]);
   const saved = lazyContexts.get(node);
   const site = lookupSite(schema, node.schemaPointer);
-  if (site === undefined) return fail([uiCoreDiagnostic("JOTL5102", { pointer: node.schemaPointer })]);
+  if (site === undefined) return fail([uiCoreDiagnostic('JOTL5102', { pointer: node.schemaPointer })]);
   const state: PlanState = {
     env: createEnv(schema, registry, ctx.scene ?? saved?.scene, ctx.mode ?? saved?.mode),
     maxDepth: ctx.maxDepth ?? saved?.maxDepth ?? DEFAULT_MAX_DEPTH,

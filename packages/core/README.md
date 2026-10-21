@@ -11,14 +11,14 @@ Compared with hand-written JSON, a field with its label, constraints and default
 ## Three lines in, a normalized schema out
 
 ```ts
-import { compile } from "@jotl/core";
+import { compile } from '@jotl/core';
 
 const result = compile(
   `User: {
   name(Name): string[maxLength: 20]
   role?: enum[default: 'user']{ admin(Admin) user(User) }
 }`,
-  "user.jotl",
+  'user.jotl'
 );
 console.log(JSON.stringify(result.value?.schema, null, 2));
 ```
@@ -81,9 +81,9 @@ The package is ESM only, so the script uses the `.mjs` extension.
 2. Save this as `compile.mjs`:
 
    ```js
-   import { compile } from "@jotl/core";
+   import { compile } from '@jotl/core';
 
-   const result = compile("Todo: {\n  title: string\n  done?: boolean\n}", "todo.jotl");
+   const result = compile('Todo: {\n  title: string\n  done?: boolean\n}', 'todo.jotl');
    console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
    ```
 

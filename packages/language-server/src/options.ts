@@ -1,6 +1,6 @@
 // 语言服务选项, 从 LSP 初始化选项中读取它与界面语言, 并入 jotl.config.json 的登记, 以及换算成编译器选项.
-import type { JsonSchemaObject } from "@jotl/core";
-import { type CompileOptions, isTypeName } from "@jotl/core";
+import type { JsonSchemaObject } from '@jotl/core';
+import { type CompileOptions, isTypeName } from '@jotl/core';
 
 export interface LanguageServiceOptions {
   /** 除内置组件之外已登记的组件名: 用于 `widget` 补全与 "widget 未注册" 检查; 大驼峰名另作为扩展组件传给编译器. */
@@ -14,32 +14,35 @@ export interface LanguageServiceOptions {
 }
 
 /** 客户端设置所在的节名; `didChangeConfiguration` 的 settings 按 `{ jotl: {...} }` 传入. */
-export const CONFIGURATION_SECTION = "jotl";
+export const CONFIGURATION_SECTION = 'jotl';
 
 /** 读取客户端传来的 initializationOptions 或 `jotl` 设置节; 不合法的部分忽略. */
 export function readInitializationOptions(raw: unknown): LanguageServiceOptions {
-  if (typeof raw !== "object" || raw === null) return {};
+  if (typeof raw !== 'object' || raw === null) return {};
   const widgets = (raw as { registeredWidgets?: unknown }).registeredWidgets;
   if (!Array.isArray(widgets)) return {};
-  const names = widgets.filter((w): w is string => typeof w === "string" && w !== "");
+  const names = widgets.filter((w): w is string => typeof w === 'string' && w !== '');
   return { registeredWidgets: [...new Set(names)] };
 }
 
 /** 读取 initializationOptions 或 `jotl` 设置节中的 `locale`(语言标签, 如 `en` `zh-CN`); 没有或不是非空字符串时返回 undefined. */
 export function readLocaleOption(raw: unknown): string | undefined {
-  if (typeof raw !== "object" || raw === null) return undefined;
+  if (typeof raw !== 'object' || raw === null) return undefined;
   const locale = (raw as { locale?: unknown }).locale;
-  return typeof locale === "string" && locale.trim() !== "" ? locale : undefined;
+  return typeof locale === 'string' && locale.trim() !== '' ? locale : undefined;
 }
 
 /** 并入配置文件登记的名字与底层类型; 同名时以配置文件为准, 设置中的名字补充. */
 export function withConfigWidgets(
   options: LanguageServiceOptions,
   widgets: Readonly<Record<string, JsonSchemaObject>>,
-  widgetTypes: Readonly<Record<string, JsonSchemaObject>> = {},
+  widgetTypes: Readonly<Record<string, JsonSchemaObject>> = {}
 ): LanguageServiceOptions {
   if (Object.keys(widgets).length === 0) return options;
-  const merged: LanguageServiceOptions = { registeredWidgets: [...new Set([...Object.keys(widgets), ...(options.registeredWidgets ?? [])])], widgets };
+  const merged: LanguageServiceOptions = {
+    registeredWidgets: [...new Set([...Object.keys(widgets), ...(options.registeredWidgets ?? [])])],
+    widgets,
+  };
   return Object.keys(widgetTypes).length === 0 ? merged : { ...merged, widgetTypes };
 }
 
@@ -47,10 +50,14 @@ export function withConfigWidgets(
 export function withFileWidgets(
   options: LanguageServiceOptions,
   names: readonly string[],
-  schemas: Readonly<Record<string, JsonSchemaObject>> = {},
+  schemas: Readonly<Record<string, JsonSchemaObject>> = {}
 ): LanguageServiceOptions {
   if (names.length === 0) return options;
-  return { ...options, registeredWidgets: [...new Set([...(options.registeredWidgets ?? []), ...names])], fileWidgets: schemas };
+  return {
+    ...options,
+    registeredWidgets: [...new Set([...(options.registeredWidgets ?? []), ...names])],
+    fileWidgets: schemas,
+  };
 }
 
 /** 扩展组件只能是大驼峰名. */
@@ -65,7 +72,7 @@ export function extensionSchema(options: LanguageServiceOptions, name: string): 
   if (Object.hasOwn(own, name)) return own[name];
   if (!extensionComponents(options).includes(name)) return undefined;
   const widgets = options.widgets ?? {};
-  return Object.hasOwn(widgets, name) ? widgets[name] : { type: "string" };
+  return Object.hasOwn(widgets, name) ? widgets[name] : { type: 'string' };
 }
 
 export function compileOptions(options: LanguageServiceOptions): CompileOptions {
@@ -73,7 +80,13 @@ export function compileOptions(options: LanguageServiceOptions): CompileOptions 
   const widgets = options.widgets ?? {};
   const types = options.widgetTypes ?? {};
   return {
-    ...(names.length === 0 ? {} : { widgets: Object.fromEntries(names.map((name) => [name, Object.hasOwn(widgets, name) ? widgets[name]! : { type: "string" }])) }),
+    ...(names.length === 0
+      ? {}
+      : {
+          widgets: Object.fromEntries(
+            names.map(name => [name, Object.hasOwn(widgets, name) ? widgets[name]! : { type: 'string' }])
+          ),
+        }),
     ...(Object.keys(types).length === 0 ? {} : { widgetTypes: types }),
   };
 }

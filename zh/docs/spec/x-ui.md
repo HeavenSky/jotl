@@ -9,34 +9,36 @@
 
 ## 字段
 
-| 字段 | 取值 | 语义 |
-|---|---|---|
-| `widget` | 非空字符串 | widget 名；内置名见 [内置 widget 名](#内置-widget-名) |
-| `props` | 对象 | 透传给 widget 的参数，必须可 JSON 序列化 |
-| `decorator` | 非空字符串或 `false` | 字段外壳的 widget 名；`false` 表示不要外壳 |
-| `order` | 字符串数组 | 对象节点：子字段顺序，未列出的按原顺序排在后面 |
-| `groups` | `{ title, fields }[]` | 对象节点：分组，未分组的字段排在最前 |
-| `layout` | `"stack"` `"tabs"` `"grid"` | 对象节点的布局，默认 `stack`；`tabs` 时每个 `groups` 项一个标签页，未分组字段放在第一个标签页 |
-| `columns` | 不小于 1 的整数 | `layout` 为 `grid` 时的列数，默认 2 |
-| `hidden` | 布尔 | 隐藏该节点 |
-| `visibleIf` | [显示条件](#显示条件) | 条件为假时不显示 |
-| `summary` | 字段名 | 用于对象、元素为对象的数组和 map：入口行与面包屑显示该字段的值，见 [钻取渲染](#钻取渲染) |
-| `thousands` | 布尔 | 用于 `number` `integer` `money` `bigint`：失焦与只读时按千分位显示；`money` 默认 `true`，其余默认 `false` |
-| `variants` | 场景名 → 场景覆盖对象 | 按渲染场景覆盖；场景名由渲染器传入，默认 `"default"` |
-| `rules` | [规则](#规则表)数组 | 只在根节点生效 |
-| `version` | `1` | 只出现在根节点 |
-| `widgets` | widget 名 → `{ base?, module, export? }` | 只出现在根节点：实现该 widget 的 ES 模块地址与导出名（缺省为 `default`）；`base` 是扩展组件的底层类型（类型名或 schema 对象，缺省为 `object`，只在声明了其他底层类型时出现），供 `print` 与编辑器还原该扩展组件，渲染器忽略它；本字段由 Jotl 根条目元数据 `widgets` 中的模块声明编译而来，渲染器可据此加载组件 |
+| 字段        | 取值                                     | 语义                                                                                                                                                                                                                                                                                                           |
+| ----------- | ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `widget`    | 非空字符串                               | widget 名；内置名见 [内置 widget 名](#内置-widget-名)                                                                                                                                                                                                                                                          |
+| `props`     | 对象                                     | 透传给 widget 的参数，必须可 JSON 序列化                                                                                                                                                                                                                                                                       |
+| `decorator` | 非空字符串或 `false`                     | 字段外壳的 widget 名；`false` 表示不要外壳                                                                                                                                                                                                                                                                     |
+| `order`     | 字符串数组                               | 对象节点：子字段顺序，未列出的按原顺序排在后面                                                                                                                                                                                                                                                                 |
+| `groups`    | `{ title, fields }[]`                    | 对象节点：分组，未分组的字段排在最前                                                                                                                                                                                                                                                                           |
+| `layout`    | `"stack"` `"tabs"` `"grid"`              | 对象节点的布局，默认 `stack`；`tabs` 时每个 `groups` 项一个标签页，未分组字段放在第一个标签页                                                                                                                                                                                                                  |
+| `columns`   | 不小于 1 的整数                          | `layout` 为 `grid` 时的列数，默认 2                                                                                                                                                                                                                                                                            |
+| `hidden`    | 布尔                                     | 隐藏该节点                                                                                                                                                                                                                                                                                                     |
+| `visibleIf` | [显示条件](#显示条件)                    | 条件为假时不显示                                                                                                                                                                                                                                                                                               |
+| `summary`   | 字段名                                   | 用于对象、元素为对象的数组和 map：入口行与面包屑显示该字段的值，见 [钻取渲染](#钻取渲染)                                                                                                                                                                                                                       |
+| `thousands` | 布尔                                     | 用于 `number` `integer` `money` `bigint`：失焦与只读时按千分位显示；`money` 默认 `true`，其余默认 `false`                                                                                                                                                                                                      |
+| `variants`  | 场景名 → 场景覆盖对象                    | 按渲染场景覆盖；场景名由渲染器传入，默认 `"default"`                                                                                                                                                                                                                                                           |
+| `rules`     | [规则](#规则表)数组                      | 只在根节点生效                                                                                                                                                                                                                                                                                                 |
+| `version`   | `1`                                      | 只出现在根节点                                                                                                                                                                                                                                                                                                 |
+| `widgets`   | widget 名 → `{ base?, module, export? }` | 只出现在根节点：实现该 widget 的 ES 模块地址与导出名（缺省为 `default`）；`base` 是扩展组件的底层类型（类型名或 schema 对象，缺省为 `object`，只在声明了其他底层类型时出现），供 `print` 与编辑器还原该扩展组件，渲染器忽略它；本字段由 Jotl 根条目元数据 `widgets` 中的模块声明编译而来，渲染器可据此加载组件 |
 
 场景覆盖对象和规则的 `ui` 只能包含 `widget` `props` `decorator` `order` `groups` `layout` `columns` `hidden` `visibleIf` `summary` `thousands`，不能包含 `variants` `rules` `version` `widgets`。
 
 ## 显示条件
 
 ```ts
-type Leaf = { field: JsonPointer; base?: "node" };
+type Leaf = { field: JsonPointer; base?: 'node' };
 type Condition =
-  | Leaf & ({ eq: unknown } | { ne: unknown } | { in: unknown[] } | { notIn: unknown[] } | { truthy: boolean })
-  | Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number })
-  | { all: Condition[] } | { any: Condition[] } | { not: Condition };
+  | (Leaf & ({ eq: unknown } | { ne: unknown } | { in: unknown[] } | { notIn: unknown[] } | { truthy: boolean }))
+  | (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
+  | { all: Condition[] }
+  | { any: Condition[] }
+  | { not: Condition };
 ```
 
 - 叶子条件由 `field`、可选的 `base` 和恰好一个比较项组成。
@@ -99,33 +101,33 @@ meta-schema 比 TS 类型更严：它拒绝未知字段、`widget` `decorator` `
 
 `@jotl/form/core` 导出 `BUILTIN_WIDGETS`（名字 → 层级与优先级）和内置匹配规则；widget 包应为每个名字提供实现，没有实现的名字由 `plan()` 按 F1 降级。
 
-| widget 名 | 层级 | 优先级 | 接受的形态 | 作为默认的形态 |
-|---|---|---|---|---|
-| `form` | view | P0 | 任意 | 根 |
-| `field` | decorator | P0 | - | 字段外壳 |
-| `page` | layout | P0 | object | object |
-| `inline` | layout | P0 | object | - |
-| `input` | field | P0 | string | string |
-| `textarea` `password` | field | P0 | string | - |
-| `richtext` | field | P1 | string | `contentMediaType: text/html` |
-| `number` | field | P0 | number、integer | number、integer |
-| `range` | field | P0 | 同时带 `minimum` 与 `maximum` 的 number、integer | - |
-| `money` / `bigint` | field | P0 | money / bigint 对象（`properties.type.const` 为 `"money"` / `"bigint"`） | 同左 |
-| `switch` | field | P0 | boolean | boolean |
-| `checkbox` | field | P0 | boolean；枚举数组 | - |
-| `select` | field | P0 | 枚举；枚举数组 | 选项不少于 2 个的枚举；枚举数组 |
-| `radio` | field | P0 | 枚举 | - |
-| `output` | field | P0 | 任意，只读显示 | `const`；只有一个选项的枚举；`type: "null"` |
-| `date` `time` `datetime` | field | P0 | 对应 `format` 的 string；带 `x-valueFormat` 且没有 `format` 时为 string，存储格式是时间戳 `x` / `X` 时也可以是 integer（`time` 不接受） | 对应 `format`；带 `x-valueFormat` 时按 `x-ui.widget` 或格式内容 |
-| `url` `email` `color` | field | P0 | 对应 `format` 的 string | 对应 `format` |
-| `image` `file` | field | P0 | `format: uri` 的 string | - |
-| `json` | field | P0 | 任意；string 时编辑 JSON 原文 | `{}`；`contentMediaType: application/json`；兜底 |
-| `list` | composite | P0 | array；枚举数组 | array |
-| `kv` | composite | P1 | map | map |
-| `union` | composite | P1 | `oneOf` / `anyOf`；含至少两个非 null 类型的 `type` 数组 | 联合 |
-| `nullable` | composite | P1 | 可空 | 可空 |
-| `tree` | composite | P1 | 任意 | 递归引用 |
-| `tuple` | composite | P2 | 元组 | 元组 |
+| widget 名                | 层级      | 优先级 | 接受的形态                                                                                                                              | 作为默认的形态                                                  |
+| ------------------------ | --------- | ------ | --------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
+| `form`                   | view      | P0     | 任意                                                                                                                                    | 根                                                              |
+| `field`                  | decorator | P0     | -                                                                                                                                       | 字段外壳                                                        |
+| `page`                   | layout    | P0     | object                                                                                                                                  | object                                                          |
+| `inline`                 | layout    | P0     | object                                                                                                                                  | -                                                               |
+| `input`                  | field     | P0     | string                                                                                                                                  | string                                                          |
+| `textarea` `password`    | field     | P0     | string                                                                                                                                  | -                                                               |
+| `richtext`               | field     | P1     | string                                                                                                                                  | `contentMediaType: text/html`                                   |
+| `number`                 | field     | P0     | number、integer                                                                                                                         | number、integer                                                 |
+| `range`                  | field     | P0     | 同时带 `minimum` 与 `maximum` 的 number、integer                                                                                        | -                                                               |
+| `money` / `bigint`       | field     | P0     | money / bigint 对象（`properties.type.const` 为 `"money"` / `"bigint"`）                                                                | 同左                                                            |
+| `switch`                 | field     | P0     | boolean                                                                                                                                 | boolean                                                         |
+| `checkbox`               | field     | P0     | boolean；枚举数组                                                                                                                       | -                                                               |
+| `select`                 | field     | P0     | 枚举；枚举数组                                                                                                                          | 选项不少于 2 个的枚举；枚举数组                                 |
+| `radio`                  | field     | P0     | 枚举                                                                                                                                    | -                                                               |
+| `output`                 | field     | P0     | 任意，只读显示                                                                                                                          | `const`；只有一个选项的枚举；`type: "null"`                     |
+| `date` `time` `datetime` | field     | P0     | 对应 `format` 的 string；带 `x-valueFormat` 且没有 `format` 时为 string，存储格式是时间戳 `x` / `X` 时也可以是 integer（`time` 不接受） | 对应 `format`；带 `x-valueFormat` 时按 `x-ui.widget` 或格式内容 |
+| `url` `email` `color`    | field     | P0     | 对应 `format` 的 string                                                                                                                 | 对应 `format`                                                   |
+| `image` `file`           | field     | P0     | `format: uri` 的 string                                                                                                                 | -                                                               |
+| `json`                   | field     | P0     | 任意；string 时编辑 JSON 原文                                                                                                           | `{}`；`contentMediaType: application/json`；兜底                |
+| `list`                   | composite | P0     | array；枚举数组                                                                                                                         | array                                                           |
+| `kv`                     | composite | P1     | map                                                                                                                                     | map                                                             |
+| `union`                  | composite | P1     | `oneOf` / `anyOf`；含至少两个非 null 类型的 `type` 数组                                                                                 | 联合                                                            |
+| `nullable`               | composite | P1     | 可空                                                                                                                                    | 可空                                                            |
+| `tree`                   | composite | P1     | 任意                                                                                                                                    | 递归引用                                                        |
+| `tuple`                  | composite | P2     | 元组                                                                                                                                    | 元组                                                            |
 
 - `format` 到 widget 名的映射是 `FORMAT_WIDGETS`。
 - 内置 widget 名的形态检查统一由 `@jotl/form/core` 完成（`builtinAccepts`）：`widget` 指定的内置 widget 不接受该形态时，记 F2 并改用下一个候选，通常是该形态的默认 widget；界面上不提示，经 `onDegrade` 上报给开发者。
@@ -146,19 +148,19 @@ meta-schema 比 TS 类型更严：它拒绝未知字段、`widget` `decorator` `
 
 `N` 是框架的节点类型，React 下为 `React.ReactNode`。完整类型见 [`packages/form/src/core/contracts.ts`](../../../packages/form/src/core/contracts.ts)。
 
-| 接口 | 用于 | 在 `BaseProps` 之外的内容 |
-|---|---|---|
-| `BaseProps<N>` | 除外壳外的各层 | `id` 稳定 id，用于 label 的 `for` 与 `aria-describedby`；`schema`；`dataPath` 实际路径，数组下标为具体数字；`mode`；`props` 合并后的 `x-ui.props`；`adapters`；`renderChild(relativePath)` |
-| `FieldProps<V, N>` | field 层 | `required`（是否为父对象的必填字段，根与数组元素为 false）`value` `onChange(value)` `onBlur()` `errors` `thousands` |
-| `DecoratorProps<N>` | decorator 层（不继承 `BaseProps`） | `id` `label?` `description?` `required` `errors` `hidden` `children` |
-| `LayoutProps<N>` | `page` `inline` | `fields`：`{ key, required, hidden, errorCount? }[]`，已按 `order` 排序，`hidden` 已计入 `visibleIf` 的求值结果，`errorCount` 是该字段及其子路径上当前显示的错误数（渲染器不提供时缺省）；`groups`；`layout`；`columns`；`additional?`：对象另有 schema 形式的 `additionalProperties` 时提供，是不属于 `properties` 的键的 `EntryEditing`（同 `MapProps` 的条目编辑部分） |
-| `ArrayProps<N>` | `list` | `items`：`{ key, dataPath }[]`，`key` 是稳定的元素 key，不随排序改变；`canAdd` `canRemove` 由 `minItems` / `maxItems` 与 `mode` 算出；`add(index?)` `remove(index)` `move(from, to)`；`duplicate?(index)` 把该项深拷贝后插到它后面，受 `canAdd` 约束，渲染器不提供时 widget 不显示复制；`errors` 是数组层自身的错误（如数量越界） |
-| `TupleProps<N>` | `tuple` | `items: { dataPath }[]`，即 `prefixItems` 各位置的实际路径；`errors` 是元组自身的错误；第 i 项用 `renderChild(String(i))` 渲染；`rest?` 只在 `items` 允许剩余元素时提供：`items: { key, index, dataPath }[]`、`canAdd` `canRemove` `add()` `remove(index)`，以及可选的 `move(from, to)`（两者都须是剩余元素的实际下标，否则不做任何事）与 `duplicate(index)`（在其后插入深拷贝，受 `canAdd` 约束），剩余元素按实际下标用 `renderChild(String(index))` 渲染 |
-| `UnionProps<N>` | `union` | `branches: { title }[]` `activeBranch` `selectBranch(index)` `renderContent()`（渲染当前分支，数据路径与本节点相同）`errors`；内置 `union` 读取 `props.selector`：值为 `"buttons"` 且分支不超过 4 个时用分段按钮选择分支 |
-| `NullableProps<N>` | `nullable` | `isNull` `setNull(isNull)` `renderContent()`（非空时渲染非空分支，数据路径与本节点相同）`errors` |
-| `MapProps<N>` | `kv` | `entries: { key, name, dataPath }[]`，`key` 是条目的稳定 key，`name` 是字典键名；`canAdd` `canRemove`；`addEntry(name)` `removeEntry(name)` `renameEntry(from, to)`；`errors` |
-| `TreeProps<N>` | `tree` | `expanded` `setExpanded(expanded)` `renderContent()` `errors`；折叠时不渲染内容 |
-| `ViewProps<N>` | `form` | `submit()` `reset()` `children`；`errors`：不属于任何可见字段的错误（含钻取时不在当前页的）；`goToError?(error)`：定位 `errors` 中的一条，钻取时先切到所在页，再滚动到并聚焦字段（字段不可见时取最近的可见祖先），渲染器不提供时 widget 把错误显示为纯文本 |
+| 接口                | 用于                               | 在 `BaseProps` 之外的内容                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| ------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `BaseProps<N>`      | 除外壳外的各层                     | `id` 稳定 id，用于 label 的 `for` 与 `aria-describedby`；`schema`；`dataPath` 实际路径，数组下标为具体数字；`mode`；`props` 合并后的 `x-ui.props`；`adapters`；`renderChild(relativePath)`                                                                                                                                                                                                                                                                 |
+| `FieldProps<V, N>`  | field 层                           | `required`（是否为父对象的必填字段，根与数组元素为 false）`value` `onChange(value)` `onBlur()` `errors` `thousands`                                                                                                                                                                                                                                                                                                                                        |
+| `DecoratorProps<N>` | decorator 层（不继承 `BaseProps`） | `id` `label?` `description?` `required` `errors` `hidden` `children`                                                                                                                                                                                                                                                                                                                                                                                       |
+| `LayoutProps<N>`    | `page` `inline`                    | `fields`：`{ key, required, hidden, errorCount? }[]`，已按 `order` 排序，`hidden` 已计入 `visibleIf` 的求值结果，`errorCount` 是该字段及其子路径上当前显示的错误数（渲染器不提供时缺省）；`groups`；`layout`；`columns`；`additional?`：对象另有 schema 形式的 `additionalProperties` 时提供，是不属于 `properties` 的键的 `EntryEditing`（同 `MapProps` 的条目编辑部分）                                                                                  |
+| `ArrayProps<N>`     | `list`                             | `items`：`{ key, dataPath }[]`，`key` 是稳定的元素 key，不随排序改变；`canAdd` `canRemove` 由 `minItems` / `maxItems` 与 `mode` 算出；`add(index?)` `remove(index)` `move(from, to)`；`duplicate?(index)` 把该项深拷贝后插到它后面，受 `canAdd` 约束，渲染器不提供时 widget 不显示复制；`errors` 是数组层自身的错误（如数量越界）                                                                                                                          |
+| `TupleProps<N>`     | `tuple`                            | `items: { dataPath }[]`，即 `prefixItems` 各位置的实际路径；`errors` 是元组自身的错误；第 i 项用 `renderChild(String(i))` 渲染；`rest?` 只在 `items` 允许剩余元素时提供：`items: { key, index, dataPath }[]`、`canAdd` `canRemove` `add()` `remove(index)`，以及可选的 `move(from, to)`（两者都须是剩余元素的实际下标，否则不做任何事）与 `duplicate(index)`（在其后插入深拷贝，受 `canAdd` 约束），剩余元素按实际下标用 `renderChild(String(index))` 渲染 |
+| `UnionProps<N>`     | `union`                            | `branches: { title }[]` `activeBranch` `selectBranch(index)` `renderContent()`（渲染当前分支，数据路径与本节点相同）`errors`；内置 `union` 读取 `props.selector`：值为 `"buttons"` 且分支不超过 4 个时用分段按钮选择分支                                                                                                                                                                                                                                   |
+| `NullableProps<N>`  | `nullable`                         | `isNull` `setNull(isNull)` `renderContent()`（非空时渲染非空分支，数据路径与本节点相同）`errors`                                                                                                                                                                                                                                                                                                                                                           |
+| `MapProps<N>`       | `kv`                               | `entries: { key, name, dataPath }[]`，`key` 是条目的稳定 key，`name` 是字典键名；`canAdd` `canRemove`；`addEntry(name)` `removeEntry(name)` `renameEntry(from, to)`；`errors`                                                                                                                                                                                                                                                                              |
+| `TreeProps<N>`      | `tree`                             | `expanded` `setExpanded(expanded)` `renderContent()` `errors`；折叠时不渲染内容                                                                                                                                                                                                                                                                                                                                                                            |
+| `ViewProps<N>`      | `form`                             | `submit()` `reset()` `children`；`errors`：不属于任何可见字段的错误（含钻取时不在当前页的）；`goToError?(error)`：定位 `errors` 中的一条，钻取时先切到所在页，再滚动到并聚焦字段（字段不可见时取最近的可见祖先），渲染器不提供时 widget 把错误显示为纯文本                                                                                                                                                                                                 |
 
 - `renderChild(relativePath)` 的参数是相对数据路径，如 `"img"`、`"0"`、`"0/img"`；被渲染的子节点自身的 `x-ui` 照常生效。
 - 渲染计划中，对象节点同时有 `properties` 与 schema 形式的 `additionalProperties` 时，属性子节点之后另有一个其余键的值模板（数据片段为 `*`，schema 位置为 `additionalProperties`）；元组节点每个 `prefixItems` 位置一个子节点，`items` 允许剩余元素时末尾另有一个剩余元素模板（数据片段为 `*`，schema 位置为 `items`）。
@@ -168,11 +170,11 @@ meta-schema 比 TS 类型更严：它拒绝未知字段、`widget` `decorator` `
 
 ## 降级归属
 
-| 编号 | 场景 | 由谁处理 |
-|---|---|---|
-| F1 F2 F3 F7 | widget 未注册、不匹配数据形态、`x-ui` 非法、schema 特性不支持或 `$ref` 无法解析 | `plan()`，记入 `degraded`；例外：外壳 widget 名未注册，以及注册表中没有 `json` 时，由 `@jotl/form` 在渲染期按 F1 处理 |
-| F4 | widget 渲染报错 | `@jotl/form` 的错误边界，按 `fallbackChain` 依次替换 |
-| F5 | 复合 widget 报错 | `@jotl/form`，拆开逐个渲染子节点 |
-| F6 | 兜底 widget `json` | `@jotl/form` 的默认 widget 实现；渲染器另带最小兜底（`view` 模式为只读 `<pre>`，其余为 JSON `<textarea>`），保证没有 widget 包时也不白屏 |
-| F8 | 数据与 schema 不符 | `@jotl/form`，保留原值，标记错误，该节点用 `json` |
-| F9 | 懒加载失败 | `@jotl/form`，显示加载失败提示与重试按钮，同时像 F4 一样改用 `fallbackChain` 中的下一个 widget 渲染 |
+| 编号        | 场景                                                                            | 由谁处理                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- |
+| F1 F2 F3 F7 | widget 未注册、不匹配数据形态、`x-ui` 非法、schema 特性不支持或 `$ref` 无法解析 | `plan()`，记入 `degraded`；例外：外壳 widget 名未注册，以及注册表中没有 `json` 时，由 `@jotl/form` 在渲染期按 F1 处理                    |
+| F4          | widget 渲染报错                                                                 | `@jotl/form` 的错误边界，按 `fallbackChain` 依次替换                                                                                     |
+| F5          | 复合 widget 报错                                                                | `@jotl/form`，拆开逐个渲染子节点                                                                                                         |
+| F6          | 兜底 widget `json`                                                              | `@jotl/form` 的默认 widget 实现；渲染器另带最小兜底（`view` 模式为只读 `<pre>`，其余为 JSON `<textarea>`），保证没有 widget 包时也不白屏 |
+| F8          | 数据与 schema 不符                                                              | `@jotl/form`，保留原值，标记错误，该节点用 `json`                                                                                        |
+| F9          | 懒加载失败                                                                      | `@jotl/form`，显示加载失败提示与重试按钮，同时像 F4 一样改用 `fallbackChain` 中的下一个 widget 渲染                                      |

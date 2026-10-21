@@ -1,7 +1,7 @@
 // 默认注册表: 登记 html/ 的全部原生组件; 实例级覆盖用它的 extend().
-import { htmlWidgets } from "../html/index.js";
-import { createRegistry } from "../core/index.js";
-import type { ReactRegistry } from "./types.js";
+import { htmlWidgets } from '../html/index.js';
+import { createRegistry } from '../core/index.js';
+import type { ReactRegistry } from './types.js';
 
 /** 每次调用得到新的注册表, 互不影响. */
 export function createDefaultRegistry(): ReactRegistry {

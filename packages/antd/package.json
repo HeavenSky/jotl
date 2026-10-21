@@ -1,24 +1,24 @@
 {
   "name": "@jotl/antd",
   "version": "0.0.2",
-  "license": "MIT",
-  "type": "module",
   "description": "Render Jotl forms with Ant Design components: one registry swaps the native widgets of @jotl/form for antd.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/HeavenSky/jotl.git",
     "directory": "packages/antd"
   },
+  "files": [
+    "dist",
+    "src"
+  ],
+  "type": "module",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist",
-    "src"
-  ],
   "scripts": {
     "build": "tsc -b",
     "typecheck:test": "tsc -p tsconfig.test.json"
@@ -26,10 +26,6 @@
   "dependencies": {
     "@jotl/core": "workspace:~",
     "@jotl/form": "workspace:~"
-  },
-  "peerDependencies": {
-    "antd": "^5.0.0 || ^6.0.0",
-    "react": "^18.0.0 || ^19.0.0"
   },
   "devDependencies": {
     "@testing-library/dom": "^10.4.2",
@@ -40,5 +36,9 @@
     "jsdom": "^30.1.2",
     "react": "^19.3.0",
     "react-dom": "^19.3.0"
+  },
+  "peerDependencies": {
+    "antd": "^5.0.0 || ^6.0.0",
+    "react": "^18.0.0 || ^19.0.0"
   }
 }

@@ -8,7 +8,7 @@ import {
   type JsonSchemaObject,
   type JsonSchemaType,
   type Result,
-} from "@jotl/core";
+} from '@jotl/core';
 import {
   createProduceContext,
   expandNodes,
@@ -18,10 +18,10 @@ import {
   unionBranches,
   zeroValue,
   type ProduceContext,
-} from "./defaults.js";
-import { cloneJson, isPlainObject, jsonEqual, jsonType, setOwn } from "./json-value.js";
-import { withLocale, type LocaleOptions } from "./diagnostics.js";
-import { acceptsType, allowedValues, hasOwn, itemSchemas, propertySchemas, schemaTypes } from "./schema-resolver.js";
+} from './defaults.js';
+import { cloneJson, isPlainObject, jsonEqual, jsonType, setOwn } from './json-value.js';
+import { withLocale, type LocaleOptions } from './diagnostics.js';
+import { acceptsType, allowedValues, hasOwn, itemSchemas, propertySchemas, schemaTypes } from './schema-resolver.js';
 
 type Migrated = { keep: true; value: unknown } | { keep: false };
 
@@ -29,7 +29,11 @@ interface MigrateContext extends ProduceContext {
   changed: JsonPointer[];
 }
 
-export function migrate(schema: JsonSchema, data: unknown, opts?: LocaleOptions): Result<{ data: unknown; changed: JsonPointer[] }> {
+export function migrate(
+  schema: JsonSchema,
+  data: unknown,
+  opts?: LocaleOptions
+): Result<{ data: unknown; changed: JsonPointer[] }> {
   return withLocale(opts?.locale, () => migrateIn(schema, data));
 }
 
@@ -37,22 +41,28 @@ function migrateIn(schema: JsonSchema, data: unknown): Result<{ data: unknown; c
   const ctx: MigrateContext = { ...createProduceContext(schema, { ...DEFAULT_DEFAULTS_OPTIONS }), changed: [] };
   if (data === undefined) {
     const produced = produce(ctx, schema, false, true);
-    if (produced.has) ctx.changed.push("");
+    if (produced.has) ctx.changed.push('');
     return ok({ data: produced.has ? produced.value : undefined, changed: ctx.changed }, ctx.diagnostics);
   }
-  const migrated = migrateValue(ctx, schema, cloneJson(data), "", true);
+  const migrated = migrateValue(ctx, schema, cloneJson(data), '', true);
   return ok({ data: migrated.keep ? migrated.value : undefined, changed: ctx.changed }, ctx.diagnostics);
 }
 
 /** required 为 false 时, 无法保留的值被删除而不是替换为零值. */
-function migrateValue(ctx: MigrateContext, schema: JsonSchema | undefined, value: unknown, pointer: JsonPointer, required: boolean): Migrated {
+function migrateValue(
+  ctx: MigrateContext,
+  schema: JsonSchema | undefined,
+  value: unknown,
+  pointer: JsonPointer,
+  required: boolean
+): Migrated {
   if (schema === false) return replace(ctx, [], pointer, required);
   const nodes = expandNodes(ctx, schema);
   if (nodes.length === 0) return { keep: true, value };
 
   const allowed = allowedValues(nodes);
   if (allowed !== undefined) {
-    return allowed.some((v) => jsonEqual(v, value)) ? { keep: true, value } : replace(ctx, nodes, pointer, required);
+    return allowed.some(v => jsonEqual(v, value)) ? { keep: true, value } : replace(ctx, nodes, pointer, required);
   }
 
   const branches = unionBranches(nodes);
@@ -82,15 +92,23 @@ function migrateValue(ctx: MigrateContext, schema: JsonSchema | undefined, value
   return { keep: true, value: current };
 }
 
-function migrateObject(ctx: MigrateContext, nodes: JsonSchemaObject[], value: Record<string, unknown>, pointer: JsonPointer): void {
+function migrateObject(
+  ctx: MigrateContext,
+  nodes: JsonSchemaObject[],
+  value: Record<string, unknown>,
+  pointer: JsonPointer
+): void {
   const required = requiredKeys(nodes);
   const declared = new Set<string>();
   for (const node of nodes) for (const key of Object.keys(node.properties ?? {})) declared.add(key);
-  const dropUndeclared = declared.size > 0 && nodes.every((n) =>
-    (n.additionalProperties === undefined || n.additionalProperties === false) &&
-    n.patternProperties === undefined &&
-    n.unevaluatedProperties === undefined,
-  );
+  const dropUndeclared =
+    declared.size > 0 &&
+    nodes.every(
+      n =>
+        (n.additionalProperties === undefined || n.additionalProperties === false) &&
+        n.patternProperties === undefined &&
+        n.unevaluatedProperties === undefined
+    );
   for (const key of Object.keys(value)) {
     const child = propertySchemas(nodes, key)[0];
     const childPointer = appendPointer(pointer, key);
@@ -115,7 +133,12 @@ function migrateObject(ctx: MigrateContext, nodes: JsonSchemaObject[], value: Re
   }
 }
 
-function migrateArray(ctx: MigrateContext, nodes: JsonSchemaObject[], value: unknown[], pointer: JsonPointer): unknown[] {
+function migrateArray(
+  ctx: MigrateContext,
+  nodes: JsonSchemaObject[],
+  value: unknown[],
+  pointer: JsonPointer
+): unknown[] {
   const out: unknown[] = [];
   value.forEach((item, index) => {
     const migrated = migrateValue(ctx, itemSchemas(nodes, index)[0], item, appendPointer(pointer, index), false);
@@ -127,7 +150,7 @@ function migrateArray(ctx: MigrateContext, nodes: JsonSchemaObject[], value: unk
 /** 无法保留的值: 有默认值时取默认值, 必填时取零值, 否则删除; 都记为改动. */
 function replace(ctx: MigrateContext, nodes: JsonSchemaObject[], pointer: JsonPointer, required: boolean): Migrated {
   ctx.changed.push(pointer);
-  const withDefault = nodes.find((n) => hasOwn(n, "default"));
+  const withDefault = nodes.find(n => hasOwn(n, 'default'));
   if (withDefault) return { keep: true, value: cloneJson(withDefault.default) };
   if (!required) return { keep: false };
   const zero = zeroValue(nodes);
@@ -145,20 +168,23 @@ function convert(value: unknown, types: readonly JsonSchemaType[]): Migrated {
 
 function convertTo(value: unknown, type: JsonSchemaType): Migrated {
   const from = jsonType(value);
-  if (Array.isArray(value) && value.length === 1 && type !== "array") return convertTo(value[0], type);
+  if (Array.isArray(value) && value.length === 1 && type !== 'array') return convertTo(value[0], type);
   switch (type) {
-    case "string":
-      return from === "number" || from === "integer" || from === "boolean" ? { keep: true, value: String(value) } : { keep: false };
-    case "number":
-    case "integer": {
-      const number = typeof value === "string" && value.trim() !== "" ? Number(value) : typeof value === "number" ? value : NaN;
+    case 'string':
+      return from === 'number' || from === 'integer' || from === 'boolean'
+        ? { keep: true, value: String(value) }
+        : { keep: false };
+    case 'number':
+    case 'integer': {
+      const number =
+        typeof value === 'string' && value.trim() !== '' ? Number(value) : typeof value === 'number' ? value : NaN;
       if (!Number.isFinite(number)) return { keep: false };
-      return { keep: true, value: type === "integer" ? Math.round(number) : number };
+      return { keep: true, value: type === 'integer' ? Math.round(number) : number };
     }
-    case "boolean":
-      return value === "true" || value === "false" ? { keep: true, value: value === "true" } : { keep: false };
-    case "array":
-      return from !== "null" ? { keep: true, value: [value] } : { keep: false };
+    case 'boolean':
+      return value === 'true' || value === 'false' ? { keep: true, value: value === 'true' } : { keep: false };
+    case 'array':
+      return from !== 'null' ? { keep: true, value: [value] } : { keep: false };
     default:
       return { keep: false };
   }

@@ -1,17 +1,17 @@
 // 字符串与数字输入: input, textarea, password, url, email 用 Input 系列, number 用 InputNumber, range 用 Slider.
-import { useCallback, useState } from "react";
-import { Input, InputNumber, Slider } from "antd";
-import { decimalsOf } from "@jotl/form";
-import { formatThousands, stripThousands } from "@jotl/form/core";
-import { ariaAttributes, textAttributes, type AntdFieldProps } from "../shared.js";
+import { useCallback, useState } from 'react';
+import { Input, InputNumber, Slider } from 'antd';
+import { decimalsOf } from '@jotl/form';
+import { formatThousands, stripThousands } from '@jotl/form/core';
+import { ariaAttributes, textAttributes, type AntdFieldProps } from '../shared.js';
 
 function displayText(value: unknown): string {
-  if (value === undefined || value === null) return "";
-  return typeof value === "string" ? value : JSON.stringify(value);
+  if (value === undefined || value === null) return '';
+  return typeof value === 'string' ? value : JSON.stringify(value);
 }
 
 function lengthLimit(limit: unknown): number | undefined {
-  return typeof limit === "number" && Number.isInteger(limit) && limit >= 0 ? limit : undefined;
+  return typeof limit === 'number' && Number.isInteger(limit) && limit >= 0 ? limit : undefined;
 }
 
 export function AntdInputWidget(props: AntdFieldProps<string>) {
@@ -21,7 +21,7 @@ export function AntdInputWidget(props: AntdFieldProps<string>) {
       className="jotl-input jotl-text"
       value={displayText(props.value)}
       maxLength={lengthLimit(props.schema.maxLength)}
-      onChange={(e) => props.onChange(e.target.value)}
+      onChange={e => props.onChange(e.target.value)}
     />
   );
 }
@@ -33,7 +33,7 @@ export function AntdPasswordWidget(props: AntdFieldProps<string>) {
       className="jotl-input jotl-password"
       value={displayText(props.value)}
       maxLength={lengthLimit(props.schema.maxLength)}
-      onChange={(e) => props.onChange(e.target.value)}
+      onChange={e => props.onChange(e.target.value)}
     />
   );
 }
@@ -46,13 +46,13 @@ export function AntdTextareaWidget(props: AntdFieldProps<string>) {
       autoSize={{ minRows: 3 }}
       value={displayText(props.value)}
       maxLength={lengthLimit(props.schema.maxLength)}
-      onChange={(e) => props.onChange(e.target.value)}
+      onChange={e => props.onChange(e.target.value)}
     />
   );
 }
 
 /** 有格式的字符串: 清空即写回 undefined, 空串不是合法的格式值. */
-function FormattedInput(props: AntdFieldProps<string> & { type: "url" | "email" }) {
+function FormattedInput(props: AntdFieldProps<string> & { type: 'url' | 'email' }) {
   const { type, ...field } = props;
   return (
     <Input
@@ -60,7 +60,7 @@ function FormattedInput(props: AntdFieldProps<string> & { type: "url" | "email" 
       type={type}
       className={`jotl-input jotl-${type}`}
       value={displayText(field.value)}
-      onChange={(e) => field.onChange(e.target.value === "" ? undefined : e.target.value)}
+      onChange={e => field.onChange(e.target.value === '' ? undefined : e.target.value)}
     />
   );
 }
@@ -74,12 +74,14 @@ export function AntdEmailWidget(props: AntdFieldProps<string>) {
 }
 
 function bound(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) ? value : undefined;
+  return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
 }
 
 /** 去掉值为 undefined 的键; antd 的可选属性不接受显式 undefined. */
 function defined<T extends Record<string, unknown>>(record: T): { [K in keyof T]?: Exclude<T[K], undefined> } {
-  return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined)) as { [K in keyof T]?: Exclude<T[K], undefined> };
+  return Object.fromEntries(Object.entries(record).filter(([, value]) => value !== undefined)) as {
+    [K in keyof T]?: Exclude<T[K], undefined>;
+  };
 }
 
 function stepOf(decimals: number | undefined): number | undefined {
@@ -95,10 +97,10 @@ export function AntdNumberWidget(props: AntdFieldProps<number>) {
   const formatter = useCallback(
     (value: number | string | undefined, info: { userTyping: boolean; input: string }) => {
       if (info.userTyping) return info.input;
-      const text = value === undefined ? "" : String(value);
+      const text = value === undefined ? '' : String(value);
       return focused ? text : formatThousands(text);
     },
-    [focused],
+    [focused]
   );
   return (
     <InputNumber<number>
@@ -109,16 +111,21 @@ export function AntdNumberWidget(props: AntdFieldProps<number>) {
         props.onBlur();
       }}
       className="jotl-input jotl-number"
-      style={{ width: "100%" }}
-      value={typeof props.value === "number" ? props.value : null}
-      {...defined({ min: bound(props.schema.minimum), max: bound(props.schema.maximum), step: stepOf(decimals), precision: decimals })}
+      style={{ width: '100%' }}
+      value={typeof props.value === 'number' ? props.value : null}
+      {...defined({
+        min: bound(props.schema.minimum),
+        max: bound(props.schema.maximum),
+        step: stepOf(decimals),
+        precision: decimals,
+      })}
       {...(thousands
         ? {
             formatter,
-            parser: (text: string | undefined) => Number(stripThousands(text ?? "")),
+            parser: (text: string | undefined) => Number(stripThousands(text ?? '')),
           }
         : {})}
-      onChange={(value) => props.onChange(typeof value === "number" && Number.isFinite(value) ? value : undefined)}
+      onChange={value => props.onChange(typeof value === 'number' && Number.isFinite(value) ? value : undefined)}
     />
   );
 }
@@ -132,11 +139,11 @@ export function AntdRangeWidget(props: AntdFieldProps<number>) {
       {...ariaAttributes(props)}
       id={props.id}
       className="jotl-range"
-      disabled={props.mode !== "edit"}
+      disabled={props.mode !== 'edit'}
       min={min}
       max={max}
       step={stepOf(decimalsOf(props.schema)) ?? 1}
-      value={typeof props.value === "number" ? props.value : min}
+      value={typeof props.value === 'number' ? props.value : min}
       onChange={(value: number) => props.onChange(value)}
     />
   );

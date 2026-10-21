@@ -1,18 +1,18 @@
 // 凤蝶 schema 迁移到 Jotl: 源码按 umo-edit-sdk 文法解析为 umo JSON(或直接读入 umo JSON), 转为 JSON Schema 2020-12, 再打印为 Jotl.
-import { type Diagnostic, type JsonSchemaObject, type Result, orderKeywords } from "@jotl/core";
-import { print } from "@jotl/core";
-import { migrateDiagnostic } from "./diagnostics.js";
-import { parseFengdie } from "./parser.js";
-import { umoJsonToSchema } from "./to-schema.js";
-import { UmoBuilder, type UmoOrigins } from "./umo-json.js";
-import type { UmoJson } from "./umo-types.js";
+import { type Diagnostic, type JsonSchemaObject, type Result, orderKeywords } from '@jotl/core';
+import { print } from '@jotl/core';
+import { migrateDiagnostic } from './diagnostics.js';
+import { parseFengdie } from './parser.js';
+import { umoJsonToSchema } from './to-schema.js';
+import { UmoBuilder, type UmoOrigins } from './umo-json.js';
+import type { UmoJson } from './umo-types.js';
 
-export { MIGRATE_DIAGNOSTICS, type MigrateDiagnosticCode } from "./diagnostics.js";
-export { isKnownUmoType, umoJsonToSchema, type UmoToSchemaOptions } from "./to-schema.js";
-export type { UmoOrigin, UmoOrigins } from "./umo-json.js";
-export type { UmoEnumItem, UmoJson, UmoMetaValue, UmoNode } from "./umo-types.js";
+export { MIGRATE_DIAGNOSTICS, type MigrateDiagnosticCode } from './diagnostics.js';
+export { isKnownUmoType, umoJsonToSchema, type UmoToSchemaOptions } from './to-schema.js';
+export type { UmoOrigin, UmoOrigins } from './umo-json.js';
+export type { UmoEnumItem, UmoJson, UmoMetaValue, UmoNode } from './umo-types.js';
 
-export const DEFAULT_FENGDIE_FILE = "schema.fengdie";
+export const DEFAULT_FENGDIE_FILE = 'schema.fengdie';
 
 export interface FengdieUmoResult extends Result<UmoJson> {
   /** umo JSON 节点到源码位置, 传给 `umoJsonToSchema` 可让诊断指向源码. */
@@ -30,7 +30,8 @@ export interface MigrateFengdieResult {
 }
 
 function byPosition(a: Diagnostic, b: Diagnostic): number {
-  const offset = (d: Diagnostic) => (d.location?.kind === "source" ? d.location.range.start.offset : Number.MAX_SAFE_INTEGER);
+  const offset = (d: Diagnostic) =>
+    d.location?.kind === 'source' ? d.location.range.start.offset : Number.MAX_SAFE_INTEGER;
   return offset(a) - offset(b);
 }
 
@@ -38,7 +39,8 @@ function byPosition(a: Diagnostic, b: Diagnostic): number {
 export function fengdieToUmoJson(source: string, file: string = DEFAULT_FENGDIE_FILE): FengdieUmoResult {
   const parsed = parseFengdie(source, file);
   const builder = new UmoBuilder();
-  if (parsed.value === undefined) return { value: undefined, diagnostics: parsed.diagnostics, origins: builder.origins };
+  if (parsed.value === undefined)
+    return { value: undefined, diagnostics: parsed.diagnostics, origins: builder.origins };
   const umo = builder.document(parsed.value);
   return { value: umo, diagnostics: builder.diagnostics, origins: builder.origins };
 }
@@ -51,17 +53,25 @@ export function migrateFengdie(input: string | UmoJson, file: string = DEFAULT_F
   let umo: UmoJson;
   const diagnostics: Diagnostic[] = [];
   let origins: UmoOrigins | undefined;
-  if (typeof input === "string" && !input.trimStart().startsWith("{")) {
+  if (typeof input === 'string' && !input.trimStart().startsWith('{')) {
     const built = fengdieToUmoJson(input, file);
     diagnostics.push(...built.diagnostics);
     if (built.value === undefined) return { diagnostics };
     umo = built.value;
     origins = built.origins;
-  } else if (typeof input === "string") {
+  } else if (typeof input === 'string') {
     try {
       umo = JSON.parse(input) as UmoJson;
     } catch (error) {
-      return { diagnostics: [migrateDiagnostic("JOTL8006", { reason: (error as Error).message }, { location: { kind: "pointer", pointer: "", document: file } })] };
+      return {
+        diagnostics: [
+          migrateDiagnostic(
+            'JOTL8006',
+            { reason: (error as Error).message },
+            { location: { kind: 'pointer', pointer: '', document: file } }
+          ),
+        ],
+      };
     }
   } else {
     umo = input;

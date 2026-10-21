@@ -9,7 +9,7 @@ This page explains how `JotlForm` shows objects, arrays and dictionaries, and ho
 By default the form shows one page per level. Scalar fields of the current level are edited in place; composite fields (objects, arrays, dictionaries, unions with object branches, recursive nodes) appear as entry rows that open the next level. The breadcrumb at the top lists each level's label, and clicking a parent level goes back.
 
 ```tsx
-const [path, setPath] = useState("");
+const [path, setPath] = useState('');
 <JotlForm schema={schema} path={path} onPathChange={setPath} />;
 ```
 
@@ -36,7 +36,7 @@ Errors not on the current page appear in the form-level list at the top, and eac
 ## Show everything on one page
 
 ```tsx
-<JotlForm schema={schema} drill={false} collapsible />;
+<JotlForm schema={schema} drill={false} collapsible />
 ```
 
 - `drill={false}` expands all levels on one page with no entry rows or breadcrumb, and ignores `path`.

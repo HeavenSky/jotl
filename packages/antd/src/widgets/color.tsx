@@ -1,9 +1,9 @@
 // 颜色: ColorPicker 写回 #rrggbb 文本, 清除写回 undefined.
-import { ColorPicker } from "antd";
-import { ariaAttributes, choiceDisabled, type AntdFieldProps } from "../shared.js";
+import { ColorPicker } from 'antd';
+import { ariaAttributes, choiceDisabled, type AntdFieldProps } from '../shared.js';
 
 export function AntdColorWidget(props: AntdFieldProps<string>) {
-  const value = typeof props.value === "string" && props.value !== "" ? props.value : undefined;
+  const value = typeof props.value === 'string' && props.value !== '' ? props.value : undefined;
   return (
     <span {...ariaAttributes(props)} id={props.id} className="jotl-color">
       <ColorPicker
@@ -14,7 +14,7 @@ export function AntdColorWidget(props: AntdFieldProps<string>) {
         allowClear={!props.required}
         disabled={choiceDisabled(props)}
         value={value ?? null}
-        onChange={(color) => props.onChange(`#${color.toHex().slice(0, 6)}`)}
+        onChange={color => props.onChange(`#${color.toHex().slice(0, 6)}`)}
         onClear={() => props.onChange(undefined)}
       />
     </span>

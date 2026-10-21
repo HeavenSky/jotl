@@ -1,12 +1,12 @@
 // 勾选与选项组件: switch, checkbox(布尔单个或枚举数组一组), radio, select(单选或枚举数组多选).
-import type { ChangeEvent } from "react";
-import { enumOptions, schemaTypes, type EnumOption } from "../../core/index.js";
-import { isSchemaObject } from "@jotl/core";
-import { useCopy } from "../copy.js";
-import { deepEqual } from "../deep-equal.js";
-import { nameId } from "../ids.js";
-import { choiceAttributes, type HtmlFieldProps } from "../props.js";
-import { cn, styles } from "../styles.js";
+import type { ChangeEvent } from 'react';
+import { enumOptions, schemaTypes, type EnumOption } from '../../core/index.js';
+import { isSchemaObject } from '@jotl/core';
+import { useCopy } from '../copy.js';
+import { deepEqual } from '../deep-equal.js';
+import { nameId } from '../ids.js';
+import { choiceAttributes, type HtmlFieldProps } from '../props.js';
+import { cn, styles } from '../styles.js';
 
 export function SwitchWidget(props: HtmlFieldProps<boolean>) {
   return (
@@ -14,9 +14,9 @@ export function SwitchWidget(props: HtmlFieldProps<boolean>) {
       {...choiceAttributes(props)}
       id={props.id}
       type="checkbox"
-      // biome-ignore lint/a11y/useAriaPropsForRole: 原生 checkbox 的 checked 已表达开关状态, ARIA in HTML 要求此处不再写 aria-checked
+      // oxlint-disable-next-line jsx-a11y/role-has-required-aria-props -- 原生 checkbox 的 checked 已表达开关状态, ARIA in HTML 要求此处不再写 aria-checked
       role="switch"
-      className={cn("jotl-checkbox jotl-switch", styles.checkbox, styles.switch)}
+      className={cn('jotl-checkbox jotl-switch', styles.checkbox, styles.switch)}
       checked={props.value === true}
       onChange={(e: ChangeEvent<HTMLInputElement>) => props.onChange(e.target.checked)}
     />
@@ -24,8 +24,8 @@ export function SwitchWidget(props: HtmlFieldProps<boolean>) {
 }
 
 /** 枚举数组(core/ 已按形态把 checkbox select 限定在布尔, 枚举与枚举数组上). */
-function isEnumArray(schema: HtmlFieldProps["schema"]): boolean {
-  return schemaTypes(schema).includes("array") || schema.items !== undefined;
+function isEnumArray(schema: HtmlFieldProps['schema']): boolean {
+  return schemaTypes(schema).includes('array') || schema.items !== undefined;
 }
 
 /** 布尔为单个勾选框, 枚举数组为一组勾选框. */
@@ -46,13 +46,18 @@ export function CheckboxWidget(props: HtmlFieldProps<unknown>) {
 const optionId = (id: string, index: number): string => `${id}--${index}`;
 
 function indexOfValue(options: readonly EnumOption[], value: unknown): number {
-  return value === undefined ? -1 : options.findIndex((option) => deepEqual(option.value, value));
+  return value === undefined ? -1 : options.findIndex(option => deepEqual(option.value, value));
 }
 
 export function RadioWidget(props: HtmlFieldProps<unknown>) {
   const options = enumOptions(props.schema) ?? [];
   const selected = indexOfValue(options, props.value);
-  const { "aria-invalid": invalid, "aria-describedby": described, "aria-labelledby": _labelledBy, ...attributes } = choiceAttributes(props);
+  const {
+    'aria-invalid': invalid,
+    'aria-describedby': described,
+    'aria-labelledby': _labelledBy,
+    ...attributes
+  } = choiceAttributes(props);
   return (
     <div
       id={props.id}
@@ -81,13 +86,15 @@ export function RadioWidget(props: HtmlFieldProps<unknown>) {
   );
 }
 
-const EMPTY_OPTION = "";
+const EMPTY_OPTION = '';
 
 /** 枚举数组为多选下拉框, 写回按选项顺序排列, 不在选项中的已有值保留在末尾. */
 function MultiSelect(props: HtmlFieldProps<unknown[]>) {
   const options = itemOptions(props.schema) ?? [];
   const current = Array.isArray(props.value) ? props.value : [];
-  const selected = options.flatMap((option, i) => (current.some((item) => deepEqual(item, option.value)) ? [String(i)] : []));
+  const selected = options.flatMap((option, i) =>
+    current.some(item => deepEqual(item, option.value)) ? [String(i)] : []
+  );
   return (
     <select
       {...choiceAttributes(props)}
@@ -96,9 +103,9 @@ function MultiSelect(props: HtmlFieldProps<unknown[]>) {
       className={`jotl-select jotl-select--multiple ${styles.select({ multiple: true })}`}
       value={selected}
       onChange={(e: ChangeEvent<HTMLSelectElement>) => {
-        const picked = new Set(Array.from(e.target.selectedOptions, (o) => Number(o.value)));
-        const extras = current.filter((item) => !options.some((o) => deepEqual(o.value, item)));
-        props.onChange([...options.filter((_, i) => picked.has(i)).map((o) => o.value), ...extras]);
+        const picked = new Set(Array.from(e.target.selectedOptions, o => Number(o.value)));
+        const extras = current.filter(item => !options.some(o => deepEqual(o.value, item)));
+        props.onChange([...options.filter((_, i) => picked.has(i)).map(o => o.value), ...extras]);
       }}
     >
       {options.map((option, i) => (
@@ -138,17 +145,22 @@ export function SelectWidget(props: HtmlFieldProps<unknown>) {
 }
 
 /** 枚举数组的选项, 取自 items; items 为引用时组件拿到的是引用处, 不再解析. */
-export function itemOptions(schema: HtmlFieldProps["schema"]): EnumOption[] | undefined {
+export function itemOptions(schema: HtmlFieldProps['schema']): EnumOption[] | undefined {
   return isSchemaObject(schema.items) ? enumOptions(schema.items) : undefined;
 }
 
 function CheckboxGroup(props: HtmlFieldProps<unknown[]>) {
   const options = itemOptions(props.schema) ?? [];
   const current = Array.isArray(props.value) ? props.value : [];
-  const isChecked = (option: EnumOption) => current.some((item) => deepEqual(item, option.value));
-  const { "aria-invalid": invalid, "aria-describedby": described, "aria-labelledby": _labelledBy, ...attributes } = choiceAttributes(props);
+  const isChecked = (option: EnumOption) => current.some(item => deepEqual(item, option.value));
+  const {
+    'aria-invalid': invalid,
+    'aria-describedby': described,
+    'aria-labelledby': _labelledBy,
+    ...attributes
+  } = choiceAttributes(props);
   return (
-    // biome-ignore lint/a11y/useSemanticElements: 改用 fieldset 会改变 DOM 结构与默认样式; group 角色经 aria-labelledby 取外壳标签
+    // oxlint-disable-next-line jsx-a11y/prefer-tag-over-role -- 改用 fieldset 会改变 DOM 结构与默认样式; group 角色经 aria-labelledby 取外壳标签
     <div
       id={props.id}
       role="group"
@@ -167,10 +179,8 @@ function CheckboxGroup(props: HtmlFieldProps<unknown[]>) {
             checked={isChecked(option)}
             onChange={(e: ChangeEvent<HTMLInputElement>) => {
               // 按选项顺序重建, 保持写回顺序稳定; 不在选项中的已有值原样保留在末尾.
-              const extras = current.filter((item) => !options.some((o) => deepEqual(o.value, item)));
-              const next = options
-                .filter((o) => (o === option ? e.target.checked : isChecked(o)))
-                .map((o) => o.value);
+              const extras = current.filter(item => !options.some(o => deepEqual(o.value, item)));
+              const next = options.filter(o => (o === option ? e.target.checked : isChecked(o))).map(o => o.value);
               props.onChange([...next, ...extras]);
             }}
           />

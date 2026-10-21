@@ -4,15 +4,15 @@
 
 This page lists every `jotl` command with its options, defaults and examples, and explains how input formats are detected. It assumes `jotl` is installed as in the [quick start](../README.md); `jotl <command> --help` prints the same options offline.
 
-| Command | What it does |
-|---|---|
-| [`compile`](#compile) | Compile Jotl to JSON Schema 2020-12 (default) or TS declarations |
-| [`convert`](#convert) | Convert between Jotl, JSON Schema and TS declarations in any direction |
-| [`check`](#check) | Report diagnostics only, without output |
-| [`validate`](#validate) | Validate JSON data files against a schema |
-| [`defaults`](#defaults) | Output the default data of a schema as JSON |
-| [`migrate-schema`](#migrate-schema) | Migrate a Fengdie schema or a legacy JSON Schema to Jotl or 2020-12 |
-| [`format`](#format) | Format Jotl source, keeping comments |
+| Command                             | What it does                                                           |
+| ----------------------------------- | ---------------------------------------------------------------------- |
+| [`compile`](#compile)               | Compile Jotl to JSON Schema 2020-12 (default) or TS declarations       |
+| [`convert`](#convert)               | Convert between Jotl, JSON Schema and TS declarations in any direction |
+| [`check`](#check)                   | Report diagnostics only, without output                                |
+| [`validate`](#validate)             | Validate JSON data files against a schema                              |
+| [`defaults`](#defaults)             | Output the default data of a schema as JSON                            |
+| [`migrate-schema`](#migrate-schema) | Migrate a Fengdie schema or a legacy JSON Schema to Jotl or 2020-12    |
+| [`format`](#format)                 | Format Jotl source, keeping comments                                   |
 
 Global options work with every command: `-h, --help` shows help (after a command, that command's help; `jotl help <command>` does the same), `-v, --version` prints the version, and `--lang <zh|en>` picks the output language (see [Use jotl in scripts and CI](scripting.md#choose-the-output-language)).
 
@@ -60,12 +60,12 @@ jotl convert <input> --to jotl|schema|ts [--from jotl|schema|ts] [--schema-versi
 
 Converts between Jotl, JSON Schema 2020-12 and TS declarations. `--to` is required.
 
-| Option | Meaning |
-|---|---|
-| `--from <jotl\|schema\|ts>` | Input format; detected as in [How inputs are read](#how-inputs-are-read) when omitted |
-| `--schema-version <version>` | Version for JSON Schema input that does not declare `$schema` |
-| `--on-conflict <policy>` | How to resolve conflicts between old and new keyword semantics while upgrading JSON Schema: `preferDeclared` follows the declared version (default), `preferLatest` follows 2020-12, `error` reports an error |
-| `--typia-tags` | Use typia type tags in TS output; only with `--to ts` |
+| Option                       | Meaning                                                                                                                                                                                                       |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `--from <jotl\|schema\|ts>`  | Input format; detected as in [How inputs are read](#how-inputs-are-read) when omitted                                                                                                                         |
+| `--schema-version <version>` | Version for JSON Schema input that does not declare `$schema`                                                                                                                                                 |
+| `--on-conflict <policy>`     | How to resolve conflicts between old and new keyword semantics while upgrading JSON Schema: `preferDeclared` follows the declared version (default), `preferLatest` follows 2020-12, `error` reports an error |
+| `--typia-tags`               | Use typia type tags in TS output; only with `--to ts`                                                                                                                                                         |
 
 ```sh
 jotl convert legacy.json --to jotl --out legacy.jotl
@@ -115,11 +115,11 @@ jotl defaults <schema> [--strategy explicit|required|all] [--schema-version <ver
 
 Generates default data from the schema and prints it as JSON.
 
-| `--strategy` | Produces |
-|---|---|
-| `explicit` (default) | Explicit `default` values only |
-| `required` | Explicit defaults, plus zero values for required fields |
-| `all` | Explicit defaults, plus zero values for every field |
+| `--strategy`         | Produces                                                |
+| -------------------- | ------------------------------------------------------- |
+| `explicit` (default) | Explicit `default` values only                          |
+| `required`           | Explicit defaults, plus zero values for required fields |
+| `all`                | Explicit defaults, plus zero values for every field     |
 
 When the schema yields no default data, nothing is written and info `JOTL9054` is reported. The exact rules are in the [`@jotl/data` README](../../data/README.md) under getDefaults.
 
@@ -136,19 +136,19 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
 
 Migrates a Fengdie schema or a legacy JSON Schema to Jotl (`--to jotl`, the default) or JSON Schema 2020-12 (`--to schema`). The input kind is detected automatically, and the verdict and its reason are written to stderr as info `JOTL9055`:
 
-| Detected as | When | Handling |
-|---|---|---|
-| Fengdie source | The text does not start with `{` or `[` (not JSON) | Parsed with the umo-edit-sdk grammar; rules in the [`@jotl/convert` README](../../convert/README.md) |
-| Fengdie toJson JSON (umo JSON) | JSON in which any field has a `key` equal to its property name, a Fengdie type (such as `image`, `text`, `richtext`, `url`, `color`, `date`, `enum`, `box`), or enum members of the form `{label, value}` | As above, without parsing |
-| Plain JSON Schema | Any other JSON; text starting with `{` that is not valid JSON reports `JOTL9052` | draft-04 through 2019-09 and OpenAPI 3.0 / 3.1 / Swagger 2.0 Schema Objects are upgraded to 2020-12 first |
+| Detected as                    | When                                                                                                                                                                                                      | Handling                                                                                                  |
+| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| Fengdie source                 | The text does not start with `{` or `[` (not JSON)                                                                                                                                                        | Parsed with the umo-edit-sdk grammar; rules in the [`@jotl/convert` README](../../convert/README.md)      |
+| Fengdie toJson JSON (umo JSON) | JSON in which any field has a `key` equal to its property name, a Fengdie type (such as `image`, `text`, `richtext`, `url`, `color`, `date`, `enum`, `box`), or enum members of the form `{label, value}` | As above, without parsing                                                                                 |
+| Plain JSON Schema              | Any other JSON; text starting with `{` that is not valid JSON reports `JOTL9052`                                                                                                                          | draft-04 through 2019-09 and OpenAPI 3.0 / 3.1 / Swagger 2.0 Schema Objects are upgraded to 2020-12 first |
 
 Options for plain JSON Schema input:
 
-| Option | Meaning |
-|---|---|
-| `--schema-version <version>` | Version when `$schema` is not declared; values as in [How inputs are read](#how-inputs-are-read) |
-| `--accept-newer-keywords=true\|false` | Whether keywords newer than the declared version are accepted with 2020-12 semantics; default `true` |
-| `--on-conflict <policy>` | `error`, `preferDeclared` or `preferLatest`; default `preferDeclared` with `--to jotl` (same as `convert`) and `error` with `--to schema` |
+| Option                                | Meaning                                                                                                                                   |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `--schema-version <version>`          | Version when `$schema` is not declared; values as in [How inputs are read](#how-inputs-are-read)                                          |
+| `--accept-newer-keywords=true\|false` | Whether keywords newer than the declared version are accepted with 2020-12 semantics; default `true`                                      |
+| `--on-conflict <policy>`              | `error`, `preferDeclared` or `preferLatest`; default `preferDeclared` with `--to jotl` (same as `convert`) and `error` with `--to schema` |
 
 - These three options apply only to plain JSON Schema; with Fengdie input they are usage error `JOTL9013`.
 - With plain JSON Schema and `--to schema`, the change list (one info diagnostic per rewrite) is also written to stderr.

@@ -8,7 +8,8 @@
     <script>
       (function () {
         var path = location.pathname;
-        if (path.slice(-1) !== "/" && path.slice(path.lastIndexOf("/") + 1).indexOf(".") === -1) location.replace(path + "/" + location.search + location.hash);
+        if (path.slice(-1) !== '/' && path.slice(path.lastIndexOf('/') + 1).indexOf('.') === -1)
+          location.replace(path + '/' + location.search + location.hash);
       })();
     </script>
     <!-- 扩展组件模块里的 react 与 react/jsx-runtime 指到 public/shims 的垫片, 取宿主同一份 React; 必须在任何 module script 之前. -->

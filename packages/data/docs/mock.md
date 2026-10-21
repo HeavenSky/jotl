@@ -5,16 +5,16 @@
 This page shows how to produce test data that satisfies a schema with `mock(schema, opts?)`. It accepts `seed` and `locale`; other conventions are in [Call the API](./api.md).
 
 ```js
-import { mock } from "@jotl/data";
+import { mock } from '@jotl/data';
 
 const schema = {
-  type: "object",
+  type: 'object',
   properties: {
-    e: { type: "string", format: "email" },
-    c: { type: "string", format: "color" },
-    p: { type: "string", pattern: "^[A-Z]{3}-[0-9]{2}$" },
+    e: { type: 'string', format: 'email' },
+    c: { type: 'string', format: 'color' },
+    p: { type: 'string', pattern: '^[A-Z]{3}-[0-9]{2}$' },
   },
-  required: ["e", "c", "p"],
+  required: ['e', 'c', 'p'],
 };
 mock(schema, { seed: 2 }).value; // { e: "hnwqmj@example.com", c: "#1c36d9", p: "JZB-11" }
 ```

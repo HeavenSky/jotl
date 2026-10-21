@@ -1,12 +1,12 @@
 // Jotl v1 语法的解析, 语义检查, 编译到 JSON Schema 2020-12, 打印与格式化.
-import { type JsonSchemaObject, type Result, type SourceMap, hasErrors } from "../schema/index.js";
-import type { JotlFile } from "./ast.js";
-import { type CompileOptions, compileFile } from "./compiler.js";
-import { byPosition } from "./diagnostics.js";
-import { parseSource } from "./parser.js";
+import { type JsonSchemaObject, type Result, type SourceMap, hasErrors } from '../schema/index.js';
+import type { JotlFile } from './ast.js';
+import { type CompileOptions, compileFile } from './compiler.js';
+import { byPosition } from './diagnostics.js';
+import { parseSource } from './parser.js';
 
-export type * from "./ast.js";
-export type { CompileOptions } from "./compiler.js";
+export type * from './ast.js';
+export type { CompileOptions } from './compiler.js';
 export {
   COMPONENT_NAMES,
   COMPONENT_WIDGETS,
@@ -30,10 +30,23 @@ export {
   isTypeName,
   metaAppliesTo,
   valueFormatSchema,
-} from "./builtins.js";
-export { DEFAULT_VALUE_FORMATS, TIMESTAMP_VALUE_FORMATS, VALUE_FORMAT_ALIASES, valueFormatComponent } from "../schema/index.js";
-export { BUILTIN_WIDGETS, EXTENSION_CONSTRAINT_KEYS, type ExtensionBase, acceptsWidget, defaultWidget, extensionBase, extensionConstraintKeys } from "./shapes.js";
-export { SYNTAX_DIAGNOSTICS, type SyntaxDiagnosticCode } from "./diagnostics.js";
+} from './builtins.js';
+export {
+  DEFAULT_VALUE_FORMATS,
+  TIMESTAMP_VALUE_FORMATS,
+  VALUE_FORMAT_ALIASES,
+  valueFormatComponent,
+} from '../schema/index.js';
+export {
+  BUILTIN_WIDGETS,
+  EXTENSION_CONSTRAINT_KEYS,
+  type ExtensionBase,
+  acceptsWidget,
+  defaultWidget,
+  extensionBase,
+  extensionConstraintKeys,
+} from './shapes.js';
+export { SYNTAX_DIAGNOSTICS, type SyntaxDiagnosticCode } from './diagnostics.js';
 export {
   JOTL_CONFIG_FILE,
   JOTL_CONFIG_SCHEMA_ID,
@@ -42,7 +55,7 @@ export {
   configCompileOptions,
   createJotlConfigJsonSchema,
   readJotlConfig,
-} from "./config.js";
+} from './config.js';
 
 export interface CompileOutput {
   /** 规范化的 JSON Schema 2020-12 文档, 关键字已按规范化规则排列. */
@@ -67,9 +80,14 @@ export function compile(text: string, file: string, options: CompileOptions = {}
   const diagnostics = [...parsed.diagnostics, ...compiled.diagnostics].sort(byPosition);
   if (hasErrors(diagnostics)) return { value: undefined, diagnostics };
   return {
-    value: { schema: compiled.schema, sourceMap: compiled.sourceMap, ast: parsed.ast, defaultExport: compiled.defaultExport },
+    value: {
+      schema: compiled.schema,
+      sourceMap: compiled.sourceMap,
+      ast: parsed.ast,
+      defaultExport: compiled.defaultExport,
+    },
     diagnostics,
   };
 }
-export { print, type PrintOptions } from "./print/print.js";
-export { format } from "./print/format.js";
+export { print, type PrintOptions } from './print/print.js';
+export { format } from './print/format.js';

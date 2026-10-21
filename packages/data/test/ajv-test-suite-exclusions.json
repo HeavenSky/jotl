@@ -10,9 +10,7 @@
       "A $dynamicRef resolves to the first $dynamicAnchor still in scope that is encountered when the schema is evaluated": [
         "An array of strings is valid"
       ],
-      "A $dynamicRef without anchor in fragment behaves identical to $ref": [
-        "An array of numbers is valid"
-      ],
+      "A $dynamicRef without anchor in fragment behaves identical to $ref": ["An array of numbers is valid"],
       "A $dynamicRef with intermediate scopes that don't include a matching $dynamicAnchor does not affect dynamic scope resolution": [
         "An array of strings is valid"
       ],
@@ -41,25 +39,12 @@
         "first_scope is not in dynamic scope for the $dynamicRef",
         "/then/$defs/thingy is the final stop for the $dynamicRef"
       ],
-      "tests for implementation dynamic anchor and reference link": [
-        "correct extended schema"
-      ],
-      "$ref and $dynamicAnchor are independent of order - $defs first": [
-        "correct extended schema"
-      ],
-      "$ref and $dynamicAnchor are independent of order - $ref first": [
-        "correct extended schema"
-      ],
-      "$ref to $dynamicRef finds detached $dynamicAnchor": [
-        "number is valid",
-        "non-number is invalid"
-      ],
-      "$dynamicRef points to a boolean schema": [
-        "follow $dynamicRef to a false schema"
-      ],
-      "$dynamicRef skips over intermediate resources - direct reference": [
-        "integer property passes"
-      ],
+      "tests for implementation dynamic anchor and reference link": ["correct extended schema"],
+      "$ref and $dynamicAnchor are independent of order - $defs first": ["correct extended schema"],
+      "$ref and $dynamicAnchor are independent of order - $ref first": ["correct extended schema"],
+      "$ref to $dynamicRef finds detached $dynamicAnchor": ["number is valid", "non-number is invalid"],
+      "$dynamicRef points to a boolean schema": ["follow $dynamicRef to a false schema"],
+      "$dynamicRef skips over intermediate resources - direct reference": ["integer property passes"],
       "$dynamicRef avoids the root of each schema, but scopes are still registered": [
         "data is sufficient for schema at second#/$defs/length",
         "data is not sufficient for schema at second#/$defs/length"
@@ -76,97 +61,46 @@
       ]
     },
     "format.json": {
-      "email format": [
-        "invalid email string is only an annotation by default"
-      ],
-      "regex format": [
-        "invalid regex string is only an annotation by default"
-      ],
-      "ipv4 format": [
-        "invalid ipv4 string is only an annotation by default"
-      ],
-      "ipv6 format": [
-        "invalid ipv6 string is only an annotation by default"
-      ],
-      "hostname format": [
-        "invalid hostname string is only an annotation by default"
-      ],
-      "date format": [
-        "invalid date string is only an annotation by default"
-      ],
-      "date-time format": [
-        "invalid date-time string is only an annotation by default"
-      ],
-      "time format": [
-        "invalid time string is only an annotation by default"
-      ],
-      "json-pointer format": [
-        "invalid json-pointer string is only an annotation by default"
-      ],
-      "relative-json-pointer format": [
-        "invalid relative-json-pointer string is only an annotation by default"
-      ],
-      "uri format": [
-        "invalid uri string is only an annotation by default"
-      ],
-      "uri-reference format": [
-        "invalid uri-reference string is only an annotation by default"
-      ],
-      "uri-template format": [
-        "invalid uri-template string is only an annotation by default"
-      ],
-      "uuid format": [
-        "invalid uuid string is only an annotation by default"
-      ],
-      "duration format": [
-        "invalid duration string is only an annotation by default"
-      ]
+      "email format": ["invalid email string is only an annotation by default"],
+      "regex format": ["invalid regex string is only an annotation by default"],
+      "ipv4 format": ["invalid ipv4 string is only an annotation by default"],
+      "ipv6 format": ["invalid ipv6 string is only an annotation by default"],
+      "hostname format": ["invalid hostname string is only an annotation by default"],
+      "date format": ["invalid date string is only an annotation by default"],
+      "date-time format": ["invalid date-time string is only an annotation by default"],
+      "time format": ["invalid time string is only an annotation by default"],
+      "json-pointer format": ["invalid json-pointer string is only an annotation by default"],
+      "relative-json-pointer format": ["invalid relative-json-pointer string is only an annotation by default"],
+      "uri format": ["invalid uri string is only an annotation by default"],
+      "uri-reference format": ["invalid uri-reference string is only an annotation by default"],
+      "uri-template format": ["invalid uri-template string is only an annotation by default"],
+      "uuid format": ["invalid uuid string is only an annotation by default"],
+      "duration format": ["invalid duration string is only an annotation by default"]
     },
     "properties.json": {
-      "properties whose names are Javascript object property names": [
-        "__proto__ not valid"
-      ]
+      "properties whose names are Javascript object property names": ["__proto__ not valid"]
     },
     "unevaluatedItems.json": {
-      "unevaluatedItems with nested items": [
-        "with no additional items",
-        "with invalid additional item"
-      ],
-      "unevaluatedItems with $dynamicRef": [
-        "with no unevaluated items",
-        "with unevaluated items"
-      ],
-      "unevaluatedItems depends on adjacent contains": [
-        "contains passes, second item is not evaluated"
-      ],
-      "unevaluatedItems depends on multiple nested contains": [
-        "7 not evaluated, fails unevaluatedItems"
-      ],
+      "unevaluatedItems with nested items": ["with no additional items", "with invalid additional item"],
+      "unevaluatedItems with $dynamicRef": ["with no unevaluated items", "with unevaluated items"],
+      "unevaluatedItems depends on adjacent contains": ["contains passes, second item is not evaluated"],
+      "unevaluatedItems depends on multiple nested contains": ["7 not evaluated, fails unevaluatedItems"],
       "unevaluatedItems and contains interact to control item dependency relationship": [
         "only b's are invalid",
         "only c's are invalid",
         "only b's and c's are invalid",
         "only a's and c's are invalid"
       ],
-      "unevaluatedItems with minContains = 0": [
-        "all items evaluated by contains"
-      ],
-      "unevaluatedItems can see annotations from if without then and else": [
-        "valid in case if is evaluated"
-      ]
+      "unevaluatedItems with minContains = 0": ["all items evaluated by contains"],
+      "unevaluatedItems can see annotations from if without then and else": ["valid in case if is evaluated"]
     },
     "unevaluatedProperties.json": {
       "unevaluatedProperties with if/then/else, then not defined": [
         "when if is true and has no unevaluated properties",
         "when if is false and has unevaluated properties"
       ],
-      "unevaluatedProperties with $dynamicRef": [
-        "with no unevaluated properties",
-        "with unevaluated properties"
-      ],
-      "unevaluatedProperties can see annotations from if without then and else": [
-        "valid in case if is evaluated"
-      ]
+      "unevaluatedProperties with $dynamicRef": ["with no unevaluated properties", "with unevaluated properties"],
+      "unevaluatedProperties can see annotations from if without then and else": ["valid in case if is evaluated"]
     },
     "vocabulary.json": {
       "schema that uses custom metaschema with with no validation vocabulary": [
@@ -176,9 +110,7 @@
   },
   "optional": {
     "optional/cross-draft.json": {
-      "refs to historic drafts are processed as historic drafts": [
-        "first item not a string is valid"
-      ]
+      "refs to historic drafts are processed as historic drafts": ["first item not a string is valid"]
     },
     "optional/dynamicRef.json": {
       "$dynamicRef skips over intermediate resources - pointer reference across resource boundary": [
@@ -224,9 +156,7 @@
       ]
     },
     "optional/format/ecmascript-regex.json": {
-      "\\a is not an ECMA 262 control escape": [
-        "when used as a pattern"
-      ]
+      "\\a is not an ECMA 262 control escape": ["when used as a pattern"]
     },
     "optional/format/email.json": {
       "validation of e-mail addresses": [
@@ -246,9 +176,7 @@
       ]
     },
     "optional/format/hostname.json": {
-      "validation of host names": [
-        "trailing dot"
-      ],
+      "validation of host names": ["trailing dot"],
       "validation of A-label (punycode) host names": [
         "invalid Punycode",
         "contains illegal char U+302E Hangul single dot tone mark",
@@ -406,9 +334,7 @@
       ]
     },
     "optional/format/uuid.json": {
-      "uuid format": [
-        "URN prefixed UUID is invalid"
-      ]
+      "uuid format": ["URN prefixed UUID is invalid"]
     }
   }
 }

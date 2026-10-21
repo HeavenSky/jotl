@@ -1,9 +1,9 @@
 // 子命令的声明形状与共用的输出步骤: 结果写到 stdout 或 --out, 写文件前拒绝覆盖输入.
-import type { OptionSpec, ParsedArgs, PositionalSpec } from "./args.js";
-import { cliDiagnostic } from "./diagnostics.js";
-import type { CliIo } from "./io.js";
-import type { CommandName } from "./messages.js";
-import { type Reporter, UsageError, fsReason } from "./report.js";
+import type { OptionSpec, ParsedArgs, PositionalSpec } from './args.js';
+import { cliDiagnostic } from './diagnostics.js';
+import type { CliIo } from './io.js';
+import type { CommandName } from './messages.js';
+import { type Reporter, UsageError, fsReason } from './report.js';
 
 export interface CommandContext {
   io: CliIo;
@@ -18,13 +18,18 @@ export interface Command {
   execute(ctx: CommandContext, args: ParsedArgs): void;
 }
 
-export const OUT_OPTION: OptionSpec = { type: "string" };
+export const OUT_OPTION: OptionSpec = { type: 'string' };
 
 /** --out 指向任一输入文件时报用法错误; 在读取输入之前调用. */
-export function assertOutputDistinct(command: CommandName, io: CliIo, out: string | undefined, inputs: readonly string[]): void {
+export function assertOutputDistinct(
+  command: CommandName,
+  io: CliIo,
+  out: string | undefined,
+  inputs: readonly string[]
+): void {
   if (out === undefined) return;
-  const input = inputs.find((file) => io.isSameFile(out, file));
-  if (input !== undefined) throw new UsageError(cliDiagnostic("JOTL9008", { out, input }), command);
+  const input = inputs.find(file => io.isSameFile(out, file));
+  if (input !== undefined) throw new UsageError(cliDiagnostic('JOTL9008', { out, input }), command);
 }
 
 /** 写到 out 指定的文件, 未指定时写到 stdout; 写文件失败报 JOTL9051. */
@@ -40,10 +45,10 @@ export function writeFileReported(ctx: CommandContext, file: string, text: strin
   try {
     ctx.io.writeFile(file, text);
   } catch (error) {
-    ctx.reporter.report([cliDiagnostic("JOTL9051", { file, reason: fsReason(error) })], { file });
+    ctx.reporter.report([cliDiagnostic('JOTL9051', { file, reason: fsReason(error) })], { file });
   }
 }
 
 export function toJsonText(value: unknown): string {
-  return JSON.stringify(value, null, 2) + "\n";
+  return JSON.stringify(value, null, 2) + '\n';
 }

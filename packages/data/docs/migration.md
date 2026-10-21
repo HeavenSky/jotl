@@ -5,14 +5,14 @@
 This page shows how `migrate(schema, data, opts?)` repairs data saved under an older schema so it fits the new one. It accepts only the `locale` option; other conventions are in [Call the API](./api.md).
 
 ```js
-import { migrate } from "@jotl/data";
+import { migrate } from '@jotl/data';
 
 const schema = {
-  type: "object",
-  properties: { title: { type: "string" }, count: { type: "integer" } },
-  required: ["title", "count"],
+  type: 'object',
+  properties: { title: { type: 'string' }, count: { type: 'integer' } },
+  required: ['title', 'count'],
 };
-migrate(schema, { title: 12, count: "3", old: true }).value;
+migrate(schema, { title: 12, count: '3', old: true }).value;
 // { data: { title: "12", count: 3 }, changed: ["/title", "/count", "/old"] }
 ```
 
@@ -28,13 +28,13 @@ The data you pass in is not modified; every changed location is recorded in `cha
 
 On a type mismatch, conversion is tried in the order of the schema's types, and the first success is kept:
 
-| Target type | Convertible values |
-|---|---|
-| `string` | Numbers and booleans → `String(value)` |
-| `number` | Numbers, non-blank numeric strings |
-| `integer` | Same as `number`, then rounded |
-| `boolean` | The strings `"true"` and `"false"` |
-| `array` | Any non-`null` value → single-item array |
+| Target type        | Convertible values                                                        |
+| ------------------ | ------------------------------------------------------------------------- |
+| `string`           | Numbers and booleans → `String(value)`                                    |
+| `number`           | Numbers, non-blank numeric strings                                        |
+| `integer`          | Same as `number`, then rounded                                            |
+| `boolean`          | The strings `"true"` and `"false"`                                        |
+| `array`            | Any non-`null` value → single-item array                                  |
 | Any non-array type | A single-item array is unwrapped first, then converted by the rules above |
 
 Union types first match a branch by data; when none matches, conversion to each branch's type is tried in order.

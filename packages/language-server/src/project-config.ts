@@ -1,10 +1,10 @@
 // 文档所属的 jotl.config.json: 从文档所在目录向上找最近的一个(到 git 顶层或文件系统根为止); 结果按目录缓存, 配置文件变更后清空.
-import { existsSync, readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
-import type { Diagnostic as JotlDiagnostic, JsonSchemaObject, XUiWidgetModule } from "@jotl/core";
-import { JOTL_CONFIG_FILE, l10n, readJotlConfig } from "@jotl/core";
-import { lspDiagnostic } from "./diagnostics.js";
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import type { Diagnostic as JotlDiagnostic, JsonSchemaObject, XUiWidgetModule } from '@jotl/core';
+import { JOTL_CONFIG_FILE, l10n, readJotlConfig } from '@jotl/core';
+import { lspDiagnostic } from './diagnostics.js';
 
 export interface ConfigHost {
   exists(path: string): boolean;
@@ -23,7 +23,7 @@ export interface ProjectConfig {
   problems: string[];
 }
 
-const NODE_HOST: ConfigHost = { exists: existsSync, readFile: (path) => readFileSync(path, "utf8") };
+const NODE_HOST: ConfigHost = { exists: existsSync, readFile: path => readFileSync(path, 'utf8') };
 
 function findConfigFile(host: ConfigHost, start: string): string | undefined {
   let dir = start;
@@ -31,7 +31,7 @@ function findConfigFile(host: ConfigHost, start: string): string | undefined {
     const candidate = join(dir, JOTL_CONFIG_FILE);
     if (host.exists(candidate)) return candidate;
     const parent = dirname(dir);
-    if (parent === dir || host.exists(join(dir, ".git"))) return undefined;
+    if (parent === dir || host.exists(join(dir, '.git'))) return undefined;
     dir = parent;
   }
 }
@@ -39,12 +39,28 @@ function findConfigFile(host: ConfigHost, start: string): string | undefined {
 function readConfig(host: ConfigHost, file: string): ProjectConfig {
   let value: unknown;
   try {
-    value = JSON.parse(host.readFile(file).replace(/^\uFEFF/, ""));
+    value = JSON.parse(host.readFile(file).replace(/^\uFEFF/, ''));
   } catch (error) {
-    return { file, widgets: {}, modules: {}, widgetTypes: {}, problems: [error instanceof SyntaxError ? l10n("不是合法的 JSON", "not valid JSON") : String(error instanceof Error ? error.message : error)] };
+    return {
+      file,
+      widgets: {},
+      modules: {},
+      widgetTypes: {},
+      problems: [
+        error instanceof SyntaxError
+          ? l10n('不是合法的 JSON', 'not valid JSON')
+          : String(error instanceof Error ? error.message : error),
+      ],
+    };
   }
   const { config, issues } = readJotlConfig(value);
-  return { file, widgets: config.widgets, modules: config.modules, widgetTypes: config.widgetTypes ?? {}, problems: issues.map((i) => (i.pointer === "" ? i.message : `${i.pointer}: ${i.message}`)) };
+  return {
+    file,
+    widgets: config.widgets,
+    modules: config.modules,
+    widgetTypes: config.widgetTypes ?? {},
+    problems: issues.map(i => (i.pointer === '' ? i.message : `${i.pointer}: ${i.message}`)),
+  };
 }
 
 export interface ConfigLookup {
@@ -57,7 +73,7 @@ export function createConfigLookup(host: ConfigHost = NODE_HOST): ConfigLookup {
   const byDir = new Map<string, ProjectConfig | undefined>();
   return {
     forDocument(uri) {
-      if (!uri.startsWith("file:")) return undefined;
+      if (!uri.startsWith('file:')) return undefined;
       const dir = dirname(fileURLToPath(uri));
       if (!byDir.has(dir)) {
         const file = findConfigFile(host, dir);
@@ -71,5 +87,5 @@ export function createConfigLookup(host: ConfigHost = NODE_HOST): ConfigLookup {
 
 /** 配置文件的问题报在文档开头. */
 export function configDiagnostics(config: ProjectConfig | undefined): JotlDiagnostic[] {
-  return (config?.problems ?? []).map((reason) => lspDiagnostic("JOTL7002", { file: config!.file, reason }));
+  return (config?.problems ?? []).map(reason => lspDiagnostic('JOTL7002', { file: config!.file, reason }));
 }

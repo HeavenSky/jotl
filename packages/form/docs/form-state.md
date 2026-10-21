@@ -7,31 +7,31 @@ This page shows how to feed data into `JotlForm`, read it back, and decide when 
 ## Read and write values through a ref
 
 ```tsx
-import { useRef } from "react";
-import { JotlForm, type JotlFormHandle, type JotlFormProps } from "@jotl/form";
-import "@jotl/form/style.css";
+import { useRef } from 'react';
+import { JotlForm, type JotlFormHandle, type JotlFormProps } from '@jotl/form';
+import '@jotl/form/style.css';
 
-const schema: JotlFormProps["schema"] = {
-  type: "object",
-  properties: { title: { type: "string", title: "标题", maxLength: 20 } },
-  required: ["title"],
+const schema: JotlFormProps['schema'] = {
+  type: 'object',
+  properties: { title: { type: 'string', title: '标题', maxLength: 20 } },
+  required: ['title'],
 };
 
 export function Page() {
   const form = useRef<JotlFormHandle>(null);
-  return <JotlForm ref={form} schema={schema} defaultValue={{}} onSubmit={(value) => console.log(value)} />;
+  return <JotlForm ref={form} schema={schema} defaultValue={{}} onSubmit={value => console.log(value)} />;
 }
 ```
 
 The `ref` exposes the instance API:
 
-| Method | Effect |
-|---|---|
-| `getValues()` | Returns the current value |
-| `setValues(value)` | Replaces the whole value and notifies `onChange`; does not fill defaults |
-| `validate()` | Validates the whole form and shows all errors; returns the `ValidationResult` |
-| `reset()` | Returns to the initial value (with defaults filled) and clears errors and touched state |
-| `submit()` | Validates and calls `onSubmit` when valid; returns the `ValidationResult` |
+| Method             | Effect                                                                                  |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| `getValues()`      | Returns the current value                                                               |
+| `setValues(value)` | Replaces the whole value and notifies `onChange`; does not fill defaults                |
+| `validate()`       | Validates the whole form and shows all errors; returns the `ValidationResult`           |
+| `reset()`          | Returns to the initial value (with defaults filled) and clears errors and touched state |
+| `submit()`         | Validates and calls `onSubmit` when valid; returns the `ValidationResult`               |
 
 ## Choose controlled or uncontrolled
 

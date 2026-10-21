@@ -8,8 +8,8 @@ export {
   type JsonSchemaObject,
   type JsonSchemaType,
   type JsonValue,
-} from "./json-schema.js";
-export type { SourceMap, SourcePosition, SourceRange, SourceSpan } from "./source.js";
+} from './json-schema.js';
+export type { SourceMap, SourcePosition, SourceRange, SourceSpan } from './source.js';
 export {
   defineDiagnostics,
   fail,
@@ -26,9 +26,9 @@ export {
   type DiagnosticTable,
   type Result,
   type Severity,
-} from "./diagnostic.js";
-export { SCHEMA_DIAGNOSTICS, schemaDiagnostic } from "./diagnostics.js";
-export { DEFAULT_LOCALE, getLocale, l10n, resolveLocale, setLocale, type Locale } from "./locale.js";
+} from './diagnostic.js';
+export { SCHEMA_DIAGNOSTICS, schemaDiagnostic } from './diagnostics.js';
+export { DEFAULT_LOCALE, getLocale, l10n, resolveLocale, setLocale, type Locale } from './locale.js';
 export {
   POINTER_WILDCARD,
   appendPointer,
@@ -47,7 +47,7 @@ export {
   unescapePointerToken,
   type JsonPointer,
   type PointerLookup,
-} from "./json-pointer.js";
+} from './json-pointer.js';
 export {
   DEFAULT_GRID_COLUMNS,
   DEFAULT_SCENE,
@@ -60,8 +60,8 @@ export {
   type XUiLayout,
   type XUiVariant,
   type XUiWidgetModule,
-} from "./x-ui.js";
-export { xUiMetaSchema } from "./x-ui-meta-schema.js";
+} from './x-ui.js';
+export { xUiMetaSchema } from './x-ui-meta-schema.js';
 export {
   DEFAULT_DEFAULTS_OPTIONS,
   type DataApi,
@@ -72,7 +72,7 @@ export {
   type Mock,
   type MockOptions,
   type Validate,
-} from "./data-api.js";
+} from './data-api.js';
 export {
   DEFAULT_VALUE_FORMATS,
   TIMESTAMP_VALUE_FORMATS,
@@ -84,4 +84,4 @@ export {
   matchesValueFormatText,
   valueFormatComponent,
   type TemporalComponent,
-} from "./value-format.js";
+} from './value-format.js';

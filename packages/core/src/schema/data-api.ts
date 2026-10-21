@@ -1,20 +1,20 @@
 // 数据能力接口(CT6)的类型; 实现在 @jotl/data.
-import type { Result } from "./diagnostic.js";
-import type { JsonPointer } from "./json-pointer.js";
-import type { JsonSchema } from "./json-schema.js";
-import type { Locale } from "./locale.js";
+import type { Result } from './diagnostic.js';
+import type { JsonPointer } from './json-pointer.js';
+import type { JsonSchema } from './json-schema.js';
+import type { Locale } from './locale.js';
 
 export interface DefaultsOptions {
-  strategy: "explicit" | "required" | "all";
-  arrayItems: "minItems" | "none";
-  oneOf: "first" | "firstWithDefault";
+  strategy: 'explicit' | 'required' | 'all';
+  arrayItems: 'minItems' | 'none';
+  oneOf: 'first' | 'firstWithDefault';
   maxDepth: number;
 }
 
 export const DEFAULT_DEFAULTS_OPTIONS: Readonly<DefaultsOptions> = {
-  strategy: "explicit",
-  arrayItems: "minItems",
-  oneOf: "firstWithDefault",
+  strategy: 'explicit',
+  arrayItems: 'minItems',
+  oneOf: 'firstWithDefault',
   maxDepth: 3,
 };
 
@@ -29,14 +29,14 @@ export type GetDefaults = (schema: JsonSchema, opts?: Partial<DefaultsOptions> &
 export type FillDefaults = (
   schema: JsonSchema,
   data: unknown,
-  opts?: Partial<DefaultsOptions> & LocaleOption,
+  opts?: Partial<DefaultsOptions> & LocaleOption
 ) => Result<{ data: unknown; filled: JsonPointer[] }>;
 /** 错误转为 Diagnostic, location.kind = "pointer". */
 export type Validate = (schema: JsonSchema, data: unknown, opts?: LocaleOption) => Result<{ valid: boolean }>;
 export type Migrate = (
   schema: JsonSchema,
   data: unknown,
-  opts?: LocaleOption,
+  opts?: LocaleOption
 ) => Result<{ data: unknown; changed: JsonPointer[] }>;
 export type Mock = (schema: JsonSchema, opts?: MockOptions & LocaleOption) => Result<unknown>;
 
