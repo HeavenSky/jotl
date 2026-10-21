@@ -174,5 +174,8 @@ jobs:
       - run: npm i -g npm@11.21.1
       # 只发布 build 产出的 tarball, 不安装依赖也不执行任何脚本
       # 必须带 ./: 写成 pack/x.tgz 会被 npm 当成 GitHub 简写 <用户>/<仓库> 去 git 拉取
+      # OIDC 换取 npm token 失败时 npm 只在 verbose 级别记录原因, 随后匿名上传得到 404; 开 verbose 以便排查
       - name: Publish
+        env:
+          NPM_CONFIG_LOGLEVEL: verbose
         run: npm publish ./pack/*.tgz --provenance --access public --tag "${{ needs.build.outputs.dist_tag }}"
