@@ -191,25 +191,32 @@ function compilePattern(pattern: string): RegExp | undefined {
   }
 }
 
-/** 字母的大小写两种写法(先小写); 无大小写时为 undefined, 大小写不能一一对应(如 `ß` `ς`)时为 null. */
-function caseVariants(char: string): [string, string] | undefined | null {
-  const lower = char.toLowerCase();
-  const upper = char.toUpperCase();
-  if (lower === upper) return undefined;
-  if ([...lower].length !== 1 || [...upper].length !== 1 || upper.toLowerCase() !== lower || lower.toUpperCase() !== upper) return null;
-  return char === lower || char === upper ? [lower, upper] : null;
+/**
+ * 大小写写法不能全由 `toLowerCase` / `toUpperCase` 推出的字母组(如 `k` `K` 与开尔文 `K`, `σ` `ς` `Σ`).
+ * 只作候选, 是否互相匹配由 RegExp 按 `i` / `iu` 判定; 测试里分别穷举两种标志校验.
+ * 开尔文, 埃, 欧姆符号与 NFC 等价的字母对写成转义, 免得编辑时被规范化为同一字符; 表按 Node 内置 Unicode 版本生成.
+ */
+const FOLD_GROUPS = "kK\u212a sſS µμΜ åÅ\u212b ǆǄǅ ǉǇǈ ǌǊǋ ǳǱǲ ͅιιΙ βϐΒ εϵΕ θϑΘϴ κϰΚ πϖΠ ρϱΡ ςσΣ φϕΦ ωΩ\u2126 вᲀВ дᲁД оᲂО сᲃС тᲄᲅТ ъᲆЪ ѣᲇѢ ᲈꙋꙊ ṡẛṠ ßẞ ᾀᾈ ᾁᾉ ᾂᾊ ᾃᾋ ᾄᾌ ᾅᾍ ᾆᾎ ᾇᾏ ᾐᾘ ᾑᾙ ᾒᾚ ᾓᾛ ᾔᾜ ᾕᾝ ᾖᾞ ᾗᾟ ᾠᾨ ᾡᾩ ᾢᾪ ᾣᾫ ᾤᾬ ᾥᾭ ᾦᾮ ᾧᾯ ᾳᾼ ῃῌ ῳῼ \u0390\u1fd3 \u03b0\u1fe3 \ufb05\ufb06".split(" ");
+
+/** `iu` 下 `\w` 额外匹配的字母. */
+const UNICODE_WORD_EXTRA = "\u017f\u212a";
+
+/** 字符的转义写法; 不带 `u` 时按 UTF-16 码元写 `\uXXXX`. */
+function escapeChar(char: string, unicode: boolean): string {
+  if (unicode) return `\\u{${char.codePointAt(0)!.toString(16)}}`;
+  return [...Array(char.length).keys()].map((k) => `\\u${char.charCodeAt(k).toString(16).padStart(4, "0")}`).join("");
 }
 
-/**
- * `u` 标志下按 Unicode simple/common 折叠互相匹配, 但不能由 `toLowerCase` / `toUpperCase` 一一对应出的字母组(如 `k` `K` 与开尔文 `K`).
- * 由 `/x/iu` 穷举 Unicode 得出, 测试里同样穷举校验.
- */
-const UNICODE_FOLDS = "kKK sſS µμΜ åÅÅ ǆǄǅ ǉǇǈ ǌǊǋ ǳǱǲ ͅιιΙ βϐΒ εϵΕ θϑΘϴ κϰΚ πϖΠ ρϱΡ ςσΣ φϕΦ ωΩΩ вᲀВ дᲁД оᲂО сᲃС тᲄᲅТ ъᲆЪ ѣᲇѢ ᲈꙋꙊ ṡẛṠ ßẞ ᾀᾈ ᾁᾉ ᾂᾊ ᾃᾋ ᾄᾌ ᾅᾍ ᾆᾎ ᾇᾏ ᾐᾘ ᾑᾙ ᾒᾚ ᾓᾛ ᾔᾜ ᾕᾝ ᾖᾞ ᾗᾟ ᾠᾨ ᾡᾩ ᾢᾪ ᾣᾫ ᾤᾬ ᾥᾭ ᾦᾮ ᾧᾯ ᾳᾼ ῃῌ ῳῼ".split(" ");
-
-/** 字母在 `i` 标志下互相匹配的全部写法; 含义同 {@link caseVariants}. */
-function foldVariants(char: string, unicode: boolean): string[] | undefined | null {
-  const group = unicode ? UNICODE_FOLDS.find((g) => [...g].includes(char)) : undefined;
-  return group === undefined ? caseVariants(char) : [...group];
+/** 字母在 `i`(`unicode` 时为 `iu`)标志下匹配到的全部写法(先小写后大写); 只匹配自身时为 undefined. */
+function foldVariants(char: string, unicode: boolean): string[] | undefined {
+  const lower = char.toLowerCase();
+  const upper = char.toUpperCase();
+  const candidates = new Set([lower, upper, char, upper.toLowerCase(), lower.toUpperCase()]);
+  const group = FOLD_GROUPS.find((g) => [...g].some((c) => candidates.has(c)));
+  for (const c of group ?? "") candidates.add(c);
+  const re = new RegExp(`^${escapeChar(char, unicode)}$`, unicode ? "iu" : "i");
+  const variants = [...candidates].filter((c) => [...c].length === 1 && re.test(c));
+  return variants.length > 1 ? variants : undefined;
 }
 
 const CODE_ESCAPE = /^(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]+\}|c[A-Za-z])/;
@@ -221,8 +228,8 @@ interface Atom {
 }
 
 /**
- * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写; `unicode` 时按 {@link UNICODE_FOLDS} 补上特殊折叠(`[kKK]`).
- * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 非 ASCII 区间与大小写不能一一对应的字母时返回 undefined.
+ * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写; 按 {@link foldVariants} 补上特殊折叠(`iu` 下 `[kKK]`, `[ςσΣ]`).
+ * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 非 ASCII 区间, `iu` 下的 `\W` `\b` `\B` 时返回 undefined.
  */
 function foldCase(source: string, unicode: boolean): string | undefined {
   const chars = [...source];
@@ -247,9 +254,13 @@ function foldCase(source: string, unicode: boolean): string | undefined {
     return /[A-Za-z0-9]/.test(next) ? { text: `\\${next}` } : { text: `\\${next}`, char: next };
   };
   const foldAtom = (atom: Atom): string | undefined => {
-    if (atom.char === undefined) return atom.text;
+    if (atom.char === undefined) {
+      if (!unicode) return atom.text;
+      // `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`; `\W` `\b` `\B` 无法等价改写.
+      if (atom.text === "\\w") return `[\\w${UNICODE_WORD_EXTRA}]`;
+      return /^\\[WbB]$/.test(atom.text) ? undefined : atom.text;
+    }
     const variants = foldVariants(atom.char, unicode);
-    if (variants === null) return undefined;
     if (variants === undefined) return atom.text;
     return atom.text === atom.char ? `[${variants.join("")}]` : `[${atom.text}${variants.filter((v) => v !== atom.char).join("")}]`;
   };
@@ -274,18 +285,19 @@ function foldCase(source: string, unicode: boolean): string | undefined {
           if (from > to) continue;
           extra += from === to ? swapCase(from) : `${swapCase(from)}-${swapCase(to)}`;
         }
-        // 区间只允许 ASCII, 补上区间内字母的非 ASCII 折叠(`k` → `K`, `s` → `ſ`).
-        if (unicode) {
-          for (const group of UNICODE_FOLDS) {
-            if ([...group].some((g) => g >= start.char! && g <= end.char!)) extra += [...group].filter((g) => g > "\x7f").join("");
-          }
+        // 区间只允许 ASCII, 补上区间内字母的非 ASCII 折叠(`iu` 下 `k` → `K`, `s` → `ſ`).
+        for (let cp = start.char.charCodeAt(0); cp <= end.char.charCodeAt(0); cp++) {
+          for (const v of foldVariants(String.fromCharCode(cp), unicode) ?? []) if (v > "\x7f" && !extra.includes(v)) extra += v;
         }
         continue;
       }
       body += start.text === "-" ? "\\-" : start.text;
-      if (start.char === undefined) continue;
+      if (start.char === undefined) {
+        if (unicode && start.text === "\\w") extra += UNICODE_WORD_EXTRA;
+        else if (unicode && /^\\[WbB]$/.test(start.text)) return undefined;
+        continue;
+      }
       const variants = foldVariants(start.char, unicode);
-      if (variants === null) return undefined;
       if (variants !== undefined) extra += variants.filter((v) => v !== start.char).join("");
     }
     if (i >= chars.length) return undefined;

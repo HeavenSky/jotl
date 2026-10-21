@@ -274,35 +274,43 @@ describe("元数据表", () => {
     }
   });
 
-  it("i 与 u 标志: 补上 Unicode 特殊折叠, 穷举 Unicode 字母与 /x/iu 一致", () => {
-    expect(field(`: String[regExp: "/^k[s]$/iu"]`).x).toMatchObject({ pattern: "^[kK\u212a][s\u017fS]$" });
+  // 两种标志各约 5.6k 个写法, 全量并行运行时超过默认 5 秒.
+  it("i 与 u 标志: 补上特殊折叠, 穷举字母与 /x/i /x/iu 一致", () => {
+    expect(field(`: String[regExp: "/^k[s]$/iu"]`).x).toMatchObject({ pattern: "^[kK\u212a][sS\u017f]$" });
     expect(field(`: String[regExp: "/^k$/i"]`).x).toMatchObject({ pattern: "^[kK]$" });
-    // 遍历 BMP 字母, 每个写法在全部字母拼成的文本上一次扫完, 比对两边匹配到的字母.
+    expect(field(`: String[regExp: "/^σ$/i"]`).x).toMatchObject({ pattern: "^[σΣς]$" });
+    expect(field(`: String[regExp: "/^\\w[^\\w]$/iu"]`).x).toMatchObject({ pattern: "^[\\w\u017f\u212a][^\\w\u017f\u212a]$" });
+    // 遍历 BMP 字母与部分补充平面字母, 每个写法在全部字母拼成的文本上一次扫完, 比对两边匹配到的字母.
+    // 不带 u 时字符类按 UTF-16 码元理解, 补充平面字母只比对非字符类写法.
     const letters: string[] = [];
     for (let cp = 0; cp < 0x10000; cp++) {
       const char = String.fromCharCode(cp);
       if (char.toLowerCase() !== char || char.toUpperCase() !== char) letters.push(char);
     }
+    letters.push("\u{10400}", "\u{10428}", "\u{1e900}", "\u{1e922}");
     const text = letters.join("\n");
     const matched = (re: RegExp) => [...text.matchAll(re)].map((m) => m[0]).join("");
-    const escapeChar = (c: string) => `\\u{${c.codePointAt(0)!.toString(16)}}`;
-    const sources = [...letters.map(escapeChar), ...letters.map((c) => `[${escapeChar(c)}]`), "[a-z]", "[A-Z]", "[j-t]", "[^k\\n]"];
-    let folded = 0;
-    for (const source of sources) {
-      const pattern = (field(`: String[regExp: "/${source}/iu"]`).x as { pattern: string }).pattern;
-      // 无法改写(如 `ı` `İ`)时保持原样, 由 JOTL8119 兜底.
-      if (pattern === source) continue;
-      folded += 1;
-      expect(matched(new RegExp(pattern, "gu")), pattern).toBe(matched(new RegExp(source, "giu")));
+    for (const flags of ["i", "iu"]) {
+      const escapeChar = (c: string) =>
+        flags === "iu" ? `\\u{${c.codePointAt(0)!.toString(16)}}` : [...Array(c.length).keys()].map((k) => `\\u${c.charCodeAt(k).toString(16).padStart(4, "0")}`).join("");
+      const sources = [...letters.map(escapeChar), ...letters.filter((c) => flags === "iu" || c.length === 1).map((c) => `[${escapeChar(c)}]`), "[a-z]", "[A-Z]", "[j-t]", "[^k\\n]", "\\w", "[^\\w\\n]"];
+      for (const source of sources) {
+        const { x, diagnostics } = field(`: String[regExp: "/${source}/${flags}"]`);
+        expect(codes(diagnostics).filter((c) => c === "JOTL8119"), source).toEqual([]);
+        expect(matched(new RegExp((x as { pattern: string }).pattern, "gu")), `${flags} ${source}`).toBe(matched(new RegExp(source, `g${flags}`)));
+      }
     }
-    expect(folded).toBeGreaterThan(sources.length * 0.9);
-  });
+  }, 30_000);
 
   it("i 标志无法安全改写时 pattern 保持原样(JOTL8119); m s u y 报 JOTL8120; 未生效的标志记入 x-fengdie", () => {
-    for (const source of ["\\p{Lu}", "(a)\\1", "ß", "ς"]) {
+    for (const source of ["\\p{Lu}", "(a)\\1", "[à-ç]"]) {
       const { x, diagnostics } = field(`: String[regExp: "/${source}/gi"]`);
       expect(x).toMatchObject({ "x-fengdie": { regExpFlags: "i" } });
       expect(codes(diagnostics)).toEqual(["JOTL8119"]);
+    }
+    for (const source of ["\\W", "\\bk", "[\\W]"]) {
+      const { diagnostics } = field(`: String[regExp: "/${source}/iu"]`);
+      expect(codes(diagnostics)).toContain("JOTL8119");
     }
     const multi = field(`: String[regExp: "/^a$/msi"]`);
     expect(multi.x).toMatchObject({ pattern: "^[aA]$", "x-fengdie": { regExpFlags: "ms" } });
