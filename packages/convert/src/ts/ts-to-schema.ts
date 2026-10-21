@@ -260,7 +260,8 @@ class Converter {
       } else if (rest !== undefined || ts.isOptionalTypeNode(element) || inner?.questionToken) {
         this.report("JOTL2106", element, { kind: this.snippet(element) });
       } else {
-        prefixItems.push(this.convertType(inner ? inner.type : element));
+        // 具名成员的名字还原为该位置的 title; 剩余元素的名字不对应关键字, 不读回.
+        prefixItems.push(inner ? { title: inner.name.text, ...this.convertType(inner.type) } : this.convertType(element));
       }
     });
     return { type: "array", prefixItems, items };

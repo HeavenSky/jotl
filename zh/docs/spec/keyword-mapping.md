@@ -63,7 +63,7 @@ TS 标签按来源分三类，下文「TS / TSDoc」列用上标区分：
 | `additionalProperties`（schema） | 额外键的取值 | `map` | ᵀ 索引签名 `[key: string]: T` | |
 | `additionalProperties: false` | 禁止额外键 | `closed: true` | 对象上为 ᴾ `@closed`，数组元素与可空对象的写在所在属性上，其余为 — | 只能写在对象类型本身，不能写在引用处 |
 | `items` | 数组元素 | `array_item` 或体；元组没有 `*` 时为 `false` | ᵀ `T[]` | 元素自身的元数据写在 `item_meta` |
-| `prefixItems` | 按位置的元素 | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ 元组 `[A, B]` | |
+| `prefixItems` | 按位置的元素 | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ 元组 `[A, B]`；各位置的 `title` 都是合法且非保留字的标识符时写成具名元组 `[a: A, b: B]`，剩余元素写 `...rest: T[]` | 否则位置上的 `title` 报 `JOTL2002` 丢弃 |
 | `const` | 固定值 | 单成员枚举 `enum{ a }`；可区分联合的区分字段 | ᵀ 字面量类型 | 外层带 `type`（规范化规则 4） |
 | `enum` | 取值集合 | 无标签的 `enum{ a b }` | ᵀ 字面量联合 | 多选（`enum[multiple: true]`）自动加 `uniqueItems: true` |
 | `oneOf: [{ const, title }]` | 带标签的枚举 | `enum{ a(甲) b(乙) }`，成员可带 `description` | ᵀ 字面量联合 + ᴾ `@enumTitles {"a":"甲"}`，成员说明为 ᴾ `@enumDescriptions` | 至少一个成员有标签或说明时使用这种形式 |

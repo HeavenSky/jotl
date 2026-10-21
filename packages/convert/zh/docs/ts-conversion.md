@@ -99,7 +99,7 @@ schema 根上带 `"x-ui": { version: 1 }`，因为 `@jotl/core` 的编译器会�
 
 `tsToSchema` 只按语法树转换，不做类型检查。根取注释带 `@root` 的声明，没有时取默认导出。
 
-- 支持：`interface`、`type`、`export default`（含 `export { X as default }`）、`Array<T>`、`Record<string, T>`、元组与 `readonly`。
+- 支持：`interface`、`type`、`export default`（含 `export { X as default }`）、`Array<T>`、`Record<string, T>`、元组与 `readonly`。具名元组的成员名还原为该位置的 `title`。
 - 联合：可区分联合输出为 `oneOf`，含 `null` 的字面量联合输出为 `anyOf: [枚举, { type: "null" }]`，`(A | B) | null` 输出为 `anyOf: [A 与 B 的联合, { type: "null" }]`，其余联合输出为 `anyOf`。
 - 交叉类型只接受引用，与至多一个其他类型及 typia 标签组合（见 [标签协议](./tag-protocol.md) 与 [输出 typia 类型标签](#输出-typia-类型标签)）。多个对象字面量（如 `{ a: 1 } & { b: 2 }`）只含属性签名且属性名互不相同时，合并为一个开放对象（合并 `properties` 与 `required`）。其余交叉（属性同名、含索引签名或方法等）报 `JOTL2106`。
 - 不支持的写法报错误级诊断：泛型、条件类型、映射类型、函数与方法、接口继承、`enum` 等其他声明、计算属性名。
@@ -126,5 +126,5 @@ schema 根上带 `"x-ui": { version: 1 }`，因为 `@jotl/core` 的编译器会�
 
 ## 已知限制
 
-- **元组各位置的 title 会丢失。** TS 元组元素没有放注释的位置，`schemaToTs` 丢弃 `prefixItems` 各位置的 `title`，报 `JOTL2002`。`.d.ts` 的读者需要这些含义时，写进数组本身的 `description`。
+- **元组各位置的 title 只能写成成员名。** TS 元组元素没有放注释的位置，`schemaToTs` 把 `prefixItems` 各位置的 `title` 写成具名元组成员（`[开始: string, 结束: string]`）。TS 要求元组成员全部具名或全不具名，所以只在每个位置都有 `title`、且都是标识符而不是保留字时可行；否则这些 `title` 丢弃并报 `JOTL2002`（见 [标签协议](./tag-protocol.md)）。`.d.ts` 的读者需要这些含义时，写进数组本身的 `description`。
 - **`tsToSchema` 未在浏览器中测试。** 它用自定义 compiler host 调用 `typescript@6.0.3` 的经典 API，只在 Node.js 下有测试覆盖。请在 Node.js 中运行；要在浏览器中使用，先在目标浏览器里自测。

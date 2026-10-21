@@ -504,4 +504,47 @@ describe("编译器固定形态与往返", () => {
     expect(text).toContain("/**\n * @closed\n * @decimalRange `{\"minimum\":\"0\"}`\n */\nexport type L = {");
     expect(typecheck({ "t.d.ts": text })).toEqual([]);
   });
+  it("元组各位置的 title 都可作成员名时写成具名元组, 剩余元素名为 rest, 可编译且往返还原", () => {
+    const schema = wrap({
+      T: {
+        type: "object",
+        properties: {
+          range: { title: "区间", type: "array", minItems: 2, prefixItems: [{ title: "开始", type: "string" }, { title: "结束", type: "string" }], items: false },
+          record: { type: "array", prefixItems: [{ title: "名称", type: "string" }, { title: "$code_2", type: "integer", const: 1 }], items: { type: "number" } },
+          open: { type: "array", prefixItems: [{ title: "type", $ref: "#/$defs/U" }], items: {} },
+        },
+        required: ["range"],
+      },
+      U: { type: "string" },
+    });
+    const result = schemaToTs(schema);
+    expect(result.diagnostics).toEqual([]);
+    const text = roundTrip(schema);
+    expect(text).toContain("  range: [开始: string, 结束: string];");
+    expect(text).toContain("  record?: [名称: string, $code_2: 1, ...rest: number[]];");
+    expect(text).toContain("  open?: [type: U, ...rest: unknown[]];");
+    expect(typecheck({ "t.d.ts": text })).toEqual([]);
+  });
+
+  it("只有部分位置有 title, 或有 title 不是合法标识符或是保留字时, 不写成员名, 这些 title 告警丢弃", () => {
+    const pair = (a: unknown, b: unknown) => ({ type: "array", prefixItems: [a, b], items: false });
+    const schema = wrap({
+      T: {
+        type: "object",
+        properties: {
+          partial: pair({ title: "开始", type: "string" }, { type: "string" }),
+          spaced: pair({ title: "开始", type: "string" }, { title: "结束 时间", type: "string" }),
+          reserved: pair({ title: "default", type: "string" }, { title: "end", type: "string" }),
+          digit: pair({ title: "1st", type: "string" }, { title: "end", type: "string" }),
+        },
+      },
+    });
+    const result = schemaToTs(schema);
+    const at = (key: string, i: number) => ["JOTL2002", { kind: "pointer", pointer: `/$defs/T/properties/${key}/prefixItems/${i}` }];
+    expect(result.diagnostics.map((d) => [d.code, d.location])).toEqual([
+      at("partial", 0), at("spaced", 0), at("spaced", 1), at("reserved", 0), at("reserved", 1), at("digit", 0), at("digit", 1),
+    ]);
+    expect(result.diagnostics.every((d) => d.message.includes("title"))).toBe(true);
+    for (const key of ["partial", "spaced", "reserved", "digit"]) expect(result.value).toContain(`  ${key}?: [string, string];`);
+  });
 });

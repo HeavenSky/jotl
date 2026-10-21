@@ -24,6 +24,7 @@
 | 枚举成员的 `description` | `@enumDescriptions` JSON 对象，键同 `@enumTitles` |
 | 每项只含 `$ref` 的 `allOf` | 交叉类型 `X & Y & 其余部分`，如可区分联合分支 `X & { kind: "x" }`；没有其余部分且只有一个引用时写 `X & unknown` |
 | 可区分联合分支的 `title` | `@branchTitles` JSON 数组，按分支顺序，无 `title` 的分支为 `null`；只在联合节点可写注释时输出 |
+| 元组各位置（`prefixItems`）的 `title` | 具名元组成员，如 `[开始: string, 结束: string]`，剩余元素写 `...rest: T[]`；只在每个位置都有 `title`、且都是标识符（可含中文等 Unicode 字母）而不是保留字时这样写，因为 TS 要求元组成员全部具名或全不具名。读取时成员名还原为该位置的 `title`；剩余元素的名字不读回 |
 | 同时有 `properties` 与 `additionalProperties` | 索引签名写 `(额外类型) \| 属性类型...`，可选属性另加 `undefined`；读取时只取括号中的额外类型 |
 | `x-valueFormat`（日期组件的存储格式） | `@valueFormat 格式`，取值为文本 |
 | `type: "object"` 的对象上的 `additionalProperties: false` | `@closed`（修饰标签，无取值）；数组（逐层）元素与可空包装 `anyOf: [对象, { type: "null" }]`（如可空 `money`）中的对象，写在所在的属性或类型上 |
@@ -46,6 +47,7 @@
 - 元素级约束与注解（如数组元素上的 `maxLength`）没有可挂注释的位置，数组元素的 `x-ui` 除外。非 typia 模式下丢弃；typia 模式可以表达。
 - Jotl 扩展关键字 `x-decimals`、`money` / `bigint` 值对象以外的 `x-decimalRange`，以及 `contentSchema`、`propertyNames` 与含非引用成员的 `allOf`，没有对应写法。
 - 对象本身与上表所列的所在位置都不能写注释时（如联合分支、`map` 值、元组各位置、可空包装中的数组），`additionalProperties: false` 与 `money` / `bigint` 值对象的 `x-decimalRange` 丢弃并报 `JOTL2002`；没有 `type: "object"` 的对象也是如此。
+- 元组不能写成具名元组时（有位置没有 `title`，或有 `title` 不是标识符或是保留字，如 `default`、`结束 时间`），各位置的 `title` 丢弃并报 `JOTL2002`，有 `title` 的位置各报一条。
 - 不能写注释的位置（如数组元素、联合分支）上，可区分联合分支的 `title` 丢弃且不报，因为它由编译器按分支标签生成。
 
 ## 写根级标签

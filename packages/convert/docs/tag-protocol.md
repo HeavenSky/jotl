@@ -24,6 +24,7 @@ This page is the full mapping between JSON Schema keywords and their TS notation
 | `description` of enum members | `@enumDescriptions` JSON object, keys as in `@enumTitles` |
 | `allOf` whose items each contain only `$ref` | Intersection type `X & Y & rest`, e.g. a discriminated union branch `X & { kind: "x" }`; with no rest and only one reference, `X & unknown` |
 | `title` of discriminated union branches | `@branchTitles` JSON array in branch order, `null` for branches without `title`; output only when the union node can carry a comment |
+| `title` of tuple positions (`prefixItems`) | Named tuple members, e.g. `[开始: string, 结束: string]`, with rest elements written as `...rest: T[]`; only when every position has a `title` that is an identifier (Unicode letters allowed) and not a reserved word, since TS requires a tuple to name all of its members or none. Member names read back as the `title` of their position; the name of the rest element is not read back |
 | Both `properties` and `additionalProperties` | Index signature written as `(extra type) \| property types...`, with `undefined` added for optional properties; only the extra type in parentheses is read back |
 | `x-valueFormat` (storage format of date components) | `@valueFormat format`, value is text |
 | `additionalProperties: false` on an object with `type: "object"` | `@closed` (modifier tag, no value); for array elements (at any level) and the object in a nullable wrapper `anyOf: [object, { type: "null" }]` (such as a nullable `money`), it goes on the property or type that holds them |
@@ -46,6 +47,7 @@ Keywords without a place in the table are dropped with a `JOTL2002` warning; the
 - Element-level constraints and annotations (such as `maxLength` on array elements) have no place to attach a comment, except `x-ui` of array elements. They are dropped in non-typia mode; typia mode can express them.
 - The Jotl extension keyword `x-decimals`, `x-decimalRange` outside `money` / `bigint` value objects, as well as `contentSchema`, `propertyNames` and `allOf` with non-reference members, have no notation.
 - `additionalProperties: false` and the `x-decimalRange` of `money` / `bigint` value objects are dropped with `JOTL2002` where neither the object nor a holder listed above can carry a comment, such as union branches, `map` values, tuple positions and arrays inside a nullable wrapper, and also on objects without `type: "object"`.
+- `title` of tuple positions is dropped with `JOTL2002`, one per position that has one, when the tuple cannot be named: some position has no `title`, or some `title` is not an identifier or is a reserved word (such as `default` or `结束 时间`).
 - `title` of discriminated union branches is dropped without a report in places that cannot carry comments (such as array elements and union branches), since the compiler generates it from branch labels.
 
 ## Write root-level tags

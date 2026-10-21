@@ -54,6 +54,6 @@ Each new sample takes a number from its package's range: `1xx` core (syntax), `2
 
 When a sample contains something `@jotl/convert` cannot express, which it drops with `JOTL2002`, the sample skips `types.d.ts` through `meta.skip`:
 
-- Element-level constraints or annotations: constraints, `title` and `x-ui` on array elements, `map` values, union branches and tuple positions (except `x-ui` on array elements): `007` `109` `110`.
+- Element-level constraints or annotations: constraints, `title` and `x-ui` on array elements, `map` values, union branches and tuple positions (except `x-ui` on array elements, and tuple-position `title`s that can be written as a named tuple): `007` `109` `110`.
 - `additionalProperties: false` (`closed`) on union branches; elsewhere it becomes `@closed`, lifted to the property for array elements and nullable objects: `109`.
 - The Jotl extension keyword `x-decimals` and `contentSchema` `propertyNames`: `108` `110`.

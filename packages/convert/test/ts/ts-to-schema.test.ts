@@ -181,10 +181,18 @@ export interface B { kind: "b" }`;
         "a-b": { type: "array", items: { type: "string" }, readOnly: true },
         m: { type: "object", additionalProperties: { type: "number" } },
         t: { type: "array", prefixItems: [{ type: "string" }, { type: "integer", const: -1 }], items: false },
-        r: { type: "array", prefixItems: [{ type: "number" }], items: { type: "boolean" } },
+        r: { type: "array", prefixItems: [{ title: "x", type: "number" }], items: { type: "boolean" } },
         u: {},
       },
       required: ["a-b", "m", "t", "r", "u"],
+    });
+  });
+
+  it("具名元组成员名读回为该位置的 title, 剩余元素的名字不读回", () => {
+    expect(defOf("export type T = readonly [开始: string, 名称: { a: number }, ...extra: number[]];")).toEqual({
+      type: "array",
+      prefixItems: [{ title: "开始", type: "string" }, { title: "名称", type: "object", properties: { a: { type: "number" } }, required: ["a"] }],
+      items: { type: "number" },
     });
   });
 

@@ -63,7 +63,7 @@ TS tags fall into three groups by origin, marked with superscripts in the "TS / 
 | `additionalProperties` (schema) | Value of extra keys | `map` | ᵀ Index signature `[key: string]: T` | |
 | `additionalProperties: false` | No extra keys allowed | `closed: true` | ᴾ `@closed` on the object; for array elements and nullable objects, on the holding property; otherwise — | Only on the object type itself, not at a reference site |
 | `items` | Array elements | `array_item` or a body; `false` for a tuple without `*` | ᵀ `T[]` | Metadata of the element itself goes in `item_meta` |
-| `prefixItems` | Positional elements | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ Tuple `[A, B]` | |
+| `prefixItems` | Positional elements | `array[array_item: 'tuple'] { 0: A  1: B }` | ᵀ Tuple `[A, B]`; named tuple `[a: A, b: B]` when every position has a `title` that is a valid, non-reserved identifier, with rest elements as `...rest: T[]` | Otherwise position `title`s are dropped with `JOTL2002` |
 | `const` | Fixed value | Single-member enum `enum{ a }`; the discriminator of a discriminated union | ᵀ Literal type | The outer schema carries `type` (normalization rule 4) |
 | `enum` | Set of values | Unlabeled `enum{ a b }` | ᵀ Union of literals | Multi-selects (`enum[multiple: true]`) get `uniqueItems: true` automatically |
 | `oneOf: [{ const, title }]` | Labeled enum | `enum{ a(Alpha) b(Beta) }`; members may carry `description` | ᵀ Union of literals + ᴾ `@enumTitles {"a":"Alpha"}`, with member descriptions in ᴾ `@enumDescriptions` | Used when at least one member has a label or description |

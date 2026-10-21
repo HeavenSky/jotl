@@ -99,7 +99,7 @@ Keywords without a TS notation are dropped with `JOTL2002`; the [tag protocol](.
 
 `tsToSchema` converts by syntax tree only, without type checking. The root is the declaration whose comment has `@root`, or the default export when there is none.
 
-- Supported: `interface`, `type`, `export default` (including `export { X as default }`), `Array<T>`, `Record<string, T>`, tuples and `readonly`.
+- Supported: `interface`, `type`, `export default` (including `export { X as default }`), `Array<T>`, `Record<string, T>`, tuples and `readonly`. The names of named tuple members become the `title` of their positions.
 - Unions: discriminated unions become `oneOf`, literal unions containing `null` become `anyOf: [enum, { type: "null" }]`, `(A | B) | null` becomes `anyOf: [the union of A and B, { type: "null" }]`, and other unions become `anyOf`.
 - Intersections only accept references, combined with at most one other type and typia tags (see the [tag protocol](./tag-protocol.md) and [Write typia type tags](#write-typia-type-tags)). Several object literals (e.g. `{ a: 1 } & { b: 2 }`) containing only property signatures with pairwise distinct names merge into one open object (merging `properties` and `required`). Other intersections (clashing property names, index signatures, methods and so on) report `JOTL2106`.
 - Unsupported constructs report error-level diagnostics: generics, conditional types, mapped types, functions and methods, interface inheritance, other declarations such as `enum`, and computed property names.
@@ -126,5 +126,5 @@ The output type-checks with zero errors against the type definitions of `typia@1
 
 ## Known limitations
 
-- **Titles of tuple positions are dropped.** TS tuple elements have no place for a comment, so `schemaToTs` drops the `title` of each `prefixItems` position and reports `JOTL2002`. Put the meaning in the `description` of the array itself if readers of the `.d.ts` need it.
+- **Titles of tuple positions survive only as member names.** TS tuple elements have no place for a comment, so `schemaToTs` writes the `title` of each `prefixItems` position as a named tuple member (`[开始: string, 结束: string]`). TS requires a tuple to name all of its members or none, so this works only when every position has a `title` that is an identifier and not a reserved word; otherwise the titles are dropped with `JOTL2002` (see the [tag protocol](./tag-protocol.md)). Put the meaning in the `description` of the array itself if readers of the `.d.ts` need it.
 - **`tsToSchema` is untested in browsers.** It runs the classic API of `typescript@6.0.3` with a custom compiler host, which is covered only under Node.js. Run it in Node.js, or test it in your target browser before relying on it.
