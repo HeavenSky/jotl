@@ -168,6 +168,10 @@ describe("元数据", () => {
     expect(fieldCodes(": date[default: '2021-02-29']")).toEqual(["JOTL1008"]);
     expect(fieldCodes(": date[default: '2020-02-29']")).toEqual([]);
     expect(fieldCodes(": datetime[default: '2026-10-13 09:30']")).toEqual(["JOTL1008"]);
+    expect(fieldCodes(": datetime[default: '2026-01-01T09:00:00']")).toEqual(["JOTL1008"]);
+    expect(fieldCodes(": datetime[default: '2026-01-01 09:00:00+08']")).toEqual([]);
+    expect(fieldCodes(": string[format: 'time', default: '09:00:00']")).toEqual(["JOTL1008"]);
+    expect(fieldCodes(": string[format: 'time', default: '09:00:00.5Z']")).toEqual([]);
     expect(fieldCodes(": datetime[default: '2026-10-13T09:30:15+08:00']")).toEqual([]);
     expect(fieldCodes(": string[format: 'time', default: '25:00:00']")).toEqual(["JOTL1008"]);
     expect(fieldCodes(": string[format: 'uuid', default: 'abc']")).toEqual(["JOTL1008"]);

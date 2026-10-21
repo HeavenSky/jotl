@@ -59,7 +59,7 @@ function isMultipleOf(value: number, divisor: number): boolean {
 }
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
-const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d:([0-5]\d|60)(\.\d+)?(z|[+-]([01]\d|2[0-3])(:?[0-5]\d)?)?$/i;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d:([0-5]\d|60)(\.\d+)?(z|[+-]([01]\d|2[0-3])(:?[0-5]\d)?)$/i;
 const DAYS = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 function isDate(text: string): boolean {
