@@ -1,5 +1,6 @@
 // 测试共用工具: 按 `tsdoc.json` 预设解析注释, 用 TS 编译器对内存中的产物做类型检查.
-import { dirname, join } from "node:path";
+import { lstatSync, mkdirSync, symlinkSync } from "node:fs";
+import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { TSDocConfiguration, TSDocParser } from "@microsoft/tsdoc";
 import { TSDocConfigFile } from "@microsoft/tsdoc-config";
@@ -9,6 +10,21 @@ import type { Fixture } from "../../../../test-utils/fixtures.js";
 
 export const PACKAGE_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 export const PRESET_PATH = join(PACKAGE_DIR, "tsdoc.json");
+/** 模拟消费方项目的目录, 其 tsdoc.json 以 `extends: ["@jotl/convert/tsdoc.json"]` 继承预设. */
+export const CONSUMER_DIR = join(PACKAGE_DIR, "test", "ts", "tsdoc-consumer");
+
+/** 消费方目录下的 node_modules/@jotl/convert 链接到本包, 模拟安装后的解析路径; node_modules 不入库, 缺失时创建. */
+export function ensureConsumerLink(): void {
+  const link = join(CONSUMER_DIR, "node_modules", "@jotl", "convert");
+  try {
+    lstatSync(link);
+    return;
+  } catch {
+    // 不存在时创建.
+  }
+  mkdirSync(dirname(link), { recursive: true });
+  symlinkSync(relative(dirname(link), PACKAGE_DIR), link, "dir");
+}
 
 /** 加载 tsdoc.json(含 extends 链)并配置解析器; 配置文件有错误时一并返回. */
 export function loadTsdocParser(configPath: string): { parser: TSDocParser; errors: string | undefined } {

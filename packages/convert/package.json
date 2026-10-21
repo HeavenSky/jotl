@@ -39,8 +39,12 @@
   "devDependencies": {
     "@microsoft/tsdoc": "^0.17.1",
     "@microsoft/tsdoc-config": "^0.18.3",
+    "@typescript-eslint/parser": "^8.72.0",
     "ajv": "^8.20.0",
     "ajv-formats": "^3.0.1",
+    "eslint": "^10.13.0",
+    "eslint-plugin-jsdoc": "^65.4.0",
+    "eslint-plugin-tsdoc": "^0.5.4",
     "typia": "^15.1.0"
   }
 }

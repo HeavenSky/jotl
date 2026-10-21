@@ -1,10 +1,10 @@
 // lint 预设: tsdoc.json 的标签定义与 extends 链路, eslint 的 definedTags, 以及包导出.
-import { lstatSync, mkdirSync, readFileSync, symlinkSync } from "node:fs";
-import { dirname, join, relative } from "node:path";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { definedTags } from "../../src/ts/eslint.js";
 import { CUSTOM_TAGS } from "../../src/ts/index.js";
-import { PACKAGE_DIR, PRESET_PATH, loadTsdocParser, tsdocMessages } from "./support.js";
+import { CONSUMER_DIR, PACKAGE_DIR, PRESET_PATH, ensureConsumerLink, loadTsdocParser, tsdocMessages } from "./support.js";
 
 interface TsdocJson {
   extends?: string[];
@@ -12,21 +12,6 @@ interface TsdocJson {
 }
 
 const preset = JSON.parse(readFileSync(PRESET_PATH, "utf8")) as TsdocJson;
-const CONSUMER_DIR = join(PACKAGE_DIR, "test", "ts", "tsdoc-consumer");
-
-/** 消费方目录下的 node_modules/@jotl/convert 链接到本包, 模拟安装后的解析路径; node_modules 不入库, 缺失时创建. */
-function ensureConsumerLink(): void {
-  const link = join(CONSUMER_DIR, "node_modules", "@jotl", "convert");
-  try {
-    lstatSync(link);
-    return;
-  } catch {
-    // 不存在时创建.
-  }
-  mkdirSync(dirname(link), { recursive: true });
-  symlinkSync(relative(dirname(link), PACKAGE_DIR), link, "dir");
-}
-
 const SAMPLE = `/**
  * 描述
  * @title 标题
