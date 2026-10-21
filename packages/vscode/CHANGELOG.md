@@ -6,8 +6,9 @@
 - A `datetime` or `format: 'time'` default without a time zone now reports `JOTL1008`, matching form validation, which already rejected it.
 - `default` values are now also checked against `value_format` strings using `YY` `M` `D` `H` `h` `hh` `m` `s`; `h` and `hh` are read together with `A` / `a`.
 - Completion inside `item_meta` works when it comes before `array_item`, `map_item` and the like.
-- The preview form reports an empty widget name in `x-ui` widgets, a read-only number field keeps its thousands separators when focused, and load failures of widget modules are reported in the preview language.
-- The TypeScript declarations in the preview keep nullable unions as `(A | B) | null` and mark every closed object with `@closed` (`money` and `bigint` ranges with `@decimalRange`), on the holding property for array elements and nullable objects, so converting back yields the same schema.
+- A field using a widget from `jotl.config.json` whose declared underlying type does not accept the field's type reports the warning `JOTL1052`.
+- The preview form reports an empty widget name in `x-ui` widgets, a read-only number field keeps its thousands separators when focused, load failures of widget modules are reported in the preview language, and tuple rest elements can be moved and duplicated.
+- The TypeScript declarations in the preview keep nullable unions as `(A | B) | null` and mark every closed object with `@closed` (`money` and `bigint` ranges with `@decimalRange`), on the holding property for array elements and nullable objects, and write tuples whose positions all have identifier titles as named tuples, so converting back yields the same schema.
 
 ## v0.0.1 2026-10-16 Initial release
 
