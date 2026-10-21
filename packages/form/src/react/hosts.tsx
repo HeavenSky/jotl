@@ -188,7 +188,7 @@ export function ObjectHost({ component: C, target, base }: HostProps) {
   return <C {...base} {...layout} {...(hasAdditional ? { additional } : {})} />;
 }
 
-/** 元组: prefixItems 各位置(模板树中的子节点, 不含剩余元素模板)的实际路径; items 允许剩余元素时另给出剩余元素的增删. */
+/** 元组: prefixItems 各位置(模板树中的子节点, 不含剩余元素模板)的实际路径; items 允许剩余元素时另给出剩余元素的增删, 排序与复制, 排序不越过各位置. */
 export function TupleHost({ component: C, target, base, errors }: HostProps) {
   const ctx = useFormContext();
   const items = useMemo(
@@ -199,7 +199,7 @@ export function TupleHost({ component: C, target, base, errors }: HostProps) {
   const hasRest = schema.items === true || isPlainObject(schema.items);
   const prefixLength = Array.isArray(schema.prefixItems) ? schema.prefixItems.length : 0;
   const array = useArrayBinding(ctx, target, hasRest);
-  const { add, remove } = array;
+  const { add, remove, move, duplicate } = array;
   const filled = array.items.length >= prefixLength;
   const canAdd = array.canAdd && filled;
   const canRemove = array.canRemove && array.items.length > prefixLength;
@@ -220,9 +220,15 @@ export function TupleHost({ component: C, target, base, errors }: HostProps) {
             remove: (index: number) => {
               if (canRemove && index >= prefixLength) remove(index);
             },
+            move: (from: number, to: number) => {
+              if (from >= prefixLength && to >= prefixLength) move(from, to);
+            },
+            duplicate: (index: number) => {
+              if (canAdd && index >= prefixLength) duplicate(index);
+            },
           }
         : undefined,
-    [add, canAdd, canRemove, hasRest, prefixLength, remove, restItems],
+    [add, canAdd, canRemove, duplicate, hasRest, move, prefixLength, remove, restItems],
   );
   return <C {...base} items={items} {...(rest === undefined ? {} : { rest })} errors={errors} />;
 }

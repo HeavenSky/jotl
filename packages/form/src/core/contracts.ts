@@ -217,7 +217,7 @@ export interface MapProps<N> extends BaseProps<N>, EntryEditing {
 
 /** 元组中 prefixItems 之后的剩余元素; index 均为数据中的实际下标(从 prefixItems 的长度起), 元素用 renderChild(String(index)) 渲染. */
 export interface TupleRest {
-  /** key 为稳定的元素 key, 不随增删改变. */
+  /** key 为稳定的元素 key, 不随增删排序改变. */
   items: { key: string; index: number; dataPath: JsonPointer }[];
   /** 由 minItems / maxItems 与 mode 计算; prefixItems 各位置未填满时不能新增. */
   canAdd: boolean;
@@ -226,6 +226,10 @@ export interface TupleRest {
   add(): void;
   /** 删除下标为 index 的剩余元素; index 小于 prefixItems 的长度时不做任何事. */
   remove(index: number): void;
+  /** 在剩余元素之间移动, from / to 为实际下标; 任一小于 prefixItems 的长度时不做任何事. 渲染器不提供时 widget 不显示上移下移. */
+  move?(from: number, to: number): void;
+  /** 把下标为 index 的剩余元素深拷贝后插入其后; 受 canAdd 约束. 渲染器不提供时 widget 不显示复制. */
+  duplicate?(index: number): void;
 }
 
 /** P2: 元组, 按位置渲染 prefixItems 各项, 第 i 项用 renderChild(String(i)) 渲染; 位置不增删. */

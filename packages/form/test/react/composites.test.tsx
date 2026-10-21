@@ -3,7 +3,7 @@ import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { createRef, StrictMode, type ReactNode } from "react";
 import { describe, expect, it } from "vitest";
 import { escapePointerToken, type JsonSchema } from "@jotl/core";
-import type { MapProps } from "../../src/core/index.js";
+import type { MapProps, TupleProps } from "../../src/core/index.js";
 import { createDefaultRegistry, JotlForm, type JotlFormHandle } from "../../src/react/index.js";
 import { byPath, errorsAt, renderForm } from "./helpers.js";
 
@@ -129,6 +129,59 @@ describe("元组(tuple)", () => {
     fireEvent.click(removeButton(2));
     expect(handle().getValues()).toEqual({ row: ["a", 0] });
     expect(within(tuple).queryByRole("button", { name: "删除第 1 项" })).toBeNull();
+  });
+
+  it("剩余元素可在彼此之间上移下移, 错误与输入框随数据移动; 复制深拷贝后插入其后, 受 maxItems 限制", () => {
+    const schema: JsonSchema = {
+      type: "object",
+      properties: {
+        row: { type: "array", prefixItems: [{ type: "string", title: "名" }], items: { type: "array", items: { type: "number", maximum: 5 } }, maxItems: 4 },
+      },
+    };
+    const { handle } = renderForm({ schema, defaultValue: { row: ["a", [9], [1]] } });
+    const tuple = byPath("/row")!;
+    const button = (name: string) => within(tuple).getByRole("button", { name }) as HTMLButtonElement;
+    act(() => void handle().validate());
+    expect(errorsAt("/row/1/0")?.textContent).toBeTruthy();
+    const moved = byPath("/row/1/0");
+    expect(button("上移第 2 项").disabled).toBe(true);
+    expect(button("下移第 3 项").disabled).toBe(true);
+    fireEvent.click(button("下移第 2 项"));
+    expect(handle().getValues()).toEqual({ row: ["a", [1], [9]] });
+    expect(byPath("/row/2/0")).toBe(moved);
+    expect(errorsAt("/row/1/0")).toBeNull();
+    expect(errorsAt("/row/2/0")?.textContent).toBeTruthy();
+    fireEvent.click(button("上移第 3 项"));
+    expect(handle().getValues()).toEqual({ row: ["a", [9], [1]] });
+    fireEvent.click(button("复制第 2 项"));
+    const values = handle().getValues() as { row: unknown[] };
+    expect(values).toEqual({ row: ["a", [9], [9], [1]] });
+    expect(values.row[2]).not.toBe(values.row[1]);
+    expect(errorsAt("/row/2/0")?.textContent).toBeTruthy();
+    expect(button("复制第 2 项").disabled).toBe(true);
+    fireEvent.click(button("复制第 2 项"));
+    expect((handle().getValues() as { row: unknown[] }).row).toHaveLength(4);
+  });
+
+  it("rest 的 move / duplicate 不越过 prefixItems 各位置", () => {
+    let latest: TupleProps<ReactNode> | undefined;
+    function TupleProbe(props: TupleProps<ReactNode>) {
+      latest = props;
+      return <div id={props.id} />;
+    }
+    const registry = createDefaultRegistry().extend();
+    registry.register({ name: "tuple", level: "composite", component: TupleProbe });
+    const schema: JsonSchema = { type: "array", prefixItems: [{ type: "string" }, { type: "string" }], items: { type: "string" } };
+    const { handle } = renderForm({ schema, registry, defaultValue: ["a", "b", "c", "d"] });
+    act(() => latest!.rest!.move!(2, 1));
+    act(() => latest!.rest!.move!(0, 3));
+    act(() => latest!.rest!.duplicate!(1));
+    expect(handle().getValues()).toEqual(["a", "b", "c", "d"]);
+    act(() => latest!.rest!.move!(3, 2));
+    expect(handle().getValues()).toEqual(["a", "b", "d", "c"]);
+    expect(latest!.rest!.items.map((item) => item.index)).toEqual([2, 3]);
+    act(() => latest!.rest!.duplicate!(3));
+    expect(handle().getValues()).toEqual(["a", "b", "d", "c", "c"]);
   });
 
   it("items 为 false 时剩余元素不显示, 也没有增删", () => {

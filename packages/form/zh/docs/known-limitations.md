@@ -12,10 +12,6 @@
 
 schema 带 `patternProperties` 的对象整体降级为 `json` widget（F7，不支持的 schema 特性）。它的字段不会逐个排开，也没有「其他键」编辑。降级代码见[处理降级与诊断](core.md#处理降级与诊断)。
 
-## 元组的额外元素不能调整顺序
-
-`items` 为 `true` 或 schema 时，`tuple` widget 把 `prefixItems` 各位置之后的额外元素排在后面，提供「新增」与「删除」，但没有「上移」「下移」「复制」。要调整顺序，给该字段写 `x-ui.widget: "json"` 后编辑。
-
 ## 服务端渲染的 label 不带 `for`
 
 字段外壳在渲染后确认内层元素是可关联的控件，才给 `<label>` 补上 `for`。服务端渲染的 HTML 不带 `for`，hydration 之后才补上；在此之前点击 label 不会聚焦控件。

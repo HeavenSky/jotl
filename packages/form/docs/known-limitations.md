@@ -12,10 +12,6 @@ This page lists where the form behaves differently from what the schema allows o
 
 An object whose schema has `patternProperties` falls back to the `json` widget as a whole (F7, unsupported schema feature). Its fields are not laid out one by one, and the "Other keys" editor is not available. See [Handle fallbacks and diagnostics](core.md#handle-fallbacks-and-diagnostics) for the fallback codes.
 
-## Extra tuple elements cannot be reordered
-
-When `items` is `true` or a schema, the `tuple` widget shows the elements after the `prefixItems` positions with "Add" and "Remove", but without "Up", "Down" or "Duplicate". To reorder them, edit the field with `x-ui.widget: "json"`.
-
 ## Server-rendered labels have no `for`
 
 The field shell adds `for` to its `<label>` after rendering, once it knows the inner element is a labelable control. HTML rendered on the server has no `for`, and it is added after hydration. Until then, clicking a label does not focus its control.

@@ -164,6 +164,35 @@ describe("tuple", () => {
     expect(screen.queryByRole("button")).toBeNull();
   });
 
+  it("rest 提供 move / duplicate 时剩余元素带上移, 下移, 复制, 按实际下标调用; 首个剩余元素不能上移, 末个不能下移", () => {
+    const move = vi.fn<(from: number, to: number) => void>();
+    const duplicate = vi.fn<(index: number) => void>();
+    const items = [
+      { key: "k1", index: 1, dataPath: "/f/1" },
+      { key: "k2", index: 2, dataPath: "/f/2" },
+    ];
+    const rest = { items, canAdd: true, canRemove: true, add: vi.fn(), remove: vi.fn(), move, duplicate };
+    const { rerender } = render(<TupleWidget {...tupleProps({ items: [{ dataPath: "/f/0" }], rest })} />);
+    const button = (name: string) => screen.getByRole("button", { name }) as HTMLButtonElement;
+    expect(button("上移第 2 项").disabled).toBe(true);
+    expect(button("下移第 3 项").disabled).toBe(true);
+    fireEvent.click(button("下移第 2 项"));
+    expect(move).toHaveBeenLastCalledWith(1, 2);
+    fireEvent.click(button("上移第 3 项"));
+    expect(move).toHaveBeenLastCalledWith(2, 1);
+    fireEvent.click(button("复制第 3 项"));
+    expect(duplicate).toHaveBeenCalledWith(2);
+    rerender(<TupleWidget {...tupleProps({ items: [{ dataPath: "/f/0" }], rest: { ...rest, canAdd: false }, mode: "disabled" })} />);
+    expect(button("复制第 2 项").disabled).toBe(true);
+    expect(button("下移第 2 项").disabled).toBe(true);
+  });
+
+  it("rest 不提供 move / duplicate 时不显示上移, 下移, 复制", () => {
+    const rest = { items: [{ key: "k1", index: 1, dataPath: "/f/1" }], canAdd: true, canRemove: true, add: vi.fn(), remove: vi.fn() };
+    render(<TupleWidget {...tupleProps({ items: [{ dataPath: "/f/0" }], rest })} />);
+    expect(screen.getAllByRole("button").map((b) => b.textContent)).toEqual(["新增", "删除"]);
+  });
+
   it("有错误时 aria-invalid 并显示错误", () => {
     const { rerender } = render(<TupleWidget {...tupleProps()} />);
     expectOwnErrors(false);

@@ -31,7 +31,7 @@
 | `richtext` | `<textarea>` | 有 `adapters.richText` 时改用它；`richTextEditor` 是可以传入的最小编辑器，见 [富文本编辑器](#富文本编辑器) |
 | `page` / `inline` | `<fieldset>` + `<legend>` | 两者共用同一实现；分组用嵌套的 `<fieldset>`；布局见 [对象布局](#对象布局)；钻取由 `@jotl/form` 处理；有 `additional` 时字段之后是「其他键」分组，见 [其他键](#其他键) |
 | `list` | `<ol>` + 增加、删除、上移、下移按钮；渲染器提供 `duplicate` 时另有复制按钮 | 按 `canAdd` `canRemove` 禁用按钮（复制随 `canAdd`）；元素用 `renderChild(String(i))` 渲染 |
-| `tuple` | `<ol>`，每个位置一项 | 第 i 项用 `renderChild(String(i))` 渲染；位置标签由外壳给出（`prefixItems` 该项的 `title`，否则为 `第 n 项`）；位置不能增删；`items` 为 `true` 或 schema 时，位置之后列出剩余元素（`rest`，第 i 项同样用 `renderChild(String(i))` 渲染，i 为实际下标），可以新增和删除，受 `minItems` / `maxItems` 与 `mode` 约束，位置没有填满时不能新增；`items` 为 `false` 或缺省时没有剩余区 |
+| `tuple` | `<ol>`，每个位置一项 | 第 i 项用 `renderChild(String(i))` 渲染；位置标签由外壳给出（`prefixItems` 该项的 `title`，否则为 `第 n 项`）；位置不能增删；`items` 为 `true` 或 schema 时，位置之后列出剩余元素（`rest`，第 i 项同样用 `renderChild(String(i))` 渲染，i 为实际下标），可以新增、删除、上移、下移和复制，受 `minItems` / `maxItems` 与 `mode` 约束；剩余元素只在彼此之间移动，复制在原项之后插入深拷贝，与新增受同样的数量限制；位置没有填满时不能新增或复制；`items` 为 `false` 或缺省时没有剩余区 |
 | `nullable` `union` `kv` `tree` | 见 [复合 widget](#复合-widget) | - |
 | `json` | 编辑态为 `<textarea>`（JSON），查看态为 `<pre>` | JSON 不合法时保留草稿并显示错误；schema 为 string 时值是 JSON 原文 |
 | `field` | `<div>` + `<label>` + 必填标记（`<abbr>`）+ 帮助文本 + 错误 | 内层根元素是可关联 label 的控件时才写 `for`，复合 widget 经 `aria-labelledby` 引用该 label；错误元素的 `id` 供 `aria-describedby` 引用；有错误时控件（或组根元素）带 `aria-invalid` |
