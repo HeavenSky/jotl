@@ -33,6 +33,10 @@ export function createAjv(overrides: Options = {}): Ajv2020 {
   for (const keyword of JOTL_KEYWORDS) ajv.addKeyword({ keyword });
   // Ajv 8 的 2020 词汇表漏登记 $anchor(引用解析照常识别它), strictSchema 下会报 unknown keyword.
   if (!ajv.getKeyword("$anchor")) ajv.addKeyword({ keyword: "$anchor", schemaType: "string" });
+  // Ajv 按 "#/指针" 定位带 $id 的子资源时, 若该节点除 $ref 外没有带定义的关键字, 会先跟随其 $ref 再取片段;
+  // $ref 又指回本资源(如 $id: "child.json" 旁的 $ref: "#/$defs/x")时无限递归, 编译栈溢出. 给 $id 一个空定义, 资源根不再被当作纯引用.
+  ajv.removeKeyword("$id");
+  ajv.addKeyword({ keyword: "$id", schemaType: "string" });
   // 违反时 Ajv 只给出关键字, 违反的边界与位数由错误转换阶段按 error.schema 与 error.data 重新计算.
   ajv.addKeyword({
     keyword: "x-decimals",

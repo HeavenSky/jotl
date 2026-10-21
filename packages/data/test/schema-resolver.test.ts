@@ -96,6 +96,41 @@ describe("嵌套 $id 的引用解析", () => {
     expect(valid(schema, result.value)).toBe(true);
   });
 
+  it("子资源在同一节点写 $id 与指回本资源的 $ref 时可编译, 校验, 默认数据与 Mock 解析一致", () => {
+    // Ajv 原本在此编译栈溢出(报 JOTL4017), 与根有无 $id 无关.
+    for (const $id of [undefined, "https://x.test/root.json"]) {
+      const schema: JsonSchemaObject = {
+        ...($id === undefined ? {} : { $id }),
+        $defs: { inner: { type: "string", default: "root" } },
+        type: "object",
+        properties: {
+          a: {
+            $id: "child.json",
+            $defs: { inner: { type: "integer", minimum: 1, default: 3, errorMessage: { minimum: "{label} 至少为 1" } } },
+            $ref: "#/$defs/inner",
+          },
+          b: { $ref: "child.json#/$defs/inner" },
+          c: { $ref: "#/$defs/inner" },
+        },
+        required: ["a", "b", "c"],
+      };
+      const defaults = getDefaults(schema, { strategy: "required" });
+      expect(defaults.diagnostics).toEqual([]);
+      expect(defaults.value).toEqual({ a: 3, b: 3, c: "root" });
+      expect(valid(schema, defaults.value)).toBe(true);
+      const result = validate(schema, { a: 0, b: "x", c: "y" });
+      expect(result.diagnostics.map((d) => [d.code, d.location?.kind === "pointer" ? d.location.pointer : undefined, d.message])).toEqual([
+        ["JOTL4003", "/a", "a 至少为 1"],
+        ["JOTL4001", "/b", "b 的类型应为整数"],
+      ]);
+      for (const seed of [1, 2, 3]) {
+        const mocked = mock(schema, { seed });
+        expect(mocked.diagnostics).toEqual([]);
+        expect(valid(schema, mocked.value)).toBe(true);
+      }
+    }
+  });
+
   it("$anchor 按资源分作用域, 不在当前资源内的锚点解析失败", () => {
     const resolver = createResolver(nested);
     const child = (nested.$defs!.child as JsonSchemaObject);

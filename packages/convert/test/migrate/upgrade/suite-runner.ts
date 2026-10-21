@@ -81,6 +81,9 @@ async function runGroup(draft: SuiteDraft, file: string, index: number, group: S
   if (upgraded.value !== undefined) {
     try {
       const ajv = new Ajv2020({ strict: false, validateFormats: false, logger: false });
+      // 与 @jotl/data 的 createAjv 相同: 给 $id 一个空定义, 避免 $id 与指回本资源的 $ref 同在一个节点时编译栈溢出.
+      ajv.removeKeyword("$id");
+      ajv.addKeyword({ keyword: "$id", schemaType: "string" });
       for (const [uri, doc] of upgraded.value.documents) {
         if (uri !== upgraded.value.entry) ajv.addSchema(doc.schema as object, uri);
       }

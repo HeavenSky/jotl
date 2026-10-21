@@ -7,7 +7,6 @@ import { type CaseOutcome, SUITE_DRAFTS, type SuiteDraft, listSuiteFiles, runSui
 const AJV_PROTOTYPE_NAMES =
   "Ajv 2020 自身的限制: 属性名为 __proto__ / toString / constructor 时结果错误, draft2020-12 的同名用例直接用 Ajv 校验同样不一致";
 const AJV_EMPTY_ENUM = "Ajv 2020 自身的限制: 拒绝编译空 enum(\"enum must have non-empty array\"), draft2020-12 同名用例同样失败";
-const AJV_REF_STACK = "Ajv 2020 自身的限制: 编译这些相对 URI 的 $ref 时栈溢出, draft2020-12 同名用例同样失败";
 const AJV_UNEVALUATED = "Ajv 2020 自身的限制: 没有 then/else 的 if 产生的注解未计入 unevaluated*, draft2020-12 同名用例同样失败";
 const AJV_NESTED_ITEMS = "Ajv 2020 自身的限制: 嵌套 items 的注解未计入 unevaluatedItems, draft2020-12 同名用例同样失败";
 const DRAFT04_METASCHEMA = "依赖 draft-04 元 schema(远程引用), Ajv 8 不再附带, 本地没有离线副本";
@@ -56,24 +55,6 @@ const EXCLUSIONS: Record<SuiteDraft, Exclusion[]> = {
       group: "empty enum",
       tests: ["string is invalid", "number is invalid", "null is invalid", "object is invalid", "array is invalid", "boolean is invalid"],
       reason: AJV_EMPTY_ENUM,
-    },
-    {
-      file: "ref.json",
-      group: "refs with relative uris and defs",
-      tests: ["invalid on inner field", "invalid on outer field", "valid on both fields"],
-      reason: AJV_REF_STACK,
-    },
-    {
-      file: "ref.json",
-      group: "relative refs with absolute uris and defs",
-      tests: ["invalid on inner field", "invalid on outer field", "valid on both fields"],
-      reason: AJV_REF_STACK,
-    },
-    {
-      file: "ref.json",
-      group: "URN ref with nested pointer ref",
-      tests: ["a string is valid", "a non-string is invalid"],
-      reason: AJV_REF_STACK,
     },
     {
       file: "unevaluatedItems.json",

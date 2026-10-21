@@ -16,16 +16,11 @@ Validation runs on Ajv's 2020-12 dialect, whose results differ from the official
 
 - `$dynamicRef`
 - `unevaluatedProperties` and `unevaluatedItems` combined with `contains` or `if`
-- `$ref` with a relative URI under nested `$id`s
 - An empty `enum`
 - `$vocabulary`
 - Properties named `__proto__`
 
 Jotl syntax has no notation for most of these; they usually appear in hand-written schemas or in keywords passed through the `schema` metadata.
-
-## A node with both `$id` and `$ref` fails to compile
-
-When a subschema declares a relative `$id` and a `$ref` on the same node, Ajv fails to compile the schema and `validate` returns `JOTL4017`. Default data and Mock data resolve the same references normally. Wrap the reference in `allOf`, as in `{ "$id": "sub.json", "allOf": [{ "$ref": "#/$defs/x" }], "$defs": { ... } }`, and validation works again.
 
 ## Reference resolution in default data, Mock data and messages is simplified
 

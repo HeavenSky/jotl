@@ -127,22 +127,6 @@
         "__proto__ not valid"
       ]
     },
-    "ref.json": {
-      "refs with relative uris and defs": [
-        "invalid on inner field",
-        "invalid on outer field",
-        "valid on both fields"
-      ],
-      "relative refs with absolute uris and defs": [
-        "invalid on inner field",
-        "invalid on outer field",
-        "valid on both fields"
-      ],
-      "URN ref with nested pointer ref": [
-        "a string is valid",
-        "a non-string is invalid"
-      ]
-    },
     "unevaluatedItems.json": {
       "unevaluatedItems with nested items": [
         "with no additional items",
