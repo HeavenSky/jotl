@@ -35,7 +35,7 @@ function loadConfig(ctx: CommandContext, file: string): CompileOptions | undefin
   const parsed = parseJsonInput(ctx, file, text);
   if (!parsed.ok) return undefined;
   const { config, issues } = readJotlConfig(parsed.value);
-  if (issues.length === 0) return configCompileOptions(config.widgets);
+  if (issues.length === 0) return configCompileOptions(config.widgets, config.widgetTypes);
   const offsets = jsonPointerOffsets(text);
   const diagnostics = issues.map(({ pointer, message }) => {
     const offset = offsets?.get(pointer);

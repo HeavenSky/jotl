@@ -120,7 +120,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 - 扩展组件：组件位置可以写已登记的扩展组件，底层类型取自登记项（`{ ImagePicker: { type: "string", format: "uri" } }`）；未登记的报错；不想登记时写 `string[widget: 'ImagePicker']`。登记项的值（配置文件与根元数据 `widgets` 写法相同）：
   - 底层类型：JSON Schema 基本类型名（`string` `number` `integer` `boolean` `array` `object`，编译为 `{ type }`）；其余无体的内置组件名（取该组件编译出的 schema，去掉 `x-ui`；`enum` `union` 不可用）；或 schema 对象（原样使用）。
   - 模块声明：带 `module` 键的对象 `{ base?, module, export? }`，同时给出实现该 widget 的 ES 模块。`base` 是上一条所说的底层类型，缺省为 `object`；`module` 是非空的模块地址，原样保留，相对路径由使用方按声明所在文件的目录解析；`export` 是导出名，缺省为 `default`；只能有这三个键。不带 `module` 的对象一律当作 schema。
-  - 大驼峰名是扩展组件，其余名字只登记为 widget 名（模块声明仍然有效）。
+  - 大驼峰名是扩展组件，其余名字只登记为 widget 名（模块声明仍然有效）。为这类名字写的底层类型不参与编译：字段通过 `widget` 使用它且字段类型不被该底层类型接受时，编译器报 `JOTL1052`（warning）。比较时按去掉 `"null"` 后的 JSON 类型，`number` 也接受 `integer`，`object` 也接受 `money` 与 `bigint`；任一方无法判断（如类型引用、无 `type` 的底层 schema）、不带 `base` 的模块声明以及只登记名字时不报。
 - 扩展组件可带的元数据：[元数据键](#元数据键)表中适用于「任意」的键，以及按底层 schema 放行的约束键，规则与同类内置组件一致。底层 `type`（去掉 `"null"` 后唯一）为 `string` 时放行 `minLength` `maxLength` `pattern` `format`；为 `number` 时放行 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`；为 `integer` 时放行上下界四键；为 `array` 时放行 `minItems` `maxItems` `uniqueItems`；为 `object` 时放行 `minProperties` `maxProperties`；底层为 `money` `bigint` 形态时放行上下界四键（写成字符串，编译到 `x-decimalRange`）。底层没有 `type`（如只有 `anyOf` `$ref`）或有多个类型时，不放行任何约束键。其余键报 JOTL1007。例：登记 `Rating: {base: 'integer', module: '...'}` 后可以写 `score: Rating[minimum: 0, maximum: 5]`。
   - 约束合并进底层 schema，同名关键字以元数据为准（如底层为 `{type: 'integer', minimum: 1}` 时，元数据 `minimum: 0` 取代底层的 `minimum`）。`format` 与底层不同时，与内置组件一样报 JOTL1048 warning；上下界一端来自元数据、另一端来自底层且互相冲突时报 JOTL1020。`default` 按合并后的 schema 校验。放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准。
 - 登记入口：
@@ -128,7 +128,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
   - 根条目元数据 `widgets`：形如 `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`，只能写在根条目上。它由编译器处理，任何调用 `compile` 的入口（含 Playground）都生效；本文件内即可使用这些扩展组件，与其他入口合并，同名时以文件内为准。其中的模块声明编译进根 `x-ui.widgets`（名字 → `{ base?, module, export? }`，声明了 `object` 以外的 `base` 时原样带上，见 [x-ui 规范](x-ui.md)）。类型名与文件内声明的扩展组件重名报 JOTL1028，取值不合法报 JOTL1020。
   - 命令行：编译 Jotl 的命令自动查找配置，`--config` 指定，`--no-config` 关闭，见 [`jotl` 命令行说明](../../../packages/cli/zh/README.md)。
   - VS Code（语言服务）：按文档路径查找配置，与设置 `jotl.registeredWidgets`（只有名字）合并，同名时以配置文件为准，只出现在设置中的大驼峰名按 `string` 编译；配置文件变更后重新诊断，见[语言服务说明](../../../packages/language-server/zh/README.md)。
-  - `@jotl/core` `compile` 的 `options.widgets`（组件名 → 底层 schema）：该包不读文件，由调用方传入；`readJotlConfig` 与 `configCompileOptions` 把配置内容换算为该选项。
+  - `@jotl/core` `compile` 的 `options.widgets`（组件名 → 底层 schema）：该包不读文件，由调用方传入；`readJotlConfig` 与 `configCompileOptions` 把配置内容换算为该选项。`options.widgetTypes`（非大驼峰 widget 名 → 底层 schema）只用于 `JOTL1052` 检查；`readJotlConfig` 的结果中为 `config.widgetTypes`，由 `configCompileOptions(config.widgets, config.widgetTypes)` 传入。
 
 各类条目能写的部分：
 
@@ -398,7 +398,7 @@ d?: string[node_if: 'href']
 | error | JOTL1005 JOTL1024 JOTL1025 JOTL1046 | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等） |
 | error | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`） |
 | error | JOTL1042 JOTL1043 JOTL1008 JOTL1029 | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限 |
-| warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 | `widget` 不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断） |
+| warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 JOTL1052 | `widget` 不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断）；字段类型不被非大驼峰 widget 名声明的底层类型接受 |
 | error | JOTL1030 JOTL1031 JOTL1035 | `print`：输入不是 JSON Schema；含非 JSON 值；`rootName` 不是大驼峰 |
 | warning | JOTL1032 JOTL1033 JOTL1034 JOTL1051 | `print`：关键字无法表达，已忽略；布尔 schema 按等价对象打印；类型名不合法，已改名；选项 `defaultExport` 不是 `$defs` 的键，已忽略 |
 

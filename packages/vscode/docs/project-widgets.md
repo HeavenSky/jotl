@@ -29,7 +29,7 @@ A `jotl.config.json` gives each widget a name and an underlying type, and the `j
 
 ## What you can write in the config
 
-- **PascalCase names are extension widgets**: you can write them in the type position, as `cover: ImagePicker` does. Other names only register a `widget` name.
+- **PascalCase names are extension widgets**: you can write them in the type position, as `cover: ImagePicker` does. Other names only register a `widget` name; their underlying type is not compiled, but a field whose type it does not accept gets the warning `JOTL1052` (for example `count: integer[widget: 'headline']` with `"headline": "string"`). An `integer` field may use a `number` widget.
 - An underlying type is a JSON Schema type name (`string`, `number`, `integer`, `boolean`, `array`, `object`), a built-in Jotl widget name that takes no body (not `enum` or `union`), or a schema object used as is.
 - An object with a `module` key declares a React module as well; see [Load widget modules in the preview](widget-modules.md).
 - The file has only two keys, `widgets` and `$schema`. Invalid entries are skipped and reported as `JOTL7002` at the top of every `.jotl` file that uses the config.
@@ -46,6 +46,7 @@ Use the setting when you only need names, for example for widgets your form host
 
 - Listed names appear in `widget: '` completions and no longer report `JOTL7001`.
 - PascalCase names can also be written in the type position; they compile as `string`.
+- Names from the setting carry no type, so they never report `JOTL1052`.
 - When a name is in both places, `jotl.config.json` wins: the setting only adds names, never types.
 
 Changes to the setting or the config file take effect immediately; you do not need to reload the window.

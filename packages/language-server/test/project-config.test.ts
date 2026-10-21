@@ -23,7 +23,7 @@ describe("createConfigLookup", () => {
     const files: Record<string, string> = { "/w/jotl.config.json": CONFIG };
     const host = memoryHost(files);
     const lookup = createConfigLookup(host);
-    expect(lookup.forDocument("file:///w/a/b/x.jotl")).toEqual({ file: "/w/jotl.config.json", widgets: { ImagePicker: { type: "string", format: "uri" } }, modules: {}, problems: [] });
+    expect(lookup.forDocument("file:///w/a/b/x.jotl")).toEqual({ file: "/w/jotl.config.json", widgets: { ImagePicker: { type: "string", format: "uri" } }, modules: {}, widgetTypes: {}, problems: [] });
     lookup.forDocument("file:///w/a/b/y.jotl");
     expect(host.reads).toEqual(["/w/jotl.config.json"]);
     files["/w/a/jotl.config.json"] = JSON.stringify({ widgets: { ImagePicker: "number" } });
@@ -37,6 +37,15 @@ describe("createConfigLookup", () => {
     const config = createConfigLookup(memoryHost({ "/w/jotl.config.json": text })).forDocument("file:///w/x.jotl");
     expect(config?.modules).toEqual({ Rating: { module: "./w/rating.js", export: "Rating" } });
     expect(config?.widgets.Rating).toEqual({ type: "integer" });
+  });
+
+  it("写了底层类型的非大驼峰名记入 widgetTypes, 并入选项后传给编译器", () => {
+    const text = JSON.stringify({ widgets: { ImagePicker: "url", headline: "string", rich: { module: "./rich.js" } } });
+    const config = createConfigLookup(memoryHost({ "/w/jotl.config.json": text })).forDocument("file:///w/x.jotl");
+    expect(config?.widgetTypes).toEqual({ headline: { type: "string" } });
+    const options = withConfigWidgets({ registeredWidgets: ["counter"] }, config!.widgets, config!.widgetTypes);
+    expect(compileOptions(options)).toEqual({ widgets: { ImagePicker: { type: "string", format: "uri" } }, widgetTypes: { headline: { type: "string" } } });
+    expect(compileOptions({ registeredWidgets: ["counter"] })).toEqual({});
   });
 
   it("不跨越 git 顶层; 非 file 文档不查找", () => {

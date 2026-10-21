@@ -17,6 +17,8 @@ export interface ProjectConfig {
   widgets: Record<string, JsonSchemaObject>;
   /** 写成模块声明的项; `module` 原样保留, 相对路径按 `file` 所在目录解析. */
   modules: Record<string, XUiWidgetModule>;
+  /** 写了底层类型的非大驼峰名 → 底层 schema, 只用于 widget 与字段类型的兼容检查. */
+  widgetTypes: Record<string, JsonSchemaObject>;
   /** 读取失败, JSON 不合法或内容不合法的说明; 不合法的项已跳过. */
   problems: string[];
 }
@@ -39,10 +41,10 @@ function readConfig(host: ConfigHost, file: string): ProjectConfig {
   try {
     value = JSON.parse(host.readFile(file).replace(/^\uFEFF/, ""));
   } catch (error) {
-    return { file, widgets: {}, modules: {}, problems: [error instanceof SyntaxError ? l10n("不是合法的 JSON", "not valid JSON") : String(error instanceof Error ? error.message : error)] };
+    return { file, widgets: {}, modules: {}, widgetTypes: {}, problems: [error instanceof SyntaxError ? l10n("不是合法的 JSON", "not valid JSON") : String(error instanceof Error ? error.message : error)] };
   }
   const { config, issues } = readJotlConfig(value);
-  return { file, widgets: config.widgets, modules: config.modules, problems: issues.map((i) => (i.pointer === "" ? i.message : `${i.pointer}: ${i.message}`)) };
+  return { file, widgets: config.widgets, modules: config.modules, widgetTypes: config.widgetTypes ?? {}, problems: issues.map((i) => (i.pointer === "" ? i.message : `${i.pointer}: ${i.message}`)) };
 }
 
 export interface ConfigLookup {

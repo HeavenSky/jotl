@@ -1,7 +1,7 @@
 // 项目配置 jotl.config.json 的内容校验, 换算为编译选项, 以及配置文件自身的 JSON Schema; 只处理已解析的 JSON 值, 不查找文件.
 import { JSON_SCHEMA_DIALECT, type JsonSchemaObject, type XUiWidgetModule, formatMessage, getLocale, l10n } from "../schema/index.js";
 import { isTypeName } from "./builtins.js";
-import { type CompileOptions, baseTypeSchemas, readWidgetDeclaration } from "./compiler.js";
+import { type CompileOptions, baseTypeSchemas, declaresWidgetType, readWidgetDeclaration } from "./compiler.js";
 import { syntaxReason } from "./diagnostics.js";
 
 export const JOTL_CONFIG_FILE = "jotl.config.json";
@@ -12,6 +12,8 @@ export interface JotlConfig {
   widgets: Record<string, JsonSchemaObject>;
   /** 写成模块声明的项: 名字 → 组件模块(不带 `base`); `module` 原样保留, 相对路径由调用方按配置文件所在目录解析. */
   modules: Record<string, XUiWidgetModule>;
+  /** 写了底层类型的非大驼峰名(不带 `base` 的模块声明视为没写) → 底层 schema; 编译器不按它编译, 只用来检查 `widget` 元数据与字段类型是否兼容. readJotlConfig 总会给出; 可选是为了兼容自行构造的配置. */
+  widgetTypes?: Record<string, JsonSchemaObject>;
 }
 
 export interface JotlConfigIssue {
@@ -48,7 +50,7 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 /** 校验已解析的配置并换算底层类型; 不合法的项跳过并记入 issues, 其余照常返回. */
 export function readJotlConfig(value: unknown): { config: JotlConfig; issues: JotlConfigIssue[] } {
-  const config: JotlConfig = { widgets: {}, modules: {} };
+  const config: Required<JotlConfig> = { widgets: {}, modules: {}, widgetTypes: {} };
   const issues: JotlConfigIssue[] = [];
   if (!isObject(value)) return { config, issues: [{ pointer: "", message: message("notObject") }] };
   for (const key of Object.keys(value)) {
@@ -69,6 +71,7 @@ export function readJotlConfig(value: unknown): { config: JotlConfig; issues: Jo
       continue;
     }
     config.widgets[name] = r.declaration.schema;
+    if (!isTypeName(name) && declaresWidgetType(type)) config.widgetTypes[name] = r.declaration.schema;
     if (r.declaration.module !== undefined) {
       const { base: _base, ...module } = r.declaration.module;
       config.modules[name] = module;
@@ -77,10 +80,17 @@ export function readJotlConfig(value: unknown): { config: JotlConfig; issues: Jo
   return { config, issues };
 }
 
-/** 编译器只把大驼峰名当作扩展组件; 其余名字只是 widget 名, 不传入. */
-export function configCompileOptions(widgets: Readonly<Record<string, JsonSchemaObject>>): CompileOptions {
+/** 编译器只把大驼峰名当作扩展组件; 其余名字只是 widget 名, 写了底层类型的(widgetTypes)只用于兼容检查. */
+export function configCompileOptions(
+  widgets: Readonly<Record<string, JsonSchemaObject>>,
+  widgetTypes: Readonly<Record<string, JsonSchemaObject>> = {},
+): CompileOptions {
   const entries = Object.entries(widgets).filter(([name]) => isTypeName(name));
-  return entries.length === 0 ? {} : { widgets: Object.fromEntries(entries) };
+  const types = Object.entries(widgetTypes).filter(([name]) => !isTypeName(name));
+  return {
+    ...(entries.length === 0 ? {} : { widgets: Object.fromEntries(entries) }),
+    ...(types.length === 0 ? {} : { widgetTypes: Object.fromEntries(types) }),
+  };
 }
 
 /** jotl.config.json 自身的 JSON Schema, 供编辑器校验与补全. */

@@ -48,6 +48,7 @@ export const SYNTAX_DIAGNOSTICS = {
   JOTL1049: { severity: "warning", message: "`summary` 只对元素为对象的 `array` / `map` 生效, 此处元素不是对象", en: "`summary` only applies to `array` / `map` whose elements are objects; elements here are not objects" },
   JOTL1050: { severity: "warning", message: "`schema` 写入的 x-ui 不合法, 已原样写入: {reason}", en: "x-ui written by `schema` is invalid and was kept as is: {reason}" },
   JOTL1051: { severity: "warning", message: "`defaultExport` 指定的 `{name}` 不是 `$defs` 的键, 已忽略", en: "`{name}` given as `defaultExport` is not a key of `$defs` and was ignored" },
+  JOTL1052: { severity: "warning", message: "widget `{widget}` 声明的底层类型 `{base}` 与字段类型 `{type}` 不兼容", en: "widget `{widget}` is declared with base type `{base}`, which is incompatible with field type `{type}`" },
 } as const;
 
 export type SyntaxDiagnosticCode = keyof typeof SYNTAX_DIAGNOSTICS;

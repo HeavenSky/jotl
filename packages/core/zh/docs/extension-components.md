@@ -65,10 +65,10 @@ result.value?.schema.$defs.Form.properties.cover;
 
    不合法的项会被跳过，并以 `{ pointer, message }` 记入 `issues`；其余项照常返回。
 
-2. 把 widgets 换成编译选项。`configCompileOptions(widgets)` 只保留大驼峰名，即扩展组件；其他名字只登记为 widget 名。
+2. 把 widgets 换成编译选项。`configCompileOptions(widgets, widgetTypes)` 在 `widgets` 中只保留大驼峰名，即扩展组件；其他名字只登记为 widget 名。同时传入 `config.widgetTypes`，字段类型不被这类名字的底层类型接受时会报 `JOTL1052` 警告。
 
    ```ts
-   const options = configCompileOptions(config.widgets);
+   const options = configCompileOptions(config.widgets, config.widgetTypes);
    // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
    ```
 

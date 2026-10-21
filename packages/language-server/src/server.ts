@@ -43,7 +43,10 @@ export function createServer(connection: Connection, serverOptions: ServerOption
   const pending = new Map<string, ReturnType<typeof setTimeout>>();
   let options: LanguageServiceOptions = {};
   const configs = createConfigLookup(serverOptions.configHost);
-  const optionsFor = (uri: string) => withConfigWidgets(options, configs.forDocument(uri)?.widgets ?? {});
+  const optionsFor = (uri: string) => {
+    const config = configs.forDocument(uri);
+    return withConfigWidgets(options, config?.widgets ?? {}, config?.widgetTypes);
+  };
 
   const cancel = (uri: string) => {
     clearTimeout(pending.get(uri));

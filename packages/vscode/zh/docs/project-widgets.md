@@ -29,7 +29,7 @@
 
 ## 配置中能写什么
 
-- **大驼峰名是扩展组件**：可以像 `cover: ImagePicker` 那样写在类型位置。其余名字只登记为 `widget` 名。
+- **大驼峰名是扩展组件**：可以像 `cover: ImagePicker` 那样写在类型位置。其余名字只登记为 `widget` 名，底层类型不参与编译，但字段类型不被它接受时报警告 `JOTL1052`（如 `"headline": "string"` 时的 `count: integer[widget: 'headline']`）。`integer` 字段可以用 `number` 底层类型的 widget。
 - 底层类型写 JSON Schema 基本类型名（`string`、`number`、`integer`、`boolean`、`array`、`object`）、不带体的 Jotl 内置组件名（`enum`、`union` 除外），或原样使用的 schema 对象。
 - 带 `module` 键的对象同时声明一个 React 模块，见[在预览中加载 widget 模块](widget-modules.md)。
 - 文件只有 `widgets` 和 `$schema` 两个键。不合法的项会被跳过，并在每个使用该配置的 `.jotl` 文件开头报 `JOTL7002`。
@@ -46,6 +46,7 @@
 
 - 列出的名字出现在 `widget: '` 的补全中，不再报 `JOTL7001`。
 - 大驼峰名还可以写在类型位置，按 `string` 编译。
+- 设置中的名字不带类型，不会报 `JOTL1052`。
 - 同一个名字两处都有时以 `jotl.config.json` 为准：设置只补充名字，不指定类型。
 
 修改设置或配置文件后立即生效，无需重新加载窗口。

@@ -7,6 +7,8 @@ export interface LanguageServiceOptions {
   registeredWidgets?: readonly string[];
   /** 已登记名字的底层 schema(来自 jotl.config.json); 不在其中的扩展组件按 `string` 编译. */
   widgets?: Readonly<Record<string, JsonSchemaObject>>;
+  /** 写了底层类型的非大驼峰名 → 底层 schema(来自 jotl.config.json); 只传给编译器做 widget 与字段类型的兼容检查. */
+  widgetTypes?: Readonly<Record<string, JsonSchemaObject>>;
   /** 文件根元数据 `widgets` 声明的底层 schema, 覆盖同名登记; 只供补全与悬停, compileOptions 不读它. */
   fileWidgets?: Readonly<Record<string, JsonSchemaObject>>;
 }
@@ -31,9 +33,14 @@ export function readLocaleOption(raw: unknown): string | undefined {
 }
 
 /** 并入配置文件登记的名字与底层类型; 同名时以配置文件为准, 设置中的名字补充. */
-export function withConfigWidgets(options: LanguageServiceOptions, widgets: Readonly<Record<string, JsonSchemaObject>>): LanguageServiceOptions {
+export function withConfigWidgets(
+  options: LanguageServiceOptions,
+  widgets: Readonly<Record<string, JsonSchemaObject>>,
+  widgetTypes: Readonly<Record<string, JsonSchemaObject>> = {},
+): LanguageServiceOptions {
   if (Object.keys(widgets).length === 0) return options;
-  return { registeredWidgets: [...new Set([...Object.keys(widgets), ...(options.registeredWidgets ?? [])])], widgets };
+  const merged: LanguageServiceOptions = { registeredWidgets: [...new Set([...Object.keys(widgets), ...(options.registeredWidgets ?? [])])], widgets };
+  return Object.keys(widgetTypes).length === 0 ? merged : { ...merged, widgetTypes };
 }
 
 /** 并入文件根元数据 `widgets` 声明的名字与底层 schema, 只供补全, 悬停与 "widget 未注册" 检查; 不要传给 compileOptions, 编译器自行读取文件内声明, 这里按 `string` 补登会盖掉真实底层类型. */
@@ -63,7 +70,10 @@ export function extensionSchema(options: LanguageServiceOptions, name: string): 
 
 export function compileOptions(options: LanguageServiceOptions): CompileOptions {
   const names = extensionComponents(options);
-  if (names.length === 0) return {};
   const widgets = options.widgets ?? {};
-  return { widgets: Object.fromEntries(names.map((name) => [name, Object.hasOwn(widgets, name) ? widgets[name]! : { type: "string" }])) };
+  const types = options.widgetTypes ?? {};
+  return {
+    ...(names.length === 0 ? {} : { widgets: Object.fromEntries(names.map((name) => [name, Object.hasOwn(widgets, name) ? widgets[name]! : { type: "string" }])) }),
+    ...(Object.keys(types).length === 0 ? {} : { widgetTypes: types }),
+  };
 }

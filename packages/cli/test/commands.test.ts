@@ -510,7 +510,7 @@ describe("format", () => {
 describe("jotl.config.json", () => {
   const DIR = `${CLI_FIXTURES}/project`;
   const CONFIG = JSON.stringify({ widgets: { ImagePicker: "url", "tag-list": "array" } });
-  const SOURCE = "Page: { cover: ImagePicker, tags: string[widget: 'tag-list'] }\n";
+  const SOURCE = "Page: { cover: ImagePicker, tags: array[array_item: 'string', widget: 'tag-list'] }\n";
   const files = { [`${DIR}/jotl.config.json`]: CONFIG, [`${DIR}/pages/home.jotl`]: SOURCE };
   const cover = (stdout: string) => (JSON.parse(stdout) as { $defs: { Page: { properties: Record<string, unknown> } } }).$defs.Page.properties["cover"];
 
@@ -531,7 +531,7 @@ describe("jotl.config.json", () => {
   it("check, convert, validate, defaults 同样读取; stdin 输入从当前目录查找", () => {
     expect(cli(["check", `${DIR}/pages/home.jotl`], { files }).code).toBe(0);
     expect(cover(cli(["convert", `${DIR}/pages/home.jotl`, "--to", "schema"], { files }).stdout)).toMatchObject({ format: "uri" });
-    const data = { [`${DIR}/data.json`]: JSON.stringify({ cover: "https://a.b/c.png", tags: "x" }) };
+    const data = { [`${DIR}/data.json`]: JSON.stringify({ cover: "https://a.b/c.png", tags: ["x"] }) };
     expect(cli(["validate", `${DIR}/pages/home.jotl`, `${DIR}/data.json`], { files: { ...files, ...data } }).code).toBe(0);
     expect(cli(["defaults", `${DIR}/pages/home.jotl`], { files }).code).toBe(0);
     expect(cli(["compile", "-"], { stdin: SOURCE, files: { "jotl.config.json": CONFIG } }).code).toBe(0);
@@ -556,6 +556,17 @@ describe("jotl.config.json", () => {
     const broken = cli(["compile", `${DIR}/pages/home.jotl`], { files: { ...files, [`${DIR}/jotl.config.json`]: "{" } });
     expect(codesOf(broken.stderr)).toEqual(["JOTL9052"]);
     expect(broken.stdout).toBe("");
+  });
+
+  it("非大驼峰 widget 名写了底层类型时只做兼容检查: 与字段类型不兼容报 JOTL1052 警告, 照常编译", () => {
+    const config = { [`${DIR}/jotl.config.json`]: JSON.stringify({ widgets: { headline: "string" } }) };
+    const source = { [`${DIR}/pages/count.jotl`]: "Page: {\n  count: integer[widget: 'headline']\n}\n" };
+    const r = cli(["check", `${DIR}/pages/count.jotl`], { files: { ...config, ...source } });
+    expect(r.code).toBe(0);
+    expect(diagnosticLines(r.stderr)).toEqual([
+      { location: `${DIR}/pages/count.jotl:2:26`, code: "JOTL1052", severity: "警告", message: "widget `headline` 声明的底层类型 `string` 与字段类型 `integer` 不兼容" },
+    ]);
+    expect(codesOf(cli(["check", `${DIR}/pages/count.jotl`, "--no-config"], { files: { ...config, ...source } }).stderr)).toEqual([]);
   });
 
   it("JSON Schema 输入不读取配置", () => {

@@ -65,10 +65,10 @@ Module declarations are compiled into the root `x-ui.widgets` (name → `{ base?
 
    Invalid items are skipped and reported in `issues` as `{ pointer, message }`; the rest are returned as usual.
 
-2. Turn the widgets into compile options. `configCompileOptions(widgets)` keeps only PascalCase names, which are the extension components; other names are registered only as widget names.
+2. Turn the widgets into compile options. `configCompileOptions(widgets, widgetTypes)` keeps only PascalCase names in `widgets`, which are the extension components; other names are registered only as widget names. Pass `config.widgetTypes` as well so that a field whose type is not accepted by the underlying type of such a name reports the warning `JOTL1052`.
 
    ```ts
-   const options = configCompileOptions(config.widgets);
+   const options = configCompileOptions(config.widgets, config.widgetTypes);
    // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
    ```
 

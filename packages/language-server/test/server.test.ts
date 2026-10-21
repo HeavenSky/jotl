@@ -207,7 +207,7 @@ describe("语言服务连接", () => {
 
   it("按文档路径并入最近的 jotl.config.json: 配置为准, 设置补充; 配置有误时报 JOTL7002 并忽略出错的项", async () => {
     await initialize({ registeredWidgets: ["Fancy", "ImagePicker"] });
-    const text = "A: {\n  a: ImagePicker\n  b: Fancy\n  c: string[widget: 'tag-list']\n}";
+    const text = "A: {\n  a: ImagePicker\n  b: Fancy\n  c: array[array_item: 'string', widget: 'tag-list']\n}";
     const uri = new URL("fixtures/config/pages/a.jotl", import.meta.url).href;
     expect((await open(text, uri)).diagnostics).toEqual([]);
     const preview = await client.sendRequest<PreviewContent | null>(PREVIEW_REQUEST_METHOD, { textDocument: { uri } });
@@ -222,6 +222,17 @@ describe("语言服务连接", () => {
     expect(opened.diagnostics[0]!.range.start).toEqual({ line: 0, character: 0 });
 
     expect((await open("A: { a: ImagePicker }")).diagnostics.map((d) => d.code)).toEqual([]);
+  });
+
+  it("配置为非大驼峰 widget 名写了底层类型时, 与字段类型不兼容报 JOTL1052; 只在设置中登记的名字不报", async () => {
+    client.dispose();
+    const files: Record<string, string> = { "/w/jotl.config.json": JSON.stringify({ widgets: { headline: "string", gauge: "number" } }) };
+    connect({ diagnosticsDelay: 0, configHost: { exists: (path) => path in files, readFile: (path) => files[path]! } });
+    await initialize({ registeredWidgets: ["counter"] });
+    const opened = await open("A: {\n  count: integer[widget: 'headline']\n  ratio: integer[widget: 'gauge']\n  n: string[widget: 'counter']\n}", "file:///w/a.jotl");
+    expect(opened.diagnostics.map((d) => [d.code, d.severity, d.message, d.range.start])).toEqual([
+      ["JOTL1052", 2, "widget `headline` 声明的底层类型 `string` 与字段类型 `integer` 不兼容", { line: 1, character: 25 }],
+    ]);
   });
 
   it("jotl.config.json 变更后重新诊断已打开的文档; 其他文件变更不触发", async () => {

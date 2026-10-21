@@ -57,7 +57,18 @@ import {
   orderIssue,
 } from "./meta-values.js";
 import { parseSource } from "./parser.js";
-import { BUILTIN_WIDGETS, type RefResolver, acceptsWidget, bigintSchema, defaultWidget, extensionBase, extensionConstraintKeys, moneySchema } from "./shapes.js";
+import {
+  BUILTIN_WIDGETS,
+  type RefResolver,
+  acceptsWidget,
+  bigintSchema,
+  defaultWidget,
+  extensionBase,
+  extensionConstraintKeys,
+  moneySchema,
+  valueKinds,
+  widgetTypeAccepts,
+} from "./shapes.js";
 import { checkDefaultValue, compareDecimal } from "./value-check.js";
 
 /** 写成字符串的底层类型中按 `{ type }` 处理的 JSON Schema 基本类型; 与 Jotl 组件同名时以此为准. */
@@ -136,6 +147,8 @@ export function readWidgetDeclaration(name: string, value: unknown): { declarati
 export interface CompileOptions {
   /** 已登记的扩展组件: 组件名 → 底层 schema(定稿 §4); 由调用方传入. */
   widgets?: Readonly<Record<string, JsonSchemaObject>>;
+  /** 写了底层类型的非大驼峰 widget 名 → 底层 schema; 不参与编译, 只用于检查 `widget` 元数据与字段类型是否兼容(JOTL1052). */
+  widgetTypes?: Readonly<Record<string, JsonSchemaObject>>;
 }
 
 export interface CompileFileOutput {
@@ -233,6 +246,11 @@ function defineKey(target: Record<string, unknown>, key: string, value: unknown)
   Object.defineProperty(target, key, { value, enumerable: true, writable: true, configurable: true });
 }
 
+/** 声明值写了底层类型: 底层类型名, schema 对象, 或带 `base` 的模块声明. */
+export function declaresWidgetType(value: unknown): boolean {
+  return !isSchemaObject(value) || !Object.hasOwn(value, "module") || Object.hasOwn(value, "base");
+}
+
 function compOf(entry: Entry): string {
   return entry.component?.name ?? (entry.body ? "object" : "string");
 }
@@ -244,6 +262,8 @@ class Compiler {
   private readonly defs: Record<string, JsonSchemaObject> = {};
   private readonly pending: PendingDefault[] = [];
   private readonly widgets: Record<string, JsonSchemaObject>;
+  /** 非大驼峰 widget 名 → 声明的底层 schema, 只供 JOTL1052 检查. */
+  private readonly widgetTypes: Record<string, JsonSchemaObject>;
   /** 根元数据 `widgets` 声明的扩展组件名(不含配置传入的). */
   private readonly fileWidgets = new Set<string>();
   /** 根元数据 `widgets` 中的模块声明, 写入根 `x-ui.widgets`. */
@@ -262,6 +282,7 @@ class Compiler {
     options: CompileOptions,
   ) {
     this.widgets = { ...options.widgets };
+    this.widgetTypes = { ...options.widgetTypes };
   }
 
   private report(diagnostic: Diagnostic): void {
@@ -375,7 +396,10 @@ class Compiler {
     return { root: valid(root), defaultExport: valid(defaultExport) };
   }
 
-  /** 根元数据 `widgets`: 大驼峰名登记为扩展组件, 覆盖配置传入的同名项; 模块声明记入根 `x-ui.widgets`; 要在编译各条目前完成. */
+  /**
+   * 根元数据 `widgets`: 大驼峰名登记为扩展组件, 覆盖配置传入的同名项; 其余名字写了底层类型的记为 widget 底层类型(不带 `base` 的模块声明视为没写);
+   * 模块声明记入根 `x-ui.widgets`; 要在编译各条目前完成.
+   */
   private declareWidgets(rootEntry: Entry): void {
     const member = rootEntry.meta?.members.find((m) => m.key.value === "widgets");
     if (member === undefined) return;
@@ -392,13 +416,18 @@ class Compiler {
         this.invalidValue("emptyWidget", {}, item.key.span);
         continue;
       }
-      const r = readWidgetDeclaration(name, this.toJson(item.value));
+      const value = this.toJson(item.value);
+      const r = readWidgetDeclaration(name, value);
       if ("issue" in r) {
         this.invalidValue(r.issue.reason, r.issue.params, item.value.span);
         continue;
       }
       if (r.declaration.module !== undefined) defineKey(this.modules, name, r.declaration.module);
-      if (!isTypeName(name)) continue;
+      if (!isTypeName(name)) {
+        if (declaresWidgetType(value)) defineKey(this.widgetTypes, name, r.declaration.schema);
+        else delete this.widgetTypes[name];
+        continue;
+      }
       if (!this.hasExtension(name)) this.fileWidgets.add(name);
       defineKey(this.widgets, name, r.declaration.schema);
     }
@@ -1401,6 +1430,7 @@ class Compiler {
       this.xUiIssue({ reason: "emptyWidget", params: {} }, item!.value.span);
       widget = undefined;
     }
+    if (widget !== undefined && !BUILTIN_WIDGETS.has(widget) && Object.hasOwn(this.widgetTypes, widget)) this.checkWidgetType(schema, widget, item!);
     const thousands = this.bool(m, "thousands");
     if (thousands !== undefined && thousands !== THOUSANDS_DEFAULTS[kind as ComponentName]) this.xUi(schema).thousands = thousands;
     if (kind === "ref" || kind === "ext") {
@@ -1415,6 +1445,15 @@ class Compiler {
     const forced = this.forcedWidget.has(schema);
     const chosen = widget ?? COMPONENT_WIDGETS[kind] ?? (forced ? kind : undefined);
     if (chosen !== undefined && (forced || chosen !== defaultWidget(schema, this.resolve))) this.xUi(schema).widget = chosen;
+  }
+
+  /** 非内置 widget 声明了底层类型时, 字段的数据形态应被底层类型接受(JOTL1052); 只报 warning, widget 照常写入. */
+  private checkWidgetType(schema: JsonSchemaObject, widget: string, item: MetaItem): void {
+    const base = this.widgetTypes[widget]!;
+    if (widgetTypeAccepts(base, schema)) return;
+    const label = (s: JsonSchemaObject) => valueKinds(s)!.join(" | ");
+    const params = { widget, base: label(base), type: label(schema) };
+    this.report(syntaxDiagnostic("JOTL1052", params, { location: { kind: "source", range: item.value.span.range } }));
   }
 
   /** 字段名, 供场景覆盖检查; 非对象为 undefined. */

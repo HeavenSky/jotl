@@ -227,3 +227,65 @@ export function extensionConstraintKeys(schema: JsonSchemaObject): readonly stri
   const base = extensionBase(schema);
   return base === undefined ? [] : EXTENSION_CONSTRAINT_KEYS[base];
 }
+
+/** 底层类型与字段类型兼容检查所比较的值类别: JSON 类型, money bigint 单列; 名字与同名内置组件一致. */
+export type ValueKind = "string" | "number" | "integer" | "boolean" | "array" | "object" | "money" | "bigint";
+
+const VALUE_KINDS: ReadonlySet<string> = new Set(["string", "number", "integer", "boolean", "array", "object"]);
+
+function scalarKind(value: unknown): ValueKind | "null" | undefined {
+  if (value === null) return "null";
+  if (typeof value === "number") return Number.isInteger(value) ? "integer" : "number";
+  if (typeof value === "string" || typeof value === "boolean") return typeof value as "string" | "boolean";
+  if (Array.isArray(value)) return "array";
+  return typeof value === "object" ? "object" : undefined;
+}
+
+function collectKinds(schema: JsonSchemaObject, out: Set<ValueKind>, depth: number): boolean {
+  if (depth > 16) return false;
+  const special = specialObjectKind(schema);
+  if (special !== undefined) {
+    out.add(special);
+    return true;
+  }
+  if (schema.type !== undefined) {
+    for (const t of Array.isArray(schema.type) ? schema.type : [schema.type]) {
+      if (t === "null") continue;
+      if (!VALUE_KINDS.has(t)) return false;
+      out.add(t as ValueKind);
+    }
+    return true;
+  }
+  const values = "const" in schema ? [schema.const] : Array.isArray(schema.enum) ? schema.enum : undefined;
+  if (values !== undefined) {
+    for (const v of values) {
+      const kind = scalarKind(v);
+      if (kind === undefined) return false;
+      if (kind !== "null") out.add(kind);
+    }
+    return true;
+  }
+  const branches = Array.isArray(schema.oneOf) ? schema.oneOf : Array.isArray(schema.anyOf) ? schema.anyOf : undefined;
+  if (branches === undefined) return false;
+  return branches.every((b) => isSchemaObject(b) && collectKinds(b, out, depth + 1));
+}
+
+/** schema 可取的值类别(不含 null); 无 type, 引用, 不可判定的组合等无法判断时为 undefined. */
+export function valueKinds(schema: JsonSchemaObject): ValueKind[] | undefined {
+  const out = new Set<ValueKind>();
+  return collectKinds(schema, out, 0) && out.size > 0 ? [...out] : undefined;
+}
+
+/** 各底层类别额外接受的字段类别: integer ⊂ number; 对象接受 money bigint 这类特定对象形态. */
+const KIND_WIDENS: Readonly<Partial<Record<ValueKind, readonly ValueKind[]>>> = {
+  number: ["integer"],
+  object: ["money", "bigint"],
+};
+
+/** 非内置 widget 的底层 schema 是否接受字段的数据形态: 字段每个类别都要被底层某个类别接受; 任一方无法判断时视为接受. */
+export function widgetTypeAccepts(base: JsonSchemaObject, schema: JsonSchemaObject): boolean {
+  const baseKinds = valueKinds(base);
+  const fieldKinds = valueKinds(schema);
+  if (baseKinds === undefined || fieldKinds === undefined) return true;
+  return fieldKinds.every((k) => baseKinds.some((b) => b === k || (KIND_WIDENS[b]?.includes(k) ?? false)));
+}

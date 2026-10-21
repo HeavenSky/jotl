@@ -1,9 +1,9 @@
 // 项目配置 jotl.config.json: 内容校验, 底层类型换算, 编译选项与配置文件自身的 schema.
 import { describe, expect, it } from "vitest";
-import type { JsonSchemaObject } from "../../src/schema/index.js";
+import { type JsonSchemaObject, setLocale } from "../../src/schema/index.js";
 import { compile, configCompileOptions, createJotlConfigJsonSchema, readJotlConfig } from "../../src/syntax/index.js";
 import { checkDefaultValue } from "../../src/syntax/value-check.js";
-import { FILE } from "./helpers.js";
+import { FILE, compileCodes } from "./helpers.js";
 
 describe("readJotlConfig", () => {
   it("底层类型: JSON Schema 基本类型名, 无体的 Jotl 内置组件名(去掉 x-ui)与 schema 对象", () => {
@@ -29,12 +29,19 @@ describe("readJotlConfig", () => {
   });
 
   it.each([null, [], "x"])("顶层不是对象 %j 时报错", (value) => {
-    expect(readJotlConfig(value)).toEqual({ config: { widgets: {}, modules: {} }, issues: [{ pointer: "", message: "配置必须是 JSON 对象" }] });
+    expect(readJotlConfig(value)).toEqual({ config: { widgets: {}, modules: {}, widgetTypes: {} }, issues: [{ pointer: "", message: "配置必须是 JSON 对象" }] });
   });
 
   it("widgets 不是对象时报错; 缺省时为空", () => {
     expect(readJotlConfig({ widgets: ["A"] }).issues.map((i) => i.pointer)).toEqual(["/widgets"]);
-    expect(readJotlConfig({})).toEqual({ config: { widgets: {}, modules: {} }, issues: [] });
+    expect(readJotlConfig({})).toEqual({ config: { widgets: {}, modules: {}, widgetTypes: {} }, issues: [] });
+  });
+
+  it("widgetTypes 只收写了底层类型的非大驼峰名; 不带 base 的模块声明视为没写", () => {
+    const { config } = readJotlConfig({
+      widgets: { ImagePicker: "url", headline: "string", rich: { module: "./rich.js" }, stepper: { base: "integer", module: "s" }, pick: { type: "string", format: "uri" } },
+    });
+    expect(config.widgetTypes).toEqual({ headline: { type: "string" }, stepper: { type: "integer" }, pick: { type: "string", format: "uri" } });
   });
 
   it("各次返回的 schema 互不共享", () => {
@@ -52,6 +59,90 @@ describe("configCompileOptions", () => {
     const schema = compile("A: { pic: ImagePicker }", FILE, options).value?.schema;
     expect((schema?.$defs?.["A"] as { properties: Record<string, unknown> } | undefined)?.properties["pic"]).toEqual({ type: "string", format: "uri", "x-ui": { widget: "ImagePicker" } });
     expect(configCompileOptions({ headline: { type: "string" } })).toEqual({});
+  });
+
+  it("写了底层类型的非大驼峰名作为 widgetTypes 传入, 只用于兼容检查", () => {
+    const { config } = readJotlConfig({ widgets: { ImagePicker: "url", headline: "string" } });
+    const options = configCompileOptions(config.widgets, config.widgetTypes);
+    expect(options).toEqual({ widgets: { ImagePicker: { type: "string", format: "uri" } }, widgetTypes: { headline: { type: "string" } } });
+    expect(compileCodes("A: { count: integer[widget: 'headline'] }", options)).toEqual(["JOTL1052"]);
+    expect(configCompileOptions({}, { Fancy: { type: "string" } })).toEqual({});
+  });
+});
+
+describe("widget 底层类型与字段类型的兼容检查(JOTL1052)", () => {
+  const widgetTypes: Record<string, JsonSchemaObject> = {
+    headline: { type: "string" },
+    gauge: { type: "number" },
+    stepper: { type: "integer" },
+    picker: { type: "string", format: "uri" },
+    either: { type: ["string", "number", "null"] },
+    card: { type: "object" },
+    wallet: readJotlConfig({ widgets: { w: "money" } }).config.widgets["w"]!,
+    loose: { anyOf: [{ $ref: "#/$defs/X" }] },
+    any: {},
+    levels: { enum: [1, 2, 3] },
+  };
+  const check = (text: string) => compileCodes(text, { widgetTypes });
+
+  it("不兼容时报 warning, 消息含 widget 名, 底层类型与字段类型, widget 照常写入", () => {
+    const result = compile("A: { count: integer[widget: 'headline'] }", FILE, { widgetTypes });
+    expect(result.diagnostics.map((d) => [d.code, d.severity, d.message])).toEqual([
+      ["JOTL1052", "warning", "widget `headline` 声明的底层类型 `string` 与字段类型 `integer` 不兼容"],
+    ]);
+    expect(result.diagnostics[0]!.location).toMatchObject({ kind: "source", range: { start: { column: 29 } } });
+    const count = (result.value!.schema.$defs!["A"] as JsonSchemaObject).properties!["count"];
+    expect(count).toMatchObject({ type: "integer", "x-ui": { widget: "headline" } });
+  });
+
+  it.each([
+    ["integer[widget: 'gauge']", []],
+    ["number[widget: 'gauge']", []],
+    ["number[widget: 'stepper']", ["JOTL1052"]],
+    ["url[widget: 'headline']", []],
+    ["string[widget: 'picker']", []],
+    ["string[nullable: true, widget: 'headline']", []],
+    ["enum[widget: 'headline'] { a, b }", []],
+    ["enum[widget: 'stepper'] { 1, 2.5 }", ["JOTL1052"]],
+    ["integer[widget: 'levels']", []],
+    ["string[widget: 'levels']", ["JOTL1052"]],
+    ["boolean[widget: 'either']", ["JOTL1052"]],
+    ["integer[nullable: true, widget: 'either']", []],
+    ["money[widget: 'card']", []],
+    ["object[widget: 'wallet']", ["JOTL1052"]],
+    ["array[array_item: 'string', widget: 'headline']", ["JOTL1052"]],
+    ["array[array_item: 'integer', item_meta: {widget: 'headline'}]", ["JOTL1052"]],
+    ["integer[widget: 'loose']", []],
+    ["integer[widget: 'any']", []],
+    ["any[widget: 'headline']", []],
+    ["string[widget: 'unknown-name']", []],
+  ])("x: %s → %j", (field, expected) => {
+    expect(check(`A: { x: ${field} }`)).toEqual(expected);
+  });
+
+  it("引用类型无法判断时不报; 扩展组件按其底层类型比较", () => {
+    expect(check("A: { x: B[widget: 'headline'] }\nB: { y: string }")).toEqual([]);
+    expect(compileCodes("A: { x: Count[widget: 'headline'] }", { widgets: { Count: { type: "integer" } }, widgetTypes })).toEqual(["JOTL1052"]);
+  });
+
+  it("内置 widget 名不按 widgetTypes 检查", () => {
+    expect(compileCodes("A: { x: integer[widget: 'number'] }", { widgetTypes: { number: { type: "string" } } })).toEqual([]);
+  });
+
+  it("根元数据 widgets 的非大驼峰名: 写了底层类型的参与检查并覆盖配置, 不带 base 的模块声明视为没写", () => {
+    expect(compileCodes("A: [widgets: {headline: 'string'}] { x: integer[widget: 'headline'] }")).toEqual(["JOTL1052"]);
+    expect(compileCodes("A: [widgets: {headline: 'integer'}] { x: integer[widget: 'headline'] }", { widgetTypes })).toEqual([]);
+    expect(compileCodes("A: [widgets: {headline: {module: 'm'}}] { x: integer[widget: 'headline'] }", { widgetTypes })).toEqual([]);
+    expect(compileCodes("A: [widgets: {headline: {base: 'string', module: 'm'}}] { x: integer[widget: 'headline'] }")).toEqual(["JOTL1052"]);
+  });
+
+  it("英文文案", () => {
+    setLocale("en");
+    try {
+      expect(compile("A: { count: integer[widget: 'headline'] }", FILE, { widgetTypes }).diagnostics[0]!.message).toBe("widget `headline` is declared with base type `string`, which is incompatible with field type `integer`");
+    } finally {
+      setLocale("zh-CN");
+    }
   });
 });
 
