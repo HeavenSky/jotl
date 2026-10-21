@@ -382,7 +382,7 @@ d?: string[node_if: 'href']
 ## 编译与打印
 
 - 编译结果满足下文的[规范化规则](#规范化规则)。
-- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；等于默认组件的 `x-ui.widget` 不会丢弃，该节点的整个 `x-ui` 经 `schema: {'x-ui': {...}}` 写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；输出嵌套超过 256 层或输入 JSON 嵌套超过 1024 层时不输出源码，报 JOTL1029。
+- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；等于默认组件的 `x-ui.widget` 不会丢弃，该节点的整个 `x-ui` 经 `schema: {'x-ui': {...}}` 写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；`widget` 为根 `widgets` 中登记的扩展组件、其底层为 `'integer'` 或 `{type: 'integer'}` 且缺少 `minimum` 或 `maximum` 的节点，打印为该组件（如 `Stars[minimum: 0]`），因为写成 `integer` 会补上安全整数上下界；输出源码嵌套会超过 256 层时不输出源码，在超限的节点或值处报 JOTL1029。是否超限在打印过程中判定：写入源码的数据值（`default`、`examples`、`x-ui` 各项、经 `schema` 保留的关键字）计入各自的嵌套，打印时会丢弃的数据（不合法的根 `x-ui`、节点内的 `$defs`）不计入，提升为顶层类型的联合对象分支仍按原位置计深。
 - v0 写法（`export type X = ...`、`@注解`、`= v`、`Enum` `Image` 等大写语义类型）不再接受；v0 源码先用旧版编译器编译，再用 `print` 打印，即得到 v1 源码。
 
 ## 诊断

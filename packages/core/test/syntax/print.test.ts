@@ -254,6 +254,45 @@ describe("常规 JSON Schema 选用语义相符的组件", () => {
     expect(codes(print(notChain).diagnostics)).not.toContain("JOTL1031");
   });
 
+  it("JSON 很深而源码不深时照常打印: 可空数组套可空对象每层 7 层 JSON 只占 1 层括号; 被忽略的深数据不影响", () => {
+    let a: JsonSchemaObject = { type: "object" };
+    for (let i = 0; i < 200; i++) {
+      a = { type: "object", properties: { x: { anyOf: [{ type: "array", items: { anyOf: [a, { type: "null" }] } }, { type: "null" }] } } };
+    }
+    expect(roundTrip(docOf(a))).toContain("  x?: array[item_meta: {nullable: true}, nullable: true] {\n");
+    let data: unknown = 1;
+    for (let i = 0; i < 2000; i++) data = { a: data };
+    const ignored = print({ ...docOf({ type: "object", properties: { s: { type: "string", $defs: { X: data as JsonSchemaObject } } } }), "x-ui": { version: 1, foo: data } } as never);
+    expect(ignored.value).toBe("A: {\n  s\n}\n");
+    expect(codes(ignored.diagnostics)).toEqual(["JOTL1032", "JOTL1032"]);
+  });
+
+  it("写进源码的深数据(default examples x-ui 与经 schema 写出的关键字)仍超过语法上限, 报 JOTL1029 并指向该值", () => {
+    let data: unknown = 1;
+    for (let i = 0; i < 2000; i++) data = { a: data };
+    const pointerOf = (x: JsonSchemaObject) => {
+      const printed = print(fieldDoc(x));
+      expect(printed.value).toBeUndefined();
+      expect(codes(printed.diagnostics)).toEqual(["JOTL1029"]);
+      const location = printed.diagnostics[0]!.location;
+      return location?.kind === "pointer" ? location.pointer : undefined;
+    };
+    expect(pointerOf({ type: "object", default: data } as never)).toBe("/$defs/A/properties/x/default");
+    expect(pointerOf({ type: "string", examples: [data] } as never)).toBe("/$defs/A/properties/x/examples");
+    expect(pointerOf({ type: "string", "x-ui": { props: data } } as never)).toBe("/$defs/A/properties/x/x-ui");
+    expect(pointerOf({ type: "string", items: data } as never)).toBe("/$defs/A/properties/x/items");
+  });
+
+  it("很长的 $ref 链与很深的联合分支链不耗尽调用栈", () => {
+    const defs: Record<string, JsonSchema> = { A20000: { type: "string" } };
+    for (let i = 0; i < 20000; i++) defs[`A${i}`] = { $ref: `#/$defs/A${i + 1}` };
+    const printed = print({ anyOf: [{ $ref: "#/$defs/A0" }, { type: "number" }], default: "x", $defs: defs });
+    expect(printed.value).toMatch(/^Root: union\[union_item: 'A0\|number', default: 'x'\]\n/);
+    let chain: JsonSchemaObject = { type: "string" };
+    for (let i = 0; i < 5000; i++) chain = { anyOf: [{ type: "object", properties: { a: chain } }, { type: "number" }] };
+    expect(codes(print(chain).diagnostics)).toEqual(["JOTL1029"]);
+  });
+
   it("default 不满足约束时组件不变, default 经 schema 写出", () => {
     const { line, schema } = convertField({ type: "integer", default: null });
     expect(line).toBe("x: integer[schema: {default: null}]");

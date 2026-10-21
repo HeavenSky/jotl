@@ -11,6 +11,8 @@ import {
 import { type SyntaxReason, syntaxReason } from "./diagnostics.js";
 
 const DEFS_PREFIX = "#/$defs/";
+/** 检查的递归层数上限(含 `$ref` 跳转与组合分支); 超过时整体按通过处理, 免得很长的引用链或极深的 schema 耗尽调用栈. */
+const MAX_CHECK_DEPTH = 1000;
 
 interface Issue {
   reason: SyntaxReason;
@@ -18,14 +20,24 @@ interface Issue {
   path: (string | number)[];
 }
 
+/** 迭代比较, 极深的值不会耗尽调用栈. */
 export function deepEqual(a: unknown, b: unknown): boolean {
-  if (a === b) return true;
-  if (Array.isArray(a)) return Array.isArray(b) && a.length === b.length && a.every((x, i) => deepEqual(x, b[i]));
-  if (isPlainObject(a) && isPlainObject(b)) {
-    const keys = Object.keys(a);
-    return keys.length === Object.keys(b).length && keys.every((k) => Object.hasOwn(b, k) && deepEqual(a[k], b[k]));
+  const pending: [unknown, unknown][] = [[a, b]];
+  while (pending.length > 0) {
+    const [x, y] = pending.pop()!;
+    if (x === y) continue;
+    if (Array.isArray(x)) {
+      if (!Array.isArray(y) || x.length !== y.length) return false;
+      for (let i = 0; i < x.length; i++) pending.push([x[i], y[i]]);
+    } else if (isPlainObject(x) && isPlainObject(y)) {
+      const keys = Object.keys(x);
+      if (keys.length !== Object.keys(y).length || !keys.every((k) => Object.hasOwn(y, k))) return false;
+      for (const k of keys) pending.push([x[k], y[k]]);
+    } else {
+      return false;
+    }
   }
-  return false;
+  return true;
 }
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
@@ -116,6 +128,9 @@ const CHECKED_KEYWORDS = new Set([
 
 class ValueChecker {
   private readonly refStack: { ref: string; value: unknown }[] = [];
+  private depth = 0;
+  /** 有分支超过层数上限而未检查; 取反与计数的分支会因此误判, 结果不可信. */
+  truncated = false;
 
   constructor(
     private readonly defs: Readonly<Record<string, JsonSchema>>,
@@ -149,6 +164,17 @@ class ValueChecker {
     if (schema === true) return undefined;
     if (schema === false) return { reason: "notInEnum", params: {}, path };
     if (!isSchemaObject(schema)) return undefined;
+    if (this.depth >= MAX_CHECK_DEPTH) {
+      this.truncated = true;
+      return undefined;
+    }
+    this.depth++;
+    const issue = this.checkKeywords(schema, value, path);
+    this.depth--;
+    return issue;
+  }
+
+  private checkKeywords(schema: JsonSchemaObject, value: unknown, path: (string | number)[]): Issue | undefined {
     return (
       this.checkRef(schema, value, path) ??
       this.checkType(schema, value, path) ??
@@ -208,29 +234,29 @@ class ValueChecker {
       return { reason: "noMatchingBranch", params: {}, path };
     }
     // 不支持的关键字按通过处理, 取反后会误报, 所以子 schema 只含能完整校验的关键字时才判定.
-    if (schema.not !== undefined && this.fullyCheckable(schema.not, new Set()) && this.check(schema.not, value, path) === undefined) {
+    if (schema.not !== undefined && this.fullyCheckable(schema.not, new Set(), 0) && this.check(schema.not, value, path) === undefined) {
       return { reason: "matchesNot", params: {}, path };
     }
     return undefined;
   }
 
-  /** schema 及其子 schema(含经 `$ref` 到达的)是否只含本检查器能完整判定的关键字. */
-  private fullyCheckable(schema: JsonSchema, seen: Set<string>): boolean {
+  /** schema 及其子 schema(含经 `$ref` 到达的)是否只含本检查器能完整判定的关键字; 超过层数上限时按不能判定处理. */
+  private fullyCheckable(schema: JsonSchema, seen: Set<string>, depth: number): boolean {
     if (typeof schema === "boolean") return true;
-    if (!isSchemaObject(schema)) return false;
+    if (!isSchemaObject(schema) || depth >= MAX_CHECK_DEPTH) return false;
     for (const [keyword, v] of Object.entries(schema)) {
       if (keyword === "$ref") {
         if (typeof v !== "string") return false;
         if (seen.has(v)) continue;
         seen.add(v);
         const target = this.resolve(v);
-        if (target === undefined || !this.fullyCheckable(target, seen)) return false;
+        if (target === undefined || !this.fullyCheckable(target, seen, depth + 1)) return false;
       } else if (SUBSCHEMA_KEYWORDS.has(keyword)) {
-        if (!this.fullyCheckable(v as JsonSchema, seen)) return false;
+        if (!this.fullyCheckable(v as JsonSchema, seen, depth + 1)) return false;
       } else if (SUBSCHEMA_LIST_KEYWORDS.has(keyword)) {
-        if (!Array.isArray(v) || !v.every((s) => this.fullyCheckable(s as JsonSchema, seen))) return false;
+        if (!Array.isArray(v) || !v.every((s) => this.fullyCheckable(s as JsonSchema, seen, depth + 1))) return false;
       } else if (keyword === "properties") {
-        if (!isPlainObject(v) || !Object.values(v).every((s) => this.fullyCheckable(s as JsonSchema, seen))) return false;
+        if (!isPlainObject(v) || !Object.values(v).every((s) => this.fullyCheckable(s as JsonSchema, seen, depth + 1))) return false;
       } else if (keyword === "format") {
         if (typeof v !== "string" || !Object.hasOwn(FORMAT_CHECKS, v)) return false;
       } else if (keyword === "pattern") {
@@ -410,7 +436,7 @@ export function compareDecimal(a: string, b: string): number {
  * 校验 type, const, enum, oneOf, anyOf, allOf, not, $ref, 字符串, 数值, 数组与对象约束, 以及 Jotl 的 x-decimals x-decimalRange x-valueFormat 与 JSON 文本;
  * 常用 format(见 FORMAT_CHECKS); 不校验经 `schema` 写入的其他关键字.
  * root 为所在文档时按它解析任意 `#...` 引用(含指向根的 `#`), 否则只解析 defs 中的 `#/$defs/X`.
- * 通过时返回 undefined, 否则返回面向使用者的原因.
+ * 通过时返回 undefined, 否则返回面向使用者的原因; 递归超过层数上限(很长的引用链等)时也按通过处理.
  */
 export function checkDefaultValue(
   schema: JsonSchema,
@@ -418,8 +444,9 @@ export function checkDefaultValue(
   defs: Readonly<Record<string, JsonSchema>>,
   root?: JsonSchema,
 ): string | undefined {
-  const issue = new ValueChecker(defs, root).check(schema, value, []);
-  if (issue === undefined) return undefined;
+  const checker = new ValueChecker(defs, root);
+  const issue = checker.check(schema, value, []);
+  if (issue === undefined || checker.truncated) return undefined;
   const detail = syntaxReason(issue.reason, issue.params);
   return issue.path.length === 0 ? detail : syntaxReason("atPath", { path: formatPointer(issue.path), detail });
 }

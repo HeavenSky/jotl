@@ -5,6 +5,7 @@ import {
   JSON_SCHEMA_DIALECT,
   type JsonPointer,
   type JsonSchema,
+  type JsonSchemaObject,
   type Result,
   type SourceSpan,
   appendPointer,
@@ -52,6 +53,7 @@ import {
   bigintSchema,
   decimalPattern,
   defaultWidget,
+  extensionConstraintKeys,
   moneyDigits,
   moneySchema,
   specialObjectKind,
@@ -86,8 +88,18 @@ interface Printed {
 }
 
 const DEFS_PREFIX = "#/$defs/";
-/** 输入 JSON 的嵌套层数上限; 超过时打印出的源码必然超过语法的嵌套上限. */
-const MAX_INPUT_DEPTH = 4 * MAX_NESTING;
+/**
+ * 节点的嵌套层数上限. 子节点多数在源码中多一层括号; 对象元素(体并入数组, map 或 jsontext)与联合中提升的对象分支不多占一层,
+ * 但其下的字段必然多一层, 所以源码每层括号至多对应两层节点, 超过时打印结果必然超过语法的嵌套上限.
+ */
+const MAX_NODE_DEPTH = 2 * MAX_NESTING;
+/**
+ * 节点上数据值(default, examples, x-ui 的各项等)的嵌套层数上限: 值写在元数据的方括号里, x-ui 的条件还原时最多少一层,
+ * 超过时打印出的源码必然超过语法的嵌套上限.
+ */
+const MAX_VALUE_DEPTH = MAX_NESTING + 1;
+/** 由打印器递归处理的子 schema 关键字; 其余关键字的值按数据检查嵌套层数. */
+const SUBSCHEMA_KEYWORDS: ReadonlySet<string> = new Set(["properties", "items", "prefixItems", "additionalProperties", "anyOf", "oneOf", "allOf", "contentSchema"]);
 const DEFAULT_ROOT_NAME = "Root";
 const NO_SPAN: SourceSpan = {
   range: { file: "", start: { line: 1, column: 1, offset: 0 }, end: { line: 1, column: 1, offset: 0 } },
@@ -209,6 +221,16 @@ function deeperThan(root: unknown, limit: number): boolean {
     for (const [, child] of childrenOf(value)) stack.push([child, depth + 1]);
   }
   return false;
+}
+
+/** 打印出的源码必然超过嵌套上限; 在递归深处抛出, 由 print 转为 JOTL1029. */
+class TooDeep {
+  constructor(readonly pointer: JsonPointer) {}
+}
+
+/** 数据值超过 MAX_VALUE_DEPTH 层时抛出 TooDeep; 先于递归处理该值的检查与转换, 免得极深的值耗尽调用栈. */
+function limitValueDepth(value: unknown, pointer: JsonPointer): void {
+  if (deeperThan(value, MAX_VALUE_DEPTH)) throw new TooDeep(pointer);
 }
 
 /** 枚举的 type: 缺省时编译器按成员值补出; number 可容纳全为整数的成员. */
@@ -405,8 +427,12 @@ class SchemaPrinter {
   /** 联合中的对象分支提升出的顶层类型, 按提升顺序; 按原节点对象去重, 重新打印同一节点时复用名字. */
   readonly promoted: { name: string; schema: JsonSchema; pointer: JsonPointer; title?: string }[] = [];
   private readonly promotedBy = new Map<object, string>();
+  /** 根元数据 `widgets` 写回时登记的扩展组件: 组件名 → 底层 schema. */
+  readonly extensions = new Map<string, JsonSchemaObject>();
   /** 正在打印的顶层类型名, 提升出的类型以它为前缀. */
   private owner = DEFAULT_ROOT_NAME;
+  /** 当前节点外层的节点数, 见 MAX_NODE_DEPTH. */
+  private depth = 0;
   private readonly resolve: RefResolver = (ref) => this.refs.get(ref)?.schema;
 
   constructor(
@@ -444,15 +470,23 @@ class SchemaPrinter {
     return name;
   }
 
-  /** 打印一个节点; 结构无法还原时整体经 `any[schema: {...}]` 写出. */
+  /** 打印一个节点; 结构无法还原时整体经 `any[schema: {...}]` 写出. 外层节点超过 MAX_NODE_DEPTH 时抛出 TooDeep, 不再往下递归. */
   node(schema: JsonSchema, pointer: JsonPointer, pos: Position): Printed {
+    if (this.depth > MAX_NODE_DEPTH) throw new TooDeep(pointer);
+    this.depth++;
+    const printed = this.nodeAt(schema, pointer, pos);
+    this.depth--;
+    return printed;
+  }
+
+  private nodeAt(schema: JsonSchema, pointer: JsonPointer, pos: Position): Printed {
     if (typeof schema === "boolean") {
       this.warn("JOTL1033", {}, pointer);
       return { comp: "any", metas: schema ? new Map() : new Map([["schema", { not: {} }]]), leftover: [] };
     }
     const s = schema as Raw;
     const opened = openEnum(s);
-    if (opened) return this.node(opened, pointer, pos);
+    if (opened) return this.nodeAt(opened, pointer, pos);
     const mark = this.mark();
     const type = s.type;
     if (Array.isArray(type) && type.length === 2 && type[1] === "null" && typeof type[0] === "string") {
@@ -507,6 +541,7 @@ class SchemaPrinter {
       rest.delete(keyword);
     }
     if (rest.size === 0) return;
+    for (const [keyword, v] of rest) limitValueDepth(v, appendPointer(pointer, keyword));
     out.leftover = [...rest.keys()];
     out.metas.set("schema", renameRefs(Object.fromEntries(rest), this.renamed));
   }
@@ -516,6 +551,9 @@ class SchemaPrinter {
    * nullable 为 merge / wrap 时要求组件分别可合并 / 不可合并为 `type: [T, "null"]`.
    */
   private plain(s: Raw, full: Raw, pointer: JsonPointer, pos: Position, nullable: NullableMode): Printed | undefined {
+    for (const [keyword, v] of Object.entries(s)) {
+      if (!SUBSCHEMA_KEYWORDS.has(keyword) && !RESERVED_SCHEMA_KEYWORDS.includes(keyword)) limitValueDepth(v, appendPointer(pointer, keyword));
+    }
     const rest = new Map(Object.entries(s));
     const out: Printed = { comp: "any", metas: new Map(), leftover: [] };
     if (pos !== "item" && isPrintableLabel(s.title)) {
@@ -533,6 +571,7 @@ class SchemaPrinter {
       if (out.comp === "image" || out.comp === "file") out.comp = "url";
     }
     this.common(s, full, rest, out, target);
+    this.extension(s, out);
     this.finishLeftover(rest, out, pointer);
     return out;
   }
@@ -706,7 +745,7 @@ class SchemaPrinter {
           Object.keys(b).some((k) => !allowed.includes(k)) ||
           Object.keys(props).length !== 1 ||
           b.required.length !== 1 ||
-          this.objectFieldsOf(target.schema, new Set()) === undefined
+          this.objectFieldsOf(target.schema) === undefined
         ) {
           return false;
         }
@@ -746,7 +785,7 @@ class SchemaPrinter {
     const kinds = new Map<string, number>();
     for (const [i, m] of list.entries()) {
       const branchPointer = appendPointer(pointer, keyword, i);
-      let kind = this.jsonKind(m as Raw, new Set());
+      let kind = this.jsonKind(m as Raw);
       if (keyword === "oneOf" && (kind === "money" || kind === "bigint")) kind = "object";
       if (keyword === "oneOf" && kind === undefined) return false;
       if (kind !== undefined) kinds.set(kind, (kinds.get(kind) ?? 0) + 1);
@@ -808,14 +847,23 @@ class SchemaPrinter {
     return merged;
   }
 
-  /** 与编译器的按 JSON 类型区分规则一致. */
-  private jsonKind(s: Raw, visiting: Set<string>): string | undefined {
-    if (typeof s.$ref === "string") {
-      const target = this.refs.get(s.$ref);
-      if (target === undefined || visiting.has(s.$ref) || !isSchemaObject(target.schema)) return undefined;
-      visiting.add(s.$ref);
-      return this.jsonKind(target.schema as Raw, visiting);
+  /** 沿 `$ref` 找到第一个不是引用的节点; 引用找不到, 成环或目标不是对象时为 undefined. 迭代跟随, 很长的引用链不会耗尽调用栈. */
+  private deref(schema: JsonSchema | undefined): Raw | undefined {
+    const visiting = new Set<string>();
+    let s = schema;
+    while (isSchemaObject(s) && typeof (s as Raw).$ref === "string") {
+      const ref = (s as Raw).$ref as string;
+      if (visiting.has(ref)) return undefined;
+      visiting.add(ref);
+      s = this.refs.get(ref)?.schema;
     }
+    return isSchemaObject(s) ? (s as Raw) : undefined;
+  }
+
+  /** 与编译器的按 JSON 类型区分规则一致. */
+  private jsonKind(schema: Raw): string | undefined {
+    const s = this.deref(schema);
+    if (s === undefined) return undefined;
     const special = specialObjectKind(s as never);
     if (special) return special;
     if (Object.keys(s).length === 0) return "any";
@@ -1119,14 +1167,9 @@ class SchemaPrinter {
   // ---- x-ui 与通用元数据 ----
 
   /** 对象(或指向对象的引用)的字段名. */
-  private objectFieldsOf(schema: JsonSchema | undefined, visiting: Set<string>): string[] | undefined {
-    if (!isSchemaObject(schema)) return undefined;
-    const s = schema as Raw;
-    if (typeof s.$ref === "string") {
-      if (visiting.has(s.$ref)) return undefined;
-      visiting.add(s.$ref);
-      return this.objectFieldsOf(this.refs.get(s.$ref)?.schema, visiting);
-    }
+  private objectFieldsOf(schema: JsonSchema | undefined): string[] | undefined {
+    const s = this.deref(schema);
+    if (s === undefined) return undefined;
     if (s.type !== "object" || specialObjectKind(s as never)) return undefined;
     if (!Object.hasOwn(s, "properties") && isSchemaObject(s.additionalProperties)) return undefined;
     return isSchemaObject(s.properties) ? Object.keys(s.properties) : [];
@@ -1134,9 +1177,9 @@ class SchemaPrinter {
 
   /** summary 适用的字段名: 对象本身, 对象元素的数组, 对象值的 map, 或引用. */
   private summaryFields(s: Raw, target: MetaTarget): string[] | undefined {
-    if (target === "array") return this.objectFieldsOf(s.items as JsonSchema, new Set());
-    if (target === "map") return this.objectFieldsOf(s.additionalProperties as JsonSchema, new Set());
-    return this.objectFieldsOf(s as JsonSchema, new Set());
+    if (target === "array") return this.objectFieldsOf(s.items as JsonSchema);
+    if (target === "map") return this.objectFieldsOf(s.additionalProperties as JsonSchema);
+    return this.objectFieldsOf(s as JsonSchema);
   }
 
   /** x-ui 能全部用元数据写出时写入并返回 true; 否则整个 x-ui 留给 schema. */
@@ -1146,7 +1189,7 @@ class SchemaPrinter {
     if (!isSchemaObject(x)) return false;
     const metas = new Map<string, unknown>();
     const xr = x as Raw;
-    const fields = target === "object" || target === "ref" ? this.objectFieldsOf(s as JsonSchema, new Set()) : undefined;
+    const fields = target === "object" || target === "ref" ? this.objectFieldsOf(s as JsonSchema) : undefined;
     // 形态按编译出的核心判断: any 编译为 {}.
     const shape = (target === "any" ? {} : s) as never;
     for (const [key, v] of Object.entries(xr)) {
@@ -1276,6 +1319,23 @@ class SchemaPrinter {
     }
   }
 
+  /**
+   * 底层为 `{type: integer}` 的扩展组件编译时不补安全整数上下界, 写成 `integer[widget: ...]` 却会补上;
+   * 缺少上界或下界时改写为该扩展组件, 输入中的上下界原样写出.
+   */
+  private extension(s: Raw, out: Printed): void {
+    const widget = out.metas.get("widget");
+    if (out.comp !== "integer" || typeof widget !== "string") return;
+    const base = this.extensions.get(widget);
+    if (base === undefined || !deepEqual(base, { type: "integer" })) return;
+    if (typeof s.minimum === "number" && typeof s.maximum === "number") return;
+    const allowed = extensionConstraintKeys(base);
+    if ([...out.metas.keys()].some((k) => k !== "widget" && !metaAppliesTo(k, "ext") && !allowed.includes(k))) return;
+    out.comp = widget;
+    out.metas.delete("widget");
+    for (const key of ["minimum", "maximum"]) if (typeof s[key] === "number") out.metas.set(key, s[key]);
+  }
+
   /** 顶层类型条目. */
   declaration(name: string, schema: JsonSchema, pointer: JsonPointer, extra: Map<string, unknown>, markers: Marker[]): Entry {
     this.owner = name;
@@ -1325,12 +1385,19 @@ function failWith(code: SyntaxDiagnosticCode, params: Record<string, string>, po
 export function print(schema: JsonSchema, options: PrintOptions = {}): Result<string> {
   const invalid = findNonJson(schema);
   if (invalid) return failWith("JOTL1031", { path: formatPointer(invalid) }, formatPointer(invalid));
-  // 打印与排版按节点递归, 先拦下极深输入, 免得调用栈耗尽.
-  if (deeperThan(schema, MAX_INPUT_DEPTH)) return failWith("JOTL1029", { max: String(MAX_NESTING) });
   if (typeof schema !== "boolean" && !isSchemaObject(schema)) return failWith("JOTL1030", {});
   const rootName = options.rootName ?? DEFAULT_ROOT_NAME;
   if (!isTypeName(rootName)) return failWith("JOTL1035", { name: rootName });
+  // 打印与排版按节点递归: 节点层数与数据值的层数一旦注定超过嵌套上限就中止, 免得极深的输入耗尽调用栈.
+  try {
+    return printDocument(schema, rootName, options);
+  } catch (e) {
+    if (e instanceof TooDeep) return failWith("JOTL1029", { max: String(MAX_NESTING) }, e.pointer);
+    throw e;
+  }
+}
 
+function printDocument(schema: JsonSchema, rootName: string, options: PrintOptions): Result<string> {
   const root: Raw = typeof schema === "boolean" ? {} : (schema as Raw);
   const rawDefs = root.$defs;
   const defs: Record<string, JsonSchema> = isSchemaObject(rawDefs) ? (rawDefs as Record<string, JsonSchema>) : {};
@@ -1347,13 +1414,26 @@ export function print(schema: JsonSchema, options: PrintOptions = {}): Result<st
     const xUi = root["x-ui"];
     const ok = isSchemaObject(xUi) && Object.keys(xUi).every((k) => ROOT_X_UI_KEYS.includes(k)) && (xUi as Raw).version === 1;
     if (ok && Object.hasOwn(xUi, "rules")) {
-      if (rulesIssue((xUi as Raw).rules) === undefined) rootMetas.set("rules", printRules((xUi as Raw).rules));
-      else printer.warn("JOTL1032", { keyword: "x-ui" }, "");
+      const rules = (xUi as Raw).rules;
+      if (rulesIssue(rules) === undefined) {
+        limitValueDepth(rules, "/x-ui/rules");
+        rootMetas.set("rules", printRules(rules));
+      } else {
+        printer.warn("JOTL1032", { keyword: "x-ui" }, "");
+      }
     }
     if (ok && Object.hasOwn(xUi, "widgets")) {
       const widgets = (xUi as Raw).widgets;
-      if (widgetModulesValid(widgets, defs)) rootMetas.set("widgets", widgets);
-      else printer.warn("JOTL1032", { keyword: "x-ui" }, "");
+      limitValueDepth(widgets, "/x-ui/widgets");
+      if (widgetModulesValid(widgets, defs)) {
+        rootMetas.set("widgets", widgets);
+        for (const [name, v] of Object.entries(widgets as Raw)) {
+          const r = readWidgetDeclaration(name, v);
+          if (isTypeName(name) && "declaration" in r) printer.extensions.set(name, r.declaration.schema);
+        }
+      } else {
+        printer.warn("JOTL1032", { keyword: "x-ui" }, "");
+      }
     }
     if (!ok) {
       printer.warn("JOTL1032", { keyword: "x-ui" }, "");

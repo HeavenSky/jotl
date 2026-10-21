@@ -172,6 +172,24 @@ describe("打印往返", () => {
     expect(compileCodes(reprinted)).toEqual([]);
     expect(compileCodes(reprinted.replace(/base: 'url', /, ""))).not.toEqual([]);
   });
+
+  it("底层为 integer 的扩展组件不补安全整数上下界: 缺上界或下界时写回组件名, 已有的界照写; 两界都有时仍为 integer[widget: ...]", () => {
+    const max = Number.MAX_SAFE_INTEGER;
+    for (const base of ["'integer'", "{type: 'integer'}"]) {
+      const source = `A: [widgets: {Stars: {base: ${base}, module: 'm'}}] {\n  a: Stars\n  b?: Stars[minimum: 0, nullable: true, default: 3]\n  c?: Stars[maximum: ${max}]\n  d?: integer[widget: 'Stars']\n}`;
+      const schema = compileDoc(source);
+      expect((schema.$defs!["A"] as JsonSchemaObject).properties!["a"]).toEqual({ type: "integer", "x-ui": { widget: "Stars" } });
+      const printed = print(schema);
+      expect(printed.diagnostics).toEqual([]);
+      expect(printed.value).toBe(`${source}\n`);
+      const compiled = compile(printed.value!, FILE);
+      expect(compiled.diagnostics).toEqual([]);
+      expect(compiled.value!.schema).toEqual(schema);
+    }
+    // 未登记为扩展组件的 widget 与无 widget 的 integer 一样, 编译补上下界.
+    const plain = print({ $schema: JSON_SCHEMA_DIALECT, $ref: "#/$defs/A", "x-ui": { version: 1 }, $defs: { A: { type: "integer", "x-ui": { widget: "Stars" } } } });
+    expect(plain.value).toBe("A: integer[widget: 'Stars']\n");
+  });
 });
 
 describe("x-ui meta-schema", () => {
