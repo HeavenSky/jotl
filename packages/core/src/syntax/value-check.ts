@@ -11,7 +11,7 @@ import {
 import { type SyntaxReason, syntaxReason } from "./diagnostics.js";
 
 const DEFS_PREFIX = "#/$defs/";
-/** 检查的递归层数上限(含 `$ref` 跳转与组合分支); 超过时整体按通过处理, 免得很长的引用链或极深的 schema 耗尽调用栈. */
+/** 检查的递归层数上限(含 `$ref` 跳转与组合分支, 纯别名的跳转不计); 超过时整体按通过处理, 免得极深的 schema 耗尽调用栈. */
 const MAX_CHECK_DEPTH = 1000;
 
 interface Issue {
@@ -134,7 +134,21 @@ const SUBSCHEMA_KEYWORDS = new Set([
 	"contentSchema",
 ]);
 const SUBSCHEMA_LIST_KEYWORDS = new Set(["oneOf", "anyOf", "allOf", "prefixItems"]);
-/** 检查器完整判定的标量关键字与不影响校验的注解关键字. */
+/** 不影响校验的注解关键字. */
+const ANNOTATION_KEYWORDS = [
+	"title",
+	"description",
+	"default",
+	"examples",
+	"deprecated",
+	"readOnly",
+	"writeOnly",
+	"$comment",
+	"$defs",
+	"$schema",
+	"$id",
+];
+/** 检查器完整判定的标量关键字与注解关键字. */
 const CHECKED_KEYWORDS = new Set([
 	"type",
 	"const",
@@ -156,18 +170,19 @@ const CHECKED_KEYWORDS = new Set([
 	"required",
 	"minProperties",
 	"maxProperties",
-	"title",
-	"description",
-	"default",
-	"examples",
-	"deprecated",
-	"readOnly",
-	"writeOnly",
-	"$comment",
-	"$defs",
-	"$schema",
-	"$id",
+	...ANNOTATION_KEYWORDS,
 ]);
+
+/** 只含 `$ref` 与注解(含未判定的 `x-` 扩展)的纯别名节点, 跟随它等价于直接检查引用目标. */
+function isPureAlias(schema: JsonSchema): schema is JsonSchemaObject & { $ref: string } {
+	if (!isSchemaObject(schema) || typeof schema.$ref !== "string") return false;
+	return Object.keys(schema).every(
+		k =>
+			k === "$ref" ||
+			ANNOTATION_KEYWORDS.includes(k) ||
+			(k.startsWith("x-") && !CHECKED_KEYWORDS.has(k))
+	);
+}
 
 class ValueChecker {
 	private readonly refStack: { ref: string; value: unknown }[] = [];
@@ -204,6 +219,20 @@ class ValueChecker {
 			if (node === undefined) return undefined;
 		}
 		return typeof node === "boolean" || isSchemaObject(node) ? (node as JsonSchema) : undefined;
+	}
+
+	/**
+	 * 解析引用并循环跳过纯别名节点, 这些跳转不计层数, 很长的别名链不会提前截断; 返回第一个不是纯别名的目标, 无法解析时返回 undefined.
+	 * 跳到 seen 中已有的引用(纯别名环)时返回 true: 环上没有约束.
+	 */
+	private resolveAliases(ref: string, seen: Set<string>): JsonSchema | undefined {
+		let target = this.resolve(ref);
+		while (target !== undefined && isPureAlias(target)) {
+			if (seen.has(target.$ref)) return true;
+			seen.add(target.$ref);
+			target = this.resolve(target.$ref);
+		}
+		return target;
 	}
 
 	check(schema: JsonSchema, value: unknown, path: (string | number)[]): Issue | undefined {
@@ -246,9 +275,9 @@ class ValueChecker {
 	): Issue | undefined {
 		const ref = schema.$ref;
 		if (ref === undefined) return undefined;
-		const target = this.resolve(ref);
+		const target = this.resolveAliases(ref, new Set([ref]));
 		if (target === undefined) return undefined;
-		// 纯别名环(type A = B, type B = A)不消耗数据, 遇到同一引用与同一值时停止.
+		// 引用环不消耗数据时(纯别名环已在跳转时排除), 遇到同一引用与同一值时停止.
 		if (this.refStack.some(e => e.ref === ref && e.value === value)) return undefined;
 		this.refStack.push({ ref, value });
 		const issue = this.check(target, value, path);
@@ -325,7 +354,7 @@ class ValueChecker {
 				if (typeof v !== "string") return false;
 				if (seen.has(v)) continue;
 				seen.add(v);
-				const target = this.resolve(v);
+				const target = this.resolveAliases(v, seen);
 				if (target === undefined || !this.fullyCheckable(target, seen, depth + 1))
 					return false;
 			} else if (SUBSCHEMA_KEYWORDS.has(keyword)) {
@@ -582,7 +611,7 @@ export function compareDecimal(a: string, b: string): number {
  * 校验 type, const, enum, oneOf, anyOf, allOf, not, $ref, 字符串, 数值, 数组与对象约束, 以及 Jotl 的 x-decimals x-decimalRange x-valueFormat 与 JSON 文本;
  * 常用 format(见 FORMAT_CHECKS); 不校验经 `schema` 写入的其他关键字.
  * root 为所在文档时按它解析任意 `#...` 引用(含指向根的 `#`), 否则只解析 defs 中的 `#/$defs/X`.
- * 通过时返回 undefined, 否则返回面向使用者的原因; 递归超过层数上限(很长的引用链等)时也按通过处理.
+ * 通过时返回 undefined, 否则返回面向使用者的原因; 递归超过层数上限(极深的嵌套等)时也按通过处理.
  */
 export function checkDefaultValue(
 	schema: JsonSchema,
