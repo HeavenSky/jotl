@@ -1,5 +1,7 @@
 # Changelog
 
+**English** · [简体中文](./zh/CHANGELOG.md)
+
 ## v0.0.2 2026-10-21 Stricter diagnostics
 
 - New diagnostics: an empty discriminated union, string constraints on a timestamp `value_format` field, and a `node_if` path starting with `$.` (use `root_if` to read from the root).

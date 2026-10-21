@@ -89,7 +89,7 @@ export interface Profile {
 
 - [使用指南](docs/README.md)：项目 widget、widget 模块，以及控制它们的设置
 - [Jotl 语法规范](../../../zh/docs/spec/jotl.md)和 [`x-ui` 规范](../../../zh/docs/spec/x-ui.md)
-- [更新记录](../CHANGELOG.md)（英文）
+- [更新日志](CHANGELOG.md)
 
 ## 许可证
 
