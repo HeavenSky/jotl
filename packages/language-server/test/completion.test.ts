@@ -267,6 +267,38 @@ describe("item_meta 与 variants 内的补全", () => {
     expect(nestedKeys).not.toContain("minimum");
   });
 
+  it("item_meta 写在类型串之前时向后找同级的类型串", () => {
+    const before = labels("A: { a: array[item_meta: {‸}, array_item: 'number'] }");
+    expect(before).toEqual(expect.arrayContaining(["minimum", "decimals"]));
+    expect(before).not.toContain("closed");
+    expect(labels("A: { a: array[item_meta: {widget: '‸'}, array_item: 'boolean'] }")).toEqual(["switch", "checkbox", "output", "json"]);
+    expect(labels("A: { a: union[item_meta: {string: {}, ‸}, union_item: 'number|string'] }")).toEqual(["number"]);
+    const nested = labels("A: { a: array[item_meta: {item_meta: {‸}, array_item: 'string'}, array_item: 'array'] }");
+    expect(nested).toEqual(expect.arrayContaining(["minLength", "pattern"]));
+    expect(nested).not.toContain("minimum");
+  });
+
+  it("类型串写在 item_meta 之后时只认同级成员, 前面已有的优先", () => {
+    expect(labels("A: { a: array[item_meta: {x: {array_item: 'number'}, ‸}] { x: string } }")).toEqual(expect.arrayContaining(["closed", "order"]));
+    expect(labels("A: { a: array[item_meta: {‸}] { b: array[array_item: 'number'] } }")).toEqual(expect.arrayContaining(["closed", "order"]));
+    const first = labels("A: { a: array[array_item: 'string', item_meta: {‸}, array_item: 'number'] }");
+    expect(first).toContain("minLength");
+    expect(first).not.toContain("minimum");
+  });
+
+  it("源码不完整时找不到后续类型串, 按无类型串处理且不报错", () => {
+    for (const source of [
+      "A: { a: array[item_meta: {‸",
+      "A: { a: array[item_meta: {‸, array_item: 'number'",
+      "A: { a: array[item_meta: {‸}, array_item: 'num",
+      "A: { a: array[item_meta: {‸}, /* array_item: 'number'",
+      "A: { a: array[item_meta: {‸}, array_item: ",
+    ]) {
+      expect(labels(source)).toEqual(expect.arrayContaining(["closed", "order"]));
+    }
+    expect(labels("A: { a: array[item_meta: {‸}, array_item: 'number'")).toEqual(expect.arrayContaining(["minimum"]));
+  });
+
   it("按名字分键的 item_meta: 键补类型串中的名字, 各分支内按该名字补元数据键", () => {
     expect(labels("A: { a: union[union_item: 'number|string', item_meta: {string: {}, ‸}] }")).toEqual(["number"]);
     const result = labels("A: { a: union[union_item: 'number|string', item_meta: {string: {‸}}] }");

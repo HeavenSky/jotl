@@ -101,12 +101,83 @@ function nested(role: MembersFrame["role"], component: string | undefined, condi
   return { ...members("object", condition), role, component, itemTypes };
 }
 
-/** 元数据对象值 `{` 的帧; 没有类型串的 `item_meta` 是元素对象或分支对象的元数据. */
-function objectValueFrame(parent: MembersFrame, condition: boolean): MembersFrame {
+/** 字符串从开引号之后的 from 起, 返回结束引号之后的偏移; 到文本末尾仍未结束时返回 undefined; 换行处视为字符串结束. */
+function skipString(text: string, from: number, quote: string): number | undefined {
+  for (let i = from; i < text.length; i++) {
+    const ch = text[i];
+    if (ch === "\\") i++;
+    else if (ch === quote) return i + 1;
+    else if (ch === "\n" || ch === "\r") return i;
+  }
+  return undefined;
+}
+
+/**
+ * `item_meta` 写在 `*_item` 之前时向后找类型串: 从 item_meta 值的 `{` 起扫完整源码, 跳过该值后在同级成员中找 `*_item: '...'`, 遇到所在元数据的闭括号为止.
+ * 源码不完整(值未闭合, 字符串或注释到文件末尾)时找不到, 返回 undefined.
+ */
+function followingItemTypes(text: string, open: number): string[] | undefined {
+  let depth = 0;
+  let key: string | undefined;
+  let colon = false;
+  let i = open;
+  while (i < text.length) {
+    const ch = text[i]!;
+    if (/\s/u.test(ch)) {
+      i++;
+      continue;
+    }
+    if (ch === "/" && text[i + 1] === "/") {
+      const newline = text.slice(i).search(/[\r\n]/);
+      if (newline < 0) return undefined;
+      i += newline;
+      continue;
+    }
+    if (ch === "/" && text[i + 1] === "*") {
+      const close = text.indexOf("*/", i + 2);
+      if (close < 0) return undefined;
+      i = close + 2;
+      continue;
+    }
+    let tok: string | undefined;
+    if (ch === '"' || ch === "'") {
+      const stop = skipString(text, i + 1, ch);
+      if (stop === undefined) return undefined;
+      tok = text.slice(i + 1, stop - 1);
+      i = stop;
+    } else {
+      IDENT_RE.lastIndex = i;
+      const ident = IDENT_RE.exec(text);
+      i += ident ? ident[0].length : 1;
+      if (ident) tok = ident[0];
+      else if (ch === "{" || ch === "[") depth++;
+      else if (ch === "}" || ch === "]") {
+        depth--;
+        if (depth < 0) return undefined;
+      }
+    }
+    if (depth !== 0) continue;
+    // 同级成员: 键, `:`, 取值; 只认取值为字符串的 `*_item`.
+    if (tok !== undefined && colon) {
+      if (TYPE_STRING_KEYS.has(key ?? "") && /['"]/.test(ch)) return tok.split("|").map((name) => name.trim());
+      key = undefined;
+      colon = false;
+    } else if (tok !== undefined) key = tok;
+    else if (ch === ":") colon = key !== undefined;
+    else {
+      key = undefined;
+      colon = false;
+    }
+  }
+  return undefined;
+}
+
+/** 元数据对象值 `{` 的帧; 没有类型串的 `item_meta` 是元素对象或分支对象的元数据; 类型串写在 item_meta 之后时向后找. */
+function objectValueFrame(parent: MembersFrame, condition: boolean, source: string, open: number): MembersFrame {
   const key = parent.key ?? "";
   if (isMetaLike(parent) && key === "variants") return nested("variants", parent.component, condition);
   if (isMetaLike(parent) && key === "item_meta") {
-    const names = parent.itemTypes;
+    const names = parent.itemTypes ?? followingItemTypes(source, open);
     if (names !== undefined && names.length > 1) return nested("keyedItemMeta", undefined, condition, names);
     const component = names === undefined ? "object" : names[0] === "tuple" ? undefined : names[0];
     return nested("itemMeta", component, condition);
@@ -121,8 +192,14 @@ class PrefixScanner {
   /** 刚读完条目键, 下一个 `(` 是标签. */
   private labelAllowed = false;
 
-  /** text 只含光标之前的部分. */
-  constructor(private readonly text: string) {}
+  /** 当前记号的起点偏移. */
+  private pos = 0;
+
+  /** text 只含光标之前的部分; source 为完整源码, 只用于向后找 item_meta 的类型串. */
+  constructor(
+    private readonly text: string,
+    private readonly source: string,
+  ) {}
 
   get top(): Frame {
     return this.stack[this.stack.length - 1]!;
@@ -134,6 +211,7 @@ class PrefixScanner {
     let i = 0;
     while (i < end) {
       const ch = text[i]!;
+      this.pos = i;
       if (/\s/u.test(ch)) {
         i++;
         continue;
@@ -193,13 +271,7 @@ class PrefixScanner {
 
   /** 返回结束引号之后的偏移; 到光标仍未结束时返回 undefined; 换行处视为字符串结束. */
   private skipString(from: number, quote: string): number | undefined {
-    for (let i = from; i < this.text.length; i++) {
-      const ch = this.text[i];
-      if (ch === "\\") i++;
-      else if (ch === quote) return i + 1;
-      else if (ch === "\n" || ch === "\r") return i;
-    }
-    return undefined;
+    return skipString(this.text, from, quote);
   }
 
   /** 标签到配对的 `)`, 允许成对嵌套, `\(` `\)` `\\` 为转义; 换行处视为标签结束. */
@@ -307,7 +379,7 @@ class PrefixScanner {
   }
 
   private valueToken(tok: Token, condition: boolean, parent?: MembersFrame): void {
-    if (isPunct(tok, "{")) this.stack.push(parent === undefined ? members("object", condition) : objectValueFrame(parent, condition));
+    if (isPunct(tok, "{")) this.stack.push(parent === undefined ? members("object", condition) : objectValueFrame(parent, condition, this.source, this.pos));
     else if (isPunct(tok, "[")) this.stack.push({ kind: "array", condition });
   }
 
@@ -349,7 +421,7 @@ export function completionSite(text: string, offset: number): CompletionSite {
   let wordStart = cursor - word.length;
   const markerStart = text[wordStart - 1] === "<" ? wordStart - 1 : undefined;
   if (markerStart !== undefined) wordStart = markerStart;
-  const scanner = new PrefixScanner(text.slice(0, wordStart));
+  const scanner = new PrefixScanner(text.slice(0, wordStart), text);
   const end = scanner.scan();
   const top = scanner.top;
   const none = { context: { kind: "none" } as const, replaceStart: wordStart };
