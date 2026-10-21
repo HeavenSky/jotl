@@ -1,4 +1,5 @@
 // 语义检查(定稿 §15): 顶层名, 标识, 重复, 未知组件与元数据, 适用性, 体, 类型串, 联合, 默认值与 widget 降级.
+import type { JsonSchemaObject } from "../../src/schema/index.js";
 import { compile } from "../../src/syntax/index.js";
 import { describe, expect, it } from "vitest";
 import { FILE, compileCodes, fieldCodes, located } from "./helpers.js";
@@ -67,6 +68,25 @@ describe("组件与引用", () => {
 		expect(fieldCodes(": { a: string, a: number }")).toEqual(["JOTL1005"]);
 		expect(fieldCodes(": string[maxLength: 1, maxLength: 2]")).toEqual(["JOTL1005"]);
 		expect(fieldCodes(": string[props: {a: 1, a: 2}]")).toEqual(["JOTL1005"]);
+	});
+
+	it("沿很长的别名链取字段名, 判断枚举与 JSON 类型, 不爆栈", () => {
+		const text = (n: number) => {
+			const chain = (p: string, end: string) =>
+				`${Array.from({ length: n }, (_, i) => `${p}${i}: ${p}${i + 1}`).join("\n")}\n${p}${n}: ${end}`;
+			return [
+				"Root: {\n  a: A0[summary: 'x']\n  b: A0[summary: 'y']\n  e: E0[multiple: true]\n  s: S0[multiple: true]",
+				"  u: union[union_item: 'S0|string']\n  d: union[discriminator: 'k'] { 1: A0 }",
+				"  c: C0[summary: 'x']\n  f: C0[multiple: true]\n}",
+				chain("A", "{ x: string }"),
+				chain("E", "enum{ a b }"),
+				chain("S", "string"),
+				chain("C", "C0"),
+			].join("\n");
+		};
+		const expected = ["JOTL1017", "JOTL1012", "JOTL1043", "JOTL1012"];
+		expect(compileCodes(text(3))).toEqual(expected);
+		expect(compileCodes(text(20000))).toEqual(expected);
 	});
 });
 
@@ -168,6 +188,54 @@ describe("元数据", () => {
 		expect(fieldCodes(": string[widget: 'my-editor']")).toEqual([]);
 	});
 
+	it("场景覆盖中的 widget 同样检查适用性(JOTL1045 JOTL1052), 诊断落在各场景的 widget 值上, 覆盖照常写入", () => {
+		const result = compile(
+			"A: {\n  n: integer[variants: {m: {widget: 'textarea'}, p: {hidden: true, widget: 'radio'}}]\n}",
+			FILE
+		);
+		expect(result.diagnostics.map(d => [d.code, d.severity])).toEqual([
+			["JOTL1045", "warning"],
+			["JOTL1045", "warning"],
+		]);
+		expect(located(result.diagnostics)).toEqual([
+			{ code: "JOTL1045", line: 2, column: 37 },
+			{ code: "JOTL1045", line: 2, column: 76 },
+		]);
+		expect(result.value?.schema.$defs?.A).toMatchObject({
+			properties: {
+				n: {
+					"x-ui": {
+						variants: {
+							m: { widget: "textarea" },
+							p: { hidden: true, widget: "radio" },
+						},
+					},
+				},
+			},
+		});
+		const widgetTypes = {
+			headline: { type: "string" },
+			gauge: { type: "number" },
+		} satisfies Record<string, JsonSchemaObject>;
+		expect(
+			fieldCodes(": integer[variants: {m: {widget: 'headline'}}]", "", { widgetTypes })
+		).toEqual(["JOTL1052"]);
+		expect(
+			fieldCodes(": integer[variants: {m: {widget: 'gauge'}}]", "", { widgetTypes })
+		).toEqual([]);
+		expect(
+			fieldCodes(": integer[variants: {m: {widget: 'range'}, p: {widget: 'json'}}]")
+		).toEqual([]);
+		expect(
+			fieldCodes(": enum[multiple: true, variants: {m: {widget: 'checkbox'}}]{ a b }")
+		).toEqual([]);
+		expect(fieldCodes(": integer[variants: {m: {decorator: 'card'}}]")).toEqual([]);
+		expect(fieldCodes(": integer[variants: {m: {widget: 'MyEditor'}}]")).toEqual([]);
+		expect(fieldCodes(": B[variants: {m: {widget: 'textarea'}}]", "B: enum{ a b }")).toEqual(
+			[]
+		);
+	});
+
 	it("summary 用在元素确定不是对象的 array / map 上报 warning, 照常写入", () => {
 		const result = compile("A: array[array_item: 'string', summary: 'x']", FILE);
 		expect(result.diagnostics.map(d => [d.code, d.severity])).toEqual([
@@ -246,6 +314,16 @@ describe("元数据", () => {
 		expect(
 			fieldCodes(": [default: {y: {x: {}}}, schema: {properties: {y: {$ref: '#'}}}] {}")
 		).toEqual([]);
+	});
+
+	it("默认值检查跟随很长的别名链", () => {
+		for (const n of [1100, 5000, 20000]) {
+			const chain = Array.from({ length: n }, (_, i) => `A${i}: A${i + 1}`).join("\n");
+			const text = (value: string) =>
+				`Root: {\n  a: A0[default: ${value}]\n}\n${chain}\nA${n}: string`;
+			expect(compileCodes(text("5"))).toEqual(["JOTL1008"]);
+			expect(compileCodes(text("'x'"))).toEqual([]);
+		}
 	});
 });
 

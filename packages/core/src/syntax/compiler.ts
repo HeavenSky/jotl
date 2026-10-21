@@ -298,6 +298,10 @@ export function declaresWidgetType(value: unknown): boolean {
 	);
 }
 
+function isAliasNext(value: unknown): value is { next: string } {
+	return typeof value === "object" && value !== null && "next" in value;
+}
+
 function compOf(entry: Entry): string {
 	return entry.component?.name ?? (entry.body ? "object" : "string");
 }
@@ -319,9 +323,13 @@ class Compiler {
 	private readonly forcedWidget = new WeakSet<JsonSchemaObject>();
 	private errorCount = 0;
 	private rootExtras: { rules?: JsonValue; id?: string } = {};
+	/** 沿别名链求得的结果, 按声明名缓存; 声明与扩展组件在编译各条目前已确定. */
+	private readonly fieldsCache = new Map<string, readonly string[] | undefined>();
+	private readonly enumCache = new Map<string, boolean>();
+	private readonly kindCache = new Map<string, string | undefined>();
 	private readonly resolve: RefResolver = ref => {
 		const name = ref.startsWith("#/$defs/") ? ref.slice("#/$defs/".length) : undefined;
-		return name !== undefined && this.isEnumDecl(name, new Set()) ? { enum: [] } : {};
+		return name !== undefined && this.isEnumDecl(name) ? { enum: [] } : {};
 	};
 
 	constructor(
@@ -1282,7 +1290,7 @@ class Compiler {
 		const itemValue = arrayItem ? this.json(arrayItem) : undefined;
 		if (itemValue === "tuple") return this.tuple(input, pointer);
 		const schema: JsonSchemaObject = { type: "array" };
-		let elementFields: string[] | undefined;
+		let elementFields: readonly string[] | undefined;
 		if (arrayItem) {
 			if (input.body) this.error("JOTL1041", { component: input.comp }, input.body.span);
 			schema.items = this.typeString(
@@ -1320,7 +1328,7 @@ class Compiler {
 		if (item === undefined || typeof typeString !== "string") return;
 		const names = typeString.split("|").map(n => n.trim());
 		if (names.length !== 1) return;
-		const kind = this.jsonKindOf(names[0]!, new Set());
+		const kind = this.jsonKindOf(names[0]!);
 		if (kind === "string" || kind === "number" || kind === "boolean" || kind === "array") {
 			this.report(
 				syntaxDiagnostic(
@@ -1333,10 +1341,10 @@ class Compiler {
 	}
 
 	/** 类型串为单个对象类型名时的字段名. */
-	private typeStringFields(value: unknown): string[] | undefined {
+	private typeStringFields(value: unknown): readonly string[] | undefined {
 		if (typeof value !== "string") return undefined;
 		const name = value.trim();
-		return isTypeName(name) ? this.declFields(name, new Set()) : undefined;
+		return isTypeName(name) ? this.declFields(name) : undefined;
 	}
 
 	private tuple(input: TypeInput, pointer: JsonPointer): JsonSchemaObject {
@@ -1396,7 +1404,7 @@ class Compiler {
 		const m = input.metas;
 		const mapItem = m.get("map_item");
 		const schema: JsonSchemaObject = { type: "object" };
-		let valueFields: string[] | undefined;
+		let valueFields: readonly string[] | undefined;
 		const valuePointer = appendPointer(pointer, "additionalProperties");
 		if (mapItem) {
 			if (input.body) this.error("JOTL1041", { component: input.comp }, input.body.span);
@@ -1526,11 +1534,7 @@ class Compiler {
 				out.push(branch);
 				continue;
 			}
-			if (
-				isTypeName(comp) &&
-				this.decls.has(comp) &&
-				this.declFields(comp, new Set()) !== undefined
-			) {
+			if (isTypeName(comp) && this.decls.has(comp) && this.declFields(comp) !== undefined) {
 				if (entry.body) this.error("JOTL1044", { name: comp }, entry.body.span);
 				for (const member of entry.meta?.members ?? [])
 					this.error(
@@ -1601,7 +1605,7 @@ class Compiler {
 		const target: JsonSchemaObject = { $ref: `#${appendPointer(DEFS_POINTER, input.comp)}` };
 		const multipleItem = m.get("multiple");
 		const multiple = this.bool(m, "multiple") === true;
-		if (multiple && !this.isEnumDecl(input.comp, new Set())) {
+		if (multiple && !this.isEnumDecl(input.comp)) {
 			this.error(
 				"JOTL1012",
 				{ name: "multiple", reason: syntaxReason("multipleNeedsEnum") },
@@ -1610,7 +1614,7 @@ class Compiler {
 		}
 		if (!multiple) {
 			this.requireMultiple(m);
-			this.summary(target, m, this.declFields(input.comp, new Set()));
+			this.summary(target, m, this.declFields(input.comp));
 			return target;
 		}
 		this.register(appendPointer(pointer, "items"), input.host);
@@ -1626,32 +1630,69 @@ class Compiler {
 		return schema;
 	}
 
-	/** 顶层类型的字段名; 不是对象时返回 undefined. */
-	private declFields(name: string, visiting: Set<string>): string[] | undefined {
-		const entry = this.decls.get(name);
-		if (entry === undefined || visiting.has(name)) return undefined;
-		visiting.add(name);
-		const comp = compOf(entry);
-		if (comp === "object") return entry.body?.entries.map(e => e.key.name) ?? [];
-		if (isTypeName(comp) && !entry.meta?.members.some(mm => mm.key.value === "multiple"))
-			return this.declFields(comp, visiting);
-		return undefined;
+	/**
+	 * 沿纯别名链 `A: B` 循环下行: step 给出该层的结果, 或返回 { next } 继续下一层; 成环时为 cyclic.
+	 * 同一链上各名字的结果相同, 一次编译内按名字缓存, 总耗时与链长成线性.
+	 */
+	private followAliases<T>(
+		cache: Map<string, T>,
+		name: string,
+		cyclic: T,
+		step: (name: string) => T | { next: string }
+	): T {
+		const path: string[] = [];
+		const visiting = new Set<string>();
+		let result: T;
+		for (let current = name; ;) {
+			if (cache.has(current)) {
+				result = cache.get(current)!;
+				break;
+			}
+			if (visiting.has(current)) {
+				result = cyclic;
+				break;
+			}
+			visiting.add(current);
+			path.push(current);
+			const r = step(current);
+			if (!isAliasNext(r)) {
+				result = r;
+				break;
+			}
+			current = r.next;
+		}
+		for (const n of path) cache.set(n, result);
+		return result;
 	}
 
-	private isEnumDecl(name: string, visiting: Set<string>): boolean {
-		const entry = this.decls.get(name);
-		if (entry === undefined || visiting.has(name)) return false;
-		visiting.add(name);
-		const comp = compOf(entry);
-		const multiple = entry.meta?.members.some(
-			mm =>
-				mm.key.value === "multiple" &&
-				mm.value.kind === "LiteralValue" &&
-				mm.value.value === true
-		);
-		if (multiple) return false;
-		if (comp === "enum") return true;
-		return isTypeName(comp) && this.isEnumDecl(comp, visiting);
+	/** 顶层类型的字段名; 不是对象时返回 undefined. */
+	private declFields(name: string): readonly string[] | undefined {
+		return this.followAliases(this.fieldsCache, name, undefined, n => {
+			const entry = this.decls.get(n);
+			if (entry === undefined) return undefined;
+			const comp = compOf(entry);
+			if (comp === "object") return entry.body?.entries.map(e => e.key.name) ?? [];
+			if (isTypeName(comp) && !entry.meta?.members.some(mm => mm.key.value === "multiple"))
+				return { next: comp };
+			return undefined;
+		});
+	}
+
+	private isEnumDecl(name: string): boolean {
+		return this.followAliases(this.enumCache, name, false, n => {
+			const entry = this.decls.get(n);
+			if (entry === undefined) return false;
+			const comp = compOf(entry);
+			const multiple = entry.meta?.members.some(
+				mm =>
+					mm.key.value === "multiple" &&
+					mm.value.kind === "LiteralValue" &&
+					mm.value.value === true
+			);
+			if (multiple) return false;
+			if (comp === "enum") return true;
+			return isTypeName(comp) ? { next: comp } : false;
+		});
 	}
 
 	// ---- 类型串 ----
@@ -1739,7 +1780,7 @@ class Compiler {
 	private checkJsonKinds(names: readonly string[], text: string, span: SourceSpan): void {
 		const counts = new Map<string, number>();
 		for (const name of names) {
-			const kind = this.jsonKindOf(name, new Set());
+			const kind = this.jsonKindOf(name);
 			if (kind === undefined) continue;
 			counts.set(kind, (counts.get(kind) ?? 0) + 1);
 		}
@@ -1756,40 +1797,41 @@ class Compiler {
 	}
 
 	/** 名字编译出的 JSON 类型; money bigint 各自独立, 联合等无法判定的返回 undefined. */
-	private jsonKindOf(name: string, visiting: Set<string>): string | undefined {
-		if (isComponentName(name)) {
-			if (STRING_COMPONENTS.has(name)) return "string";
-			const map: Partial<Record<ComponentName, string>> = {
-				number: "number",
-				integer: "number",
-				boolean: "boolean",
-				array: "array",
-				object: "object",
-				map: "object",
-				money: "money",
-				bigint: "bigint",
-				any: "any",
-			};
-			return map[name];
-		}
-		if (this.hasExtension(name) && !this.decls.has(name)) {
-			const type = this.widgets[name]!.type;
-			return type === "integer" ? "number" : typeof type === "string" ? type : undefined;
-		}
-		const entry = this.decls.get(name);
-		if (entry === undefined || visiting.has(name)) return undefined;
-		visiting.add(name);
-		if (entry.meta?.members.some(mm => mm.key.value === "multiple")) return "array";
-		const comp = compOf(entry);
-		if (comp === "enum") {
-			const types = new Set(
-				(entry.body?.entries ?? [])
-					.map(e => jsonTypeOf(e.key.value))
-					.map(t => (t === "integer" ? "number" : t))
-			);
-			return types.size === 1 ? [...types][0] : undefined;
-		}
-		return this.jsonKindOf(comp, visiting);
+	private jsonKindOf(name: string): string | undefined {
+		return this.followAliases(this.kindCache, name, undefined, n => {
+			if (isComponentName(n)) {
+				if (STRING_COMPONENTS.has(n)) return "string";
+				const map: Partial<Record<ComponentName, string>> = {
+					number: "number",
+					integer: "number",
+					boolean: "boolean",
+					array: "array",
+					object: "object",
+					map: "object",
+					money: "money",
+					bigint: "bigint",
+					any: "any",
+				};
+				return map[n];
+			}
+			if (this.hasExtension(n) && !this.decls.has(n)) {
+				const type = this.widgets[n]!.type;
+				return type === "integer" ? "number" : typeof type === "string" ? type : undefined;
+			}
+			const entry = this.decls.get(n);
+			if (entry === undefined) return undefined;
+			if (entry.meta?.members.some(mm => mm.key.value === "multiple")) return "array";
+			const comp = compOf(entry);
+			if (comp === "enum") {
+				const types = new Set(
+					(entry.body?.entries ?? [])
+						.map(e => jsonTypeOf(e.key.value))
+						.map(t => (t === "integer" ? "number" : t))
+				);
+				return types.size === 1 ? [...types][0] : undefined;
+			}
+			return { next: comp };
+		});
 	}
 
 	// ---- 组件选择, 通用元数据, 自定义键 ----
@@ -1807,7 +1849,7 @@ class Compiler {
 			!BUILTIN_WIDGETS.has(widget) &&
 			Object.hasOwn(this.widgetTypes, widget)
 		)
-			this.checkWidgetType(schema, widget, item!);
+			this.checkWidgetType(schema, widget, item!.value.span);
 		const thousands = this.bool(m, "thousands");
 		if (thousands !== undefined && thousands !== THOUSANDS_DEFAULTS[kind as ComponentName])
 			this.xUi(schema).thousands = thousands;
@@ -1818,17 +1860,9 @@ class Compiler {
 		if (
 			widget !== undefined &&
 			BUILTIN_WIDGETS.has(widget) &&
-			!acceptsWidget(schema, widget, this.resolve)
-		) {
-			this.report(
-				syntaxDiagnostic(
-					"JOTL1045",
-					{ widget },
-					{ location: { kind: "source", range: item!.value.span.range } }
-				)
-			);
+			!this.builtinWidgetFits(schema, widget, item!.value.span)
+		)
 			widget = undefined;
-		}
 		// 按 value_format 编译出的形态认不出 widget, 组件名作为 widget 名总要写入.
 		const forced = this.forcedWidget.has(schema);
 		const chosen = widget ?? COMPONENT_WIDGETS[kind] ?? (forced ? kind : undefined);
@@ -1837,16 +1871,46 @@ class Compiler {
 	}
 
 	/** 非内置 widget 声明了底层类型时, 字段的数据形态应被底层类型接受(JOTL1052); 只报 warning, widget 照常写入. */
-	private checkWidgetType(schema: JsonSchemaObject, widget: string, item: MetaItem): void {
+	private checkWidgetType(schema: JsonSchemaObject, widget: string, span: SourceSpan): void {
 		const base = this.widgetTypes[widget]!;
 		if (widgetTypeAccepts(base, schema)) return;
 		const label = (s: JsonSchemaObject) => valueKinds(s)!.join(" | ");
 		const params = { widget, base: label(base), type: label(schema) };
 		this.report(
 			syntaxDiagnostic("JOTL1052", params, {
-				location: { kind: "source", range: item.value.span.range },
+				location: { kind: "source", range: span.range },
 			})
 		);
+	}
+
+	/** 内置 widget 不接受字段的数据形态时报 JOTL1045(warning); 返回是否接受. */
+	private builtinWidgetFits(schema: JsonSchemaObject, widget: string, span: SourceSpan): boolean {
+		if (acceptsWidget(schema, widget, this.resolve)) return true;
+		this.report(
+			syntaxDiagnostic(
+				"JOTL1045",
+				{ widget },
+				{ location: { kind: "source", range: span.range } }
+			)
+		);
+		return false;
+	}
+
+	/**
+	 * 场景覆盖中的 `widget` 与字段上的 `widget` 做同样两项检查: 声明了底层类型的非内置名查 JOTL1052, 内置名查 JOTL1045(引用与扩展组件不查);
+	 * 只报 warning, 覆盖对象原样写入. `decorator` 是外壳 widget, 不接管字段的值, 不查.
+	 */
+	private checkVariantWidget(
+		schema: JsonSchemaObject,
+		kind: MetaTarget,
+		value: ValueNode,
+		widget: unknown
+	): void {
+		if (typeof widget !== "string" || widget === "" || value.kind !== "ObjectValue") return;
+		const span = value.members.find(mm => mm.key.value === "widget")!.value.span;
+		if (!BUILTIN_WIDGETS.has(widget)) {
+			if (Object.hasOwn(this.widgetTypes, widget)) this.checkWidgetType(schema, widget, span);
+		} else if (kind !== "ref" && kind !== "ext") this.builtinWidgetFits(schema, widget, span);
 	}
 
 	/** 字段名, 供场景覆盖检查; 非对象为 undefined. */
@@ -1854,10 +1918,9 @@ class Compiler {
 		schema: JsonSchemaObject,
 		kind: MetaTarget,
 		input: TypeInput
-	): string[] | undefined {
+	): readonly string[] | undefined {
 		if (kind === "object") return Object.keys(schema.properties ?? {});
-		if (kind === "ref" && schema.$ref !== undefined)
-			return this.declFields(input.comp, new Set());
+		if (kind === "ref" && schema.$ref !== undefined) return this.declFields(input.comp);
 		return undefined;
 	}
 
@@ -1941,6 +2004,7 @@ class Compiler {
 					);
 					continue;
 				}
+				this.checkVariantWidget(schema, kind, member.value, r.variant.widget);
 				defineKey(out, member.key.value, r.variant);
 			}
 			if (Object.keys(out).length > 0)
