@@ -40,18 +40,18 @@ mkdir -p "$C/user/User"
 
 ```json
 {
-  "workbench.startupEditor": "none",
-  "security.workspace.trust.enabled": false,
-  "update.mode": "none",
-  "extensions.autoUpdate": false,
-  "extensions.autoCheckUpdates": false,
-  "telemetry.telemetryLevel": "off",
-  "chat.disableAIFeatures": true,
-  "workbench.tips.enabled": false,
-  "git.enabled": false,
-  "window.restoreWindows": "none",
-  "files.hotExit": "off",
-  "workbench.colorTheme": "Default Dark Modern"
+	"workbench.startupEditor": "none",
+	"security.workspace.trust.enabled": false,
+	"update.mode": "none",
+	"extensions.autoUpdate": false,
+	"extensions.autoCheckUpdates": false,
+	"telemetry.telemetryLevel": "off",
+	"chat.disableAIFeatures": true,
+	"workbench.tips.enabled": false,
+	"git.enabled": false,
+	"window.restoreWindows": "none",
+	"files.hotExit": "off",
+	"workbench.colorTheme": "Default Dark Modern"
 }
 ```
 
@@ -89,44 +89,44 @@ done
 - `jotl.config.json`: `{ "widgets": { "Color": { "base": "string", "module": "./widgets/color.js" } } }`
 - `widgets/color.js`(经 `import "react"` 取预览的 React):
 
-  ```js
-  import React from 'react';
-  export default function Color({ id, value, onChange }) {
-    return React.createElement('input', {
-      id,
-      type: 'color',
-      className: 'verify-color',
-      value: typeof value === 'string' ? value : '#336699',
-      onChange: e => onChange?.(e.target.value),
-    });
-  }
-  ```
+    ```js
+    import React from "react";
+    export default function Color({ id, value, onChange }) {
+    	return React.createElement("input", {
+    		id,
+    		type: "color",
+    		className: "verify-color",
+    		value: typeof value === "string" ? value : "#336699",
+    		onChange: e => onChange?.(e.target.value),
+    	});
+    }
+    ```
 
 - `widgets/stars.js`(经 `react/jsx-runtime` 取预览的 React, 具名导出):
 
-  ```js
-  import { jsx } from 'react/jsx-runtime';
-  export function Stars({ id, value, onChange }) {
-    const n = typeof value === 'number' ? value : 0;
-    return jsx('button', {
-      id,
-      type: 'button',
-      className: 'verify-stars',
-      onClick: () => onChange?.((n % 5) + 1),
-      children: '★'.repeat(n) || '☆',
-    });
-  }
-  ```
+    ```js
+    import { jsx } from "react/jsx-runtime";
+    export function Stars({ id, value, onChange }) {
+    	const n = typeof value === "number" ? value : 0;
+    	return jsx("button", {
+    		id,
+    		type: "button",
+    		className: "verify-stars",
+    		onClick: () => onChange?.((n % 5) + 1),
+    		children: "★".repeat(n) || "☆",
+    	});
+    }
+    ```
 
 - `modules.jotl`:
 
-  ```jotl
-  Page: [widgets: {Stars: {base: 'integer', module: './widgets/stars.js', export: 'Stars'}}] {
-    color(颜色): Color
-    stars(评分): Stars
-    name(名称): string
-  }
-  ```
+    ```jotl
+    Page: [widgets: {Stars: {base: 'integer', module: './widgets/stars.js', export: 'Stars'}}] {
+      color(颜色): Color
+      stars(评分): Stars
+      name(名称): string
+    }
+    ```
 
 ### 用 CDP 自动驱动
 

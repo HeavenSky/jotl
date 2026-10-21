@@ -29,10 +29,10 @@ Other exports:
 The option `locale` (`"zh-CN"` or `"en"`, type `LocaleOptions`) sets the language of the diagnostics and messages of that call only. Without it, the global `getLocale()` of `@jotl/core` applies, which defaults to `en`.
 
 ```js
-import { validate } from '@jotl/data';
+import { validate } from "@jotl/data";
 
-const schema = { type: 'object', properties: { title: { type: 'string', title: 'Title' } } };
-validate(schema, { title: 1 }, { locale: 'zh-CN' }).diagnostics[0].message; // "Title 的类型应为字符串"
+const schema = { type: "object", properties: { title: { type: "string", title: "Title" } } };
+validate(schema, { title: 1 }, { locale: "zh-CN" }).diagnostics[0].message; // "Title 的类型应为字符串"
 ```
 
 ## Work on part of a document
@@ -40,22 +40,24 @@ validate(schema, { title: 1 }, { locale: 'zh-CN' }).diagnostics[0].message; // "
 `getDefaults` and `validate` accept the option `at` (type `SubschemaOptions`, `{ at?: JsonPointer | JsonSchema }`) to compute defaults or validate against one subschema of a larger document.
 
 ```js
-import { getDefaults, validate } from '@jotl/data';
+import { getDefaults, validate } from "@jotl/data";
 
 const doc = {
-  $defs: {
-    Address: {
-      type: 'object',
-      properties: {
-        city: { type: 'string', title: 'City', default: 'Paris' },
-        zip: { type: 'string', pattern: '^[0-9]{5}$' },
-      },
-      required: ['city'],
-    },
-  },
+	$defs: {
+		Address: {
+			type: "object",
+			properties: {
+				city: { type: "string", title: "City", default: "Paris" },
+				zip: { type: "string", pattern: "^[0-9]{5}$" },
+			},
+			required: ["city"],
+		},
+	},
 };
-getDefaults(doc, { at: '/$defs/Address' }).value; // { city: "Paris" }
-validate(doc, { city: 1, zip: 'x' }, { at: '/$defs/Address' }).diagnostics.map(d => d.location.pointer); // ["/city", "/zip"]
+getDefaults(doc, { at: "/$defs/Address" }).value; // { city: "Paris" }
+validate(doc, { city: 1, zip: "x" }, { at: "/$defs/Address" }).diagnostics.map(
+	d => d.location.pointer
+); // ["/city", "/zip"]
 ```
 
 - A JSON pointer selects the subschema at that location. A schema value is used as is, for example an effective schema you synthesized from a document node.

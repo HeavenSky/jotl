@@ -71,9 +71,9 @@ JOTL_LANG=en jotl validate form.schema.json data.json
 `run(argv, io, options?)` performs one invocation and returns the exit code; it never calls `process.exit`. `createNodeIo()` gives the implementation backed by the Node process and file system.
 
 ```ts
-import { createNodeIo, run } from '@jotl/cli';
+import { createNodeIo, run } from "@jotl/cli";
 
-process.exitCode = run(['check', 'home.jotl'], createNodeIo(), { env: process.env });
+process.exitCode = run(["check", "home.jotl"], createNodeIo(), { env: process.env });
 ```
 
 - The output language comes from `--lang` in `argv`, then from `options.env` (resolved as in [Choose the output language](#choose-the-output-language); `localeFromEnv(env)` is exported). Without `env`, the current global language of `@jotl/core` is used. `run` sets the global language for the call and restores the previous value afterwards.

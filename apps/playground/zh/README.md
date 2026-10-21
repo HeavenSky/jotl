@@ -23,17 +23,17 @@ Shop: {
 // 由 Jotl 生成, 不要手改.
 
 export interface Shop {
-  /**
-   * @title Shop name
-   * @maxLength 40
-   */
-  name: string;
-  /**
-   * @asType integer
-   * @minimum 1
-   * @maximum 5
-   */
-  rating?: number;
+	/**
+	 * @title Shop name
+	 * @maxLength 40
+	 */
+	name: string;
+	/**
+	 * @asType integer
+	 * @minimum 1
+	 * @maximum 5
+	 */
+	rating?: number;
 }
 
 export default Shop;

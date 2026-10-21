@@ -7,22 +7,22 @@
 ## 选择策略
 
 ```js
-import { getDefaults } from '@jotl/data';
+import { getDefaults } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: {
-    title: { type: 'string', maxLength: 5, default: 'Home' },
-    count: { type: 'integer', minimum: 1 },
-    color: { type: 'string', format: 'color' },
-    tags: { type: 'array', minItems: 1, items: { type: 'string' } },
-  },
-  required: ['title', 'count'],
+	type: "object",
+	properties: {
+		title: { type: "string", maxLength: 5, default: "Home" },
+		count: { type: "integer", minimum: 1 },
+		color: { type: "string", format: "color" },
+		tags: { type: "array", minItems: 1, items: { type: "string" } },
+	},
+	required: ["title", "count"],
 };
 
 getDefaults(schema).value; // { title: "Home" }
-getDefaults(schema, { strategy: 'required' }).value; // { title: "Home", count: 1 }
-getDefaults(schema, { strategy: 'all' }).value; // { title: "Home", count: 1, color: "", tags: [""] }
+getDefaults(schema, { strategy: "required" }).value; // { title: "Home", count: 1 }
+getDefaults(schema, { strategy: "all" }).value; // { title: "Home", count: 1, color: "", tags: [""] }
 ```
 
 节点自身有 `default`，或经 `$ref`、`allOf` 合并的节点有 `default` 时，一律取它的拷贝。没有时按策略：
@@ -61,11 +61,11 @@ getDefaults(schema, { strategy: 'all' }).value; // { title: "Home", count: 1, co
 `fillDefaults(schema, data, opts?)` 接受除 `at` 以外与 `getDefaults` 相同的选项，不覆盖任何已有值。
 
 ```js
-import { fillDefaults } from '@jotl/data';
+import { fillDefaults } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: { title: { type: 'string', default: 'Home' }, count: { type: 'integer' } },
+	type: "object",
+	properties: { title: { type: "string", default: "Home" }, count: { type: "integer" } },
 };
 fillDefaults(schema, { count: 2 }).value; // { data: { count: 2, title: "Home" }, filled: ["/title"] }
 ```

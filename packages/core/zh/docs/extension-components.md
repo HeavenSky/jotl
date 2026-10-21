@@ -11,10 +11,10 @@
 给 `compile` 传 `options.widgets`：组件名 → 底层 schema 的映射。本包不读任何配置文件，传什么由调用方决定。
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
-const result = compile('Form: {\n  score: Rating[maximum: 5]\n}', 'form.jotl', {
-  widgets: { Rating: { type: 'integer' } },
+const result = compile("Form: {\n  score: Rating[maximum: 5]\n}", "form.jotl", {
+	widgets: { Rating: { type: "integer" } },
 });
 result.value?.schema.$defs.Form.properties.score;
 // { type: "integer", maximum: 5, "x-ui": { widget: "Rating" } }
@@ -25,15 +25,15 @@ result.value?.schema.$defs.Form.properties.score;
 根条目的元数据 `widgets` 只为本文件登记组件。它与 `options.widgets` 合并，同名时以文件内为准。
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
 const result = compile(
-  `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {
+	`Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {
   cover(Cover): ImagePicker
 }`,
-  'form.jotl'
+	"form.jotl"
 );
-result.value?.schema['x-ui'];
+result.value?.schema["x-ui"];
 // { version: 1, widgets: { ImagePicker: { base: "url", module: "https://esm.sh/image-picker" } } }
 result.value?.schema.$defs.Form.properties.cover;
 // { title: "Cover", type: "string", format: "uri", "x-ui": { widget: "ImagePicker" } }
@@ -52,30 +52,30 @@ result.value?.schema.$defs.Form.properties.cover;
 
 1. 读取文件并 `JSON.parse`，把结果传给 `readJotlConfig`。它校验内容，并把底层类型换算成 schema。
 
-   ```ts
-   import { configCompileOptions, readJotlConfig } from '@jotl/core';
+    ```ts
+    import { configCompileOptions, readJotlConfig } from "@jotl/core";
 
-   const { config, issues } = readJotlConfig({
-     widgets: {
-       Rating: 'integer',
-       ImagePicker: { base: 'url', module: './widgets/image-picker.js' },
-       star: 'string',
-       Bad: 3,
-     },
-   });
-   // config.widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" }, star: { type: "string" } }
-   // config.modules: { ImagePicker: { module: "./widgets/image-picker.js" } }
-   // issues: [{ pointer: "/widgets/Bad", message: "base type of `Bad` must be a JSON Schema primitive type name, ..." }]
-   ```
+    const { config, issues } = readJotlConfig({
+    	widgets: {
+    		Rating: "integer",
+    		ImagePicker: { base: "url", module: "./widgets/image-picker.js" },
+    		star: "string",
+    		Bad: 3,
+    	},
+    });
+    // config.widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" }, star: { type: "string" } }
+    // config.modules: { ImagePicker: { module: "./widgets/image-picker.js" } }
+    // issues: [{ pointer: "/widgets/Bad", message: "base type of `Bad` must be a JSON Schema primitive type name, ..." }]
+    ```
 
-   不合法的项会被跳过，并以 `{ pointer, message }` 记入 `issues`；其余项照常返回。
+    不合法的项会被跳过，并以 `{ pointer, message }` 记入 `issues`；其余项照常返回。
 
 2. 把 widgets 换成编译选项。`configCompileOptions(widgets, widgetTypes)` 在 `widgets` 中只保留大驼峰名，即扩展组件；其他名字只登记为 widget 名。同时传入 `config.widgetTypes`，字段类型不被这类名字的底层类型接受时会报 `JOTL1052` 警告。
 
-   ```ts
-   const options = configCompileOptions(config.widgets, config.widgetTypes);
-   // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
-   ```
+    ```ts
+    const options = configCompileOptions(config.widgets, config.widgetTypes);
+    // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
+    ```
 
 3. 自行加载模块。`config.modules` 列出写成模块声明的项，`module` 原样保留；相对路径按配置文件所在目录解析。配置中的模块声明不会写进编译出的 schema。
 

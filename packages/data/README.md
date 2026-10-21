@@ -11,23 +11,23 @@ Compared with calling Ajv directly, each violation becomes one diagnostic with a
 ## One schema, four jobs
 
 ```js
-import { getDefaults, migrate, validate } from '@jotl/data';
+import { getDefaults, migrate, validate } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: {
-    title: { type: 'string', title: 'Title', maxLength: 5, default: 'Home' },
-    count: { type: 'integer', minimum: 1 },
-    color: { type: 'string', format: 'color', errorMessage: 'Use a hex color' },
-  },
-  required: ['title', 'count'],
+	type: "object",
+	properties: {
+		title: { type: "string", title: "Title", maxLength: 5, default: "Home" },
+		count: { type: "integer", minimum: 1 },
+		color: { type: "string", format: "color", errorMessage: "Use a hex color" },
+	},
+	required: ["title", "count"],
 };
 
-console.log(getDefaults(schema, { strategy: 'required' }).value);
-for (const d of validate(schema, { title: 1, count: 0, color: 'red' }).diagnostics) {
-  console.log(d.code, d.location?.pointer, d.message);
+console.log(getDefaults(schema, { strategy: "required" }).value);
+for (const d of validate(schema, { title: 1, count: 0, color: "red" }).diagnostics) {
+	console.log(d.code, d.location?.pointer, d.message);
 }
-console.log(migrate(schema, { title: 12, count: '3', old: true }).value);
+console.log(migrate(schema, { title: 12, count: "3", old: true }).value);
 ```
 
 Output:
@@ -51,30 +51,30 @@ The package is ESM only, so the script uses the `.mjs` extension.
 
 1. Install the package:
 
-   ```sh
-   pnpm add @jotl/data
-   ```
+    ```sh
+    pnpm add @jotl/data
+    ```
 
 2. Save this as `check.mjs`:
 
-   ```js
-   import { validate } from '@jotl/data';
+    ```js
+    import { validate } from "@jotl/data";
 
-   const schema = {
-     type: 'object',
-     properties: { email: { type: 'string', title: 'Email', format: 'email' } },
-     required: ['email'],
-   };
-   for (const d of validate(schema, { email: 'not-an-email' }).diagnostics) {
-     console.log(d.code, d.location?.pointer, d.message);
-   }
-   ```
+    const schema = {
+    	type: "object",
+    	properties: { email: { type: "string", title: "Email", format: "email" } },
+    	required: ["email"],
+    };
+    for (const d of validate(schema, { email: "not-an-email" }).diagnostics) {
+    	console.log(d.code, d.location?.pointer, d.message);
+    }
+    ```
 
 3. Run it and see `JOTL4009 /email Email is not a valid email address`:
 
-   ```sh
-   node check.mjs
-   ```
+    ```sh
+    node check.mjs
+    ```
 
 ## What you get
 

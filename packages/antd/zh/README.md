@@ -11,9 +11,9 @@
 ## 看看有什么不同
 
 ```tsx
-import dayjs from 'dayjs';
-import { JotlForm } from '@jotl/form';
-import { createAntdRegistry } from '@jotl/antd';
+import dayjs from "dayjs";
+import { JotlForm } from "@jotl/form";
+import { createAntdRegistry } from "@jotl/antd";
 
 // 在组件外创建一次; 每次渲染新建注册表会让表单重新规划.
 const registry = createAntdRegistry({ dayjs });

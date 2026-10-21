@@ -1,15 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
-    "types": ["node", "vscode-types"]
-  },
-  "include": ["src"],
-  "exclude": ["src/webview"],
-  "references": [
-    {
-      "path": "../language-server"
-    }
-  ]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": { "rootDir": "src", "outDir": "dist", "types": ["node", "vscode-types"] },
+	"include": ["src"],
+	"exclude": ["src/webview"],
+	"references": [{ "path": "../language-server" }]
 }

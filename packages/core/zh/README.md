@@ -13,14 +13,14 @@ Jotl 是一门编写 JSON Schema 2020-12 的简洁语言。`@jotl/core` 是它�
 ## 三行源码，换来一份规范化的 schema
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
 const result = compile(
-  `User: {
+	`User: {
   name(Name): string[maxLength: 20]
   role?: enum[default: 'user']{ admin(Admin) user(User) }
 }`,
-  'user.jotl'
+	"user.jotl"
 );
 console.log(JSON.stringify(result.value?.schema, null, 2));
 ```
@@ -29,26 +29,26 @@ console.log(JSON.stringify(result.value?.schema, null, 2));
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/User",
-  "x-ui": { "version": 1 },
-  "$defs": {
-    "User": {
-      "type": "object",
-      "properties": {
-        "name": { "title": "Name", "type": "string", "maxLength": 20 },
-        "role": {
-          "type": "string",
-          "oneOf": [
-            { "title": "Admin", "const": "admin" },
-            { "title": "User", "const": "user" }
-          ],
-          "default": "user"
-        }
-      },
-      "required": ["name"]
-    }
-  }
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$ref": "#/$defs/User",
+	"x-ui": { "version": 1 },
+	"$defs": {
+		"User": {
+			"type": "object",
+			"properties": {
+				"name": { "title": "Name", "type": "string", "maxLength": 20 },
+				"role": {
+					"type": "string",
+					"oneOf": [
+						{ "title": "Admin", "const": "admin" },
+						{ "title": "User", "const": "user" }
+					],
+					"default": "user"
+				}
+			},
+			"required": ["name"]
+		}
+	}
 }
 ```
 
@@ -56,17 +56,17 @@ console.log(JSON.stringify(result.value?.schema, null, 2));
 
 ```json
 {
-  "code": "JOTL1004",
-  "severity": "error",
-  "message": "Unknown component `strng`",
-  "location": {
-    "kind": "source",
-    "range": {
-      "file": "a.jotl",
-      "start": { "line": 1, "column": 4, "offset": 3 },
-      "end": { "line": 1, "column": 9, "offset": 8 }
-    }
-  }
+	"code": "JOTL1004",
+	"severity": "error",
+	"message": "Unknown component `strng`",
+	"location": {
+		"kind": "source",
+		"range": {
+			"file": "a.jotl",
+			"start": { "line": 1, "column": 4, "offset": 3 },
+			"end": { "line": 1, "column": 9, "offset": 8 }
+		}
+	}
 }
 ```
 
@@ -76,24 +76,24 @@ console.log(JSON.stringify(result.value?.schema, null, 2));
 
 1. 安装：
 
-   ```sh
-   pnpm add @jotl/core
-   ```
+    ```sh
+    pnpm add @jotl/core
+    ```
 
 2. 把下面的代码保存为 `compile.mjs`：
 
-   ```js
-   import { compile } from '@jotl/core';
+    ```js
+    import { compile } from "@jotl/core";
 
-   const result = compile('Todo: {\n  title: string\n  done?: boolean\n}', 'todo.jotl');
-   console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
-   ```
+    const result = compile("Todo: {\n  title: string\n  done?: boolean\n}", "todo.jotl");
+    console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
+    ```
 
 3. 运行，终端里会打印出 JSON Schema：
 
-   ```sh
-   node compile.mjs
-   ```
+    ```sh
+    node compile.mjs
+    ```
 
 ## 你能得到什么
 

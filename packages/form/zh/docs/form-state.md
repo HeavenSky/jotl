@@ -7,19 +7,26 @@
 ## 经 ref 读写值
 
 ```tsx
-import { useRef } from 'react';
-import { JotlForm, type JotlFormHandle, type JotlFormProps } from '@jotl/form';
-import '@jotl/form/style.css';
+import { useRef } from "react";
+import { JotlForm, type JotlFormHandle, type JotlFormProps } from "@jotl/form";
+import "@jotl/form/style.css";
 
-const schema: JotlFormProps['schema'] = {
-  type: 'object',
-  properties: { title: { type: 'string', title: '标题', maxLength: 20 } },
-  required: ['title'],
+const schema: JotlFormProps["schema"] = {
+	type: "object",
+	properties: { title: { type: "string", title: "标题", maxLength: 20 } },
+	required: ["title"],
 };
 
 export function Page() {
-  const form = useRef<JotlFormHandle>(null);
-  return <JotlForm ref={form} schema={schema} defaultValue={{}} onSubmit={value => console.log(value)} />;
+	const form = useRef<JotlFormHandle>(null);
+	return (
+		<JotlForm
+			ref={form}
+			schema={schema}
+			defaultValue={{}}
+			onSubmit={value => console.log(value)}
+		/>
+	);
 }
 ```
 

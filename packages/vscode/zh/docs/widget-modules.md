@@ -8,33 +8,33 @@
 
 1. 让 widget 指向一个模块，写在 `jotl.config.json` 中：
 
-   ```json
-   {
-     "widgets": {
-       "ImagePicker": {
-         "base": "url",
-         "module": "https://esm.sh/my-image-picker?external=react,react-dom",
-         "export": "default"
-       }
-     }
-   }
-   ```
+    ```json
+    {
+    	"widgets": {
+    		"ImagePicker": {
+    			"base": "url",
+    			"module": "https://esm.sh/my-image-picker?external=react,react-dom",
+    			"export": "default"
+    		}
+    	}
+    }
+    ```
 
-   或写在文件根条目的 `widgets` 元数据中，同名时它优先于配置文件：
+    或写在文件根条目的 `widgets` 元数据中，同名时它优先于配置文件：
 
-   ```jotl
-   Page: [widgets: {ImagePicker: {base: 'url', module: './widgets/image-picker.js'}}] {
-     cover: ImagePicker
-   }
-   ```
+    ```jotl
+    Page: [widgets: {ImagePicker: {base: 'url', module: './widgets/image-picker.js'}}] {
+      cover: ImagePicker
+    }
+    ```
 
 2. 在用户设置或工作区设置中把 `jotl.preview.loadWidgetModules` 设为 `true`：
 
-   ```json
-   { "jotl.preview.loadWidgetModules": true }
-   ```
+    ```json
+    { "jotl.preview.loadWidgetModules": true }
+    ```
 
-   预览立即重新加载，表单页签的 `cover` 字段渲染模块中的组件。
+    预览立即重新加载，表单页签的 `cover` 字段渲染模块中的组件。
 
 **这个设置默认关闭，因为加载模块就是在预览中运行它的代码。** 关闭时这些 widget 降级显示，预览顶部给出提示。在不受信任的工作区中，工作区取值会被忽略，仓库无法自行开启加载，只有用户设置生效。
 

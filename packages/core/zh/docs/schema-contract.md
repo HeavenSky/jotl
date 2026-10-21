@@ -10,13 +10,13 @@
 - `JSON_SCHEMA_DIALECT` 的值是 `"https://json-schema.org/draft/2020-12/schema"`。
 - `SUBSCHEMA_KEYWORDS` 列出存放子 schema 的关键字，按形态分三组：
 
-  ```ts
-  {
-    single: ["additionalProperties", "items", "contains", "propertyNames", "not", "if", "then", "else", "unevaluatedItems", "unevaluatedProperties", "contentSchema"],
-    array: ["prefixItems", "allOf", "anyOf", "oneOf"],
-    map: ["properties", "patternProperties", "$defs", "dependentSchemas"],
-  }
-  ```
+    ```ts
+    {
+      single: ["additionalProperties", "items", "contains", "propertyNames", "not", "if", "then", "else", "unevaluatedItems", "unevaluatedProperties", "contentSchema"],
+      array: ["prefixItems", "allOf", "anyOf", "oneOf"],
+      map: ["properties", "patternProperties", "$defs", "dependentSchemas"],
+    }
+    ```
 
 - `orderKeywords(schema)` 按 [Jotl 语法规范](../../../../zh/docs/spec/jotl.md#规范化规则)的规范化规则 7 重排关键字，递归处理子 schema，返回新对象。例如 `{ type: "string", title: "T", maxLength: 1 }` 变为 `{ title: "T", type: "string", maxLength: 1 }`。
 

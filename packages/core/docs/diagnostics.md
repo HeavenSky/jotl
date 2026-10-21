@@ -9,11 +9,11 @@ This page shows how to read the result of any Jotl function, choose the message 
 Public functions of all Jotl packages return `Result<T>`, `{ value, diagnostics }`, and do not throw.
 
 ```ts
-import { compile, hasErrors } from '@jotl/core';
+import { compile, hasErrors } from "@jotl/core";
 
-const result = compile('A: strng', 'a.jotl');
+const result = compile("A: strng", "a.jotl");
 if (result.value === undefined || hasErrors(result.diagnostics)) {
-  for (const d of result.diagnostics) console.log(d.code, d.severity, d.message);
+	for (const d of result.diagnostics) console.log(d.code, d.severity, d.message);
 }
 // JOTL1004 error Unknown component `strng`
 ```
@@ -42,10 +42,10 @@ A `SourceMap` is keyed by pointers within the schema document. Its values are `S
 Messages and generated text are available in English (`"en"`, the default `DEFAULT_LOCALE`) and Chinese (`"zh-CN"`). The language is global: every package reads it when it creates diagnostics and generated text.
 
 ```ts
-import { compile, setLocale } from '@jotl/core';
+import { compile, setLocale } from "@jotl/core";
 
-setLocale('zh-CN');
-compile('A: strng', 'a.jotl').diagnostics[0].message; // "未知组件 `strng`"
+setLocale("zh-CN");
+compile("A: strng", "a.jotl").diagnostics[0].message; // "未知组件 `strng`"
 ```
 
 - `getLocale()` returns the current language; the type is `Locale`.
@@ -59,12 +59,16 @@ compile('A: strng', 'a.jotl').diagnostics[0].message; // "未知组件 `strng`"
 Each package, or module within a package, defines its code table with `defineDiagnostics` in its own `diagnostics.ts`. Messages are written only in the code table: `message` is the Chinese template and the optional `en` the English one.
 
 ```ts
-import { defineDiagnostics, hasErrors } from '@jotl/core';
+import { defineDiagnostics, hasErrors } from "@jotl/core";
 
 const diagnostic = defineDiagnostics({
-  JOTL9999: { severity: 'warning', message: '字段 {name} 已弃用', en: 'Field {name} is deprecated' },
+	JOTL9999: {
+		severity: "warning",
+		message: "字段 {name} 已弃用",
+		en: "Field {name} is deprecated",
+	},
 });
-const d = diagnostic('JOTL9999', { name: 'title' });
+const d = diagnostic("JOTL9999", { name: "title" });
 // { code: "JOTL9999", severity: "warning", message: "Field title is deprecated" }
 hasErrors([d]); // false
 ```

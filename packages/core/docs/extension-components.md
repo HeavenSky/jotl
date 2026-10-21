@@ -11,10 +11,10 @@ A PascalCase name in component position must be a type declared in the same file
 Pass `options.widgets` to `compile`: a map from component name to its underlying schema. This package reads no configuration file, so the caller decides what to pass.
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
-const result = compile('Form: {\n  score: Rating[maximum: 5]\n}', 'form.jotl', {
-  widgets: { Rating: { type: 'integer' } },
+const result = compile("Form: {\n  score: Rating[maximum: 5]\n}", "form.jotl", {
+	widgets: { Rating: { type: "integer" } },
 });
 result.value?.schema.$defs.Form.properties.score;
 // { type: "integer", maximum: 5, "x-ui": { widget: "Rating" } }
@@ -25,15 +25,15 @@ result.value?.schema.$defs.Form.properties.score;
 The root entry's `widgets` metadata registers components for that file only. It is merged with `options.widgets`, and the file wins on name clashes.
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
 const result = compile(
-  `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {
+	`Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {
   cover(Cover): ImagePicker
 }`,
-  'form.jotl'
+	"form.jotl"
 );
-result.value?.schema['x-ui'];
+result.value?.schema["x-ui"];
 // { version: 1, widgets: { ImagePicker: { base: "url", module: "https://esm.sh/image-picker" } } }
 result.value?.schema.$defs.Form.properties.cover;
 // { title: "Cover", type: "string", format: "uri", "x-ui": { widget: "ImagePicker" } }
@@ -52,30 +52,30 @@ Module declarations are compiled into the root `x-ui.widgets` (name → `{ base?
 
 1. Read and `JSON.parse` the file, then pass the result to `readJotlConfig`. It validates the content and converts base types to schemas.
 
-   ```ts
-   import { configCompileOptions, readJotlConfig } from '@jotl/core';
+    ```ts
+    import { configCompileOptions, readJotlConfig } from "@jotl/core";
 
-   const { config, issues } = readJotlConfig({
-     widgets: {
-       Rating: 'integer',
-       ImagePicker: { base: 'url', module: './widgets/image-picker.js' },
-       star: 'string',
-       Bad: 3,
-     },
-   });
-   // config.widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" }, star: { type: "string" } }
-   // config.modules: { ImagePicker: { module: "./widgets/image-picker.js" } }
-   // issues: [{ pointer: "/widgets/Bad", message: "base type of `Bad` must be a JSON Schema primitive type name, ..." }]
-   ```
+    const { config, issues } = readJotlConfig({
+    	widgets: {
+    		Rating: "integer",
+    		ImagePicker: { base: "url", module: "./widgets/image-picker.js" },
+    		star: "string",
+    		Bad: 3,
+    	},
+    });
+    // config.widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" }, star: { type: "string" } }
+    // config.modules: { ImagePicker: { module: "./widgets/image-picker.js" } }
+    // issues: [{ pointer: "/widgets/Bad", message: "base type of `Bad` must be a JSON Schema primitive type name, ..." }]
+    ```
 
-   Invalid items are skipped and reported in `issues` as `{ pointer, message }`; the rest are returned as usual.
+    Invalid items are skipped and reported in `issues` as `{ pointer, message }`; the rest are returned as usual.
 
 2. Turn the widgets into compile options. `configCompileOptions(widgets, widgetTypes)` keeps only PascalCase names in `widgets`, which are the extension components; other names are registered only as widget names. Pass `config.widgetTypes` as well so that a field whose type is not accepted by the underlying type of such a name reports the warning `JOTL1052`.
 
-   ```ts
-   const options = configCompileOptions(config.widgets, config.widgetTypes);
-   // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
-   ```
+    ```ts
+    const options = configCompileOptions(config.widgets, config.widgetTypes);
+    // { widgets: { Rating: { type: "integer" }, ImagePicker: { type: "string", format: "uri" } } }
+    ```
 
 3. Load modules yourself. `config.modules` lists the items written as module declarations, with `module` kept verbatim; resolve relative paths against the directory of the configuration file. Module declarations from the configuration are not written into the compiled schema.
 

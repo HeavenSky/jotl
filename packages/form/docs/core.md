@@ -7,21 +7,21 @@ This page shows how to use the subpath `@jotl/form/core` to build a Jotl rendere
 ## Plan a schema
 
 ```ts
-import { BUILTIN_WIDGETS, createRegistry, evaluateCondition, plan } from '@jotl/form/core';
+import { BUILTIN_WIDGETS, createRegistry, evaluateCondition, plan } from "@jotl/form/core";
 
 const schema = {
-  type: 'object',
-  properties: {
-    title: { type: 'string', title: '标题', 'x-ui': { widget: 'headline' } },
-    kind: { enum: ['a', 'b'] },
-    extra: { type: 'string', 'x-ui': { visibleIf: { field: '/kind', eq: 'b' } } },
-  },
-  required: ['title'],
+	type: "object",
+	properties: {
+		title: { type: "string", title: "标题", "x-ui": { widget: "headline" } },
+		kind: { enum: ["a", "b"] },
+		extra: { type: "string", "x-ui": { visibleIf: { field: "/kind", eq: "b" } } },
+	},
+	required: ["title"],
 };
 
 // A component package usually registers one implementation per built-in component name; here the name itself is a placeholder.
 const registry = createRegistry(
-  Object.entries(BUILTIN_WIDGETS).map(([name, { level }]) => ({ name, level, component: name }))
+	Object.entries(BUILTIN_WIDGETS).map(([name, { level }]) => ({ name, level, component: name }))
 );
 
 const { value: root, diagnostics } = plan(schema, registry);
@@ -30,8 +30,8 @@ const { value: root, diagnostics } = plan(schema, registry);
 // diagnostics: [JOTL5001 warning].
 // /kind: an enum (with at least 2 options) defaults to "select"; when x-ui.widget names a built-in this shape does not accept (e.g. "switch"), it falls back to "select" via F2.
 
-const extra = root!.children[0]!.children.find(c => c.dataPath === '/extra')!;
-evaluateCondition(extra.visibleIf!, { kind: 'b' }, extra.dataPath); // true
+const extra = root!.children[0]!.children.find(c => c.dataPath === "/extra")!;
+evaluateCondition(extra.visibleIf!, { kind: "b" }, extra.dataPath); // true
 ```
 
 - The render plan is a template tree (`RenderPlanNode`) that does not depend on data: array indexes are written as `*`, and your renderer decides the number of array elements and the active branch of a union from the data.

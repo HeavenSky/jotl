@@ -26,21 +26,21 @@ Profile: {
 
 ```ts
 export interface Profile {
-  /**
-   * @title Name
-   * @minLength 1
-   */
-  name: string;
-  /**
-   * @format email
-   */
-  email?: string;
-  /**
-   * @asType integer
-   * @minimum 0
-   * @maximum 150
-   */
-  age: number;
+	/**
+	 * @title Name
+	 * @minLength 1
+	 */
+	name: string;
+	/**
+	 * @format email
+	 */
+	email?: string;
+	/**
+	 * @asType integer
+	 * @minimum 0
+	 * @maximum 150
+	 */
+	age: number;
 }
 ```
 
@@ -54,15 +54,15 @@ You need VS Code 1.101 or later; the Jotl language server is bundled, so nothing
 
 1. Install the extension:
 
-   ```sh
-   code --install-extension heavensky.vscode-jotl
-   ```
+    ```sh
+    code --install-extension heavensky.vscode-jotl
+    ```
 
 2. Save the example above as `profile.jotl` and open it:
 
-   ```sh
-   code profile.jotl
-   ```
+    ```sh
+    code profile.jotl
+    ```
 
 3. Click the preview button in the editor title bar, or run `Jotl: Open Preview` from the Command Palette. The panel opens beside the editor and follows your edits.
 

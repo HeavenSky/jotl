@@ -12,11 +12,11 @@ This script feeds a Jotl document with a typo and an unknown widget to `getDiagn
 
 ```js
 // diagnose.mjs
-import { getDiagnostics } from '@jotl/language-server';
+import { getDiagnostics } from "@jotl/language-server";
 
 const text = "Home: {\n  title: strng\n  logo: string[widget: 'uploader']\n}\n";
-for (const d of getDiagnostics(text, 'file:///home.jotl')) {
-  console.log(d.range.start.line, d.range.start.character, d.code, d.message);
+for (const d of getDiagnostics(text, "file:///home.jotl")) {
+	console.log(d.range.start.line, d.range.start.character, d.code, d.message);
 }
 ```
 
@@ -34,23 +34,23 @@ You need Node 22 or later and an editor whose LSP client can launch a command.
 
 1. Install the package:
 
-   ```sh
-   pnpm add @jotl/language-server
-   ```
+    ```sh
+    pnpm add @jotl/language-server
+    ```
 
 2. Create the server entry:
 
-   ```sh
-   echo 'import { startServer } from "@jotl/language-server"; startServer();' > jotl-server.mjs
-   ```
+    ```sh
+    echo 'import { startServer } from "@jotl/language-server"; startServer();' > jotl-server.mjs
+    ```
 
 3. Point your editor's LSP client at this command for `*.jotl` files:
 
-   ```sh
-   node jotl-server.mjs --stdio
-   ```
+    ```sh
+    node jotl-server.mjs --stdio
+    ```
 
-   The server answers `initialize` with `serverInfo.name` `jotl-language-server` and pushes diagnostics as soon as a document opens. `--node-ipc` and `--socket` work too.
+    The server answers `initialize` with `serverInfo.name` `jotl-language-server` and pushes diagnostics as soon as a document opens. `--node-ipc` and `--socket` work too.
 
 ## What you get
 

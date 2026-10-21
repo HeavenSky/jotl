@@ -9,7 +9,7 @@
 表单默认每层一页。当前层的标量字段直接编辑；复合字段（对象、数组、字典、有对象分支的联合、递归节点）显示为入口行，点击进入下一层。顶部面包屑由各层标签组成，点上一级即可退回。
 
 ```tsx
-const [path, setPath] = useState('');
+const [path, setPath] = useState("");
 <JotlForm schema={schema} path={path} onPathChange={setPath} />;
 ```
 

@@ -71,9 +71,9 @@ JOTL_LANG=en jotl validate form.schema.json data.json
 `run(argv, io, options?)` 执行一次调用并返回退出码，不调用 `process.exit`。`createNodeIo()` 返回基于 Node 进程与文件系统的实现。
 
 ```ts
-import { createNodeIo, run } from '@jotl/cli';
+import { createNodeIo, run } from "@jotl/cli";
 
-process.exitCode = run(['check', 'home.jotl'], createNodeIo(), { env: process.env });
+process.exitCode = run(["check", "home.jotl"], createNodeIo(), { env: process.env });
 ```
 
 - 输出语言先取 `argv` 中的 `--lang`，再取 `options.env`（解析规则同[选择输出语言](#选择输出语言)，另导出 `localeFromEnv(env)`）。不给 `env` 时沿用 `@jotl/core` 当前的全局语言。`run` 在调用期间写入全局语言，结束后恢复为调用前的值。

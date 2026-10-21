@@ -7,21 +7,21 @@
 ## 规划一个 schema
 
 ```ts
-import { BUILTIN_WIDGETS, createRegistry, evaluateCondition, plan } from '@jotl/form/core';
+import { BUILTIN_WIDGETS, createRegistry, evaluateCondition, plan } from "@jotl/form/core";
 
 const schema = {
-  type: 'object',
-  properties: {
-    title: { type: 'string', title: '标题', 'x-ui': { widget: 'headline' } },
-    kind: { enum: ['a', 'b'] },
-    extra: { type: 'string', 'x-ui': { visibleIf: { field: '/kind', eq: 'b' } } },
-  },
-  required: ['title'],
+	type: "object",
+	properties: {
+		title: { type: "string", title: "标题", "x-ui": { widget: "headline" } },
+		kind: { enum: ["a", "b"] },
+		extra: { type: "string", "x-ui": { visibleIf: { field: "/kind", eq: "b" } } },
+	},
+	required: ["title"],
 };
 
 // 组件包通常为每个内置组件名登记一个实现; 这里用组件名本身占位.
 const registry = createRegistry(
-  Object.entries(BUILTIN_WIDGETS).map(([name, { level }]) => ({ name, level, component: name }))
+	Object.entries(BUILTIN_WIDGETS).map(([name, { level }]) => ({ name, level, component: name }))
 );
 
 const { value: root, diagnostics } = plan(schema, registry);
@@ -30,8 +30,8 @@ const { value: root, diagnostics } = plan(schema, registry);
 // diagnostics: [JOTL5001 warning].
 // /kind: 枚举(选项不少于 2 个)默认为 "select"; x-ui.widget 写了该形态不接受的内置名(如 "switch")时按 F2 降级回 "select".
 
-const extra = root!.children[0]!.children.find(c => c.dataPath === '/extra')!;
-evaluateCondition(extra.visibleIf!, { kind: 'b' }, extra.dataPath); // true
+const extra = root!.children[0]!.children.find(c => c.dataPath === "/extra")!;
+evaluateCondition(extra.visibleIf!, { kind: "b" }, extra.dataPath); // true
 ```
 
 - 渲染计划是与数据无关的模板树（`RenderPlanNode`）：数组下标写作 `*`，数组元素个数与联合类型的当前分支由你的渲染器按数据决定。

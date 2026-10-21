@@ -7,22 +7,29 @@
 ## 最小的字段 widget
 
 ```tsx
-import type { FieldProps } from '@jotl/form/core';
-import type { ReactNode } from 'react';
+import type { FieldProps } from "@jotl/form/core";
+import type { ReactNode } from "react";
 
-export function MySwitch({ id, value, onChange, onBlur, mode, errors }: FieldProps<boolean, ReactNode>) {
-  return (
-    <input
-      id={id}
-      type="checkbox"
-      role="switch"
-      checked={value === true}
-      disabled={mode !== 'edit'}
-      aria-invalid={errors.length > 0}
-      onChange={event => onChange(event.target.checked)}
-      onBlur={onBlur}
-    />
-  );
+export function MySwitch({
+	id,
+	value,
+	onChange,
+	onBlur,
+	mode,
+	errors,
+}: FieldProps<boolean, ReactNode>) {
+	return (
+		<input
+			id={id}
+			type="checkbox"
+			role="switch"
+			checked={value === true}
+			disabled={mode !== "edit"}
+			aria-invalid={errors.length > 0}
+			onChange={event => onChange(event.target.checked)}
+			onBlur={onBlur}
+		/>
+	);
 }
 ```
 

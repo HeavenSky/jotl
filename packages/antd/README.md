@@ -9,9 +9,9 @@ Render Jotl forms with Ant Design components: one registry swaps the native widg
 ## See the difference
 
 ```tsx
-import dayjs from 'dayjs';
-import { JotlForm } from '@jotl/form';
-import { createAntdRegistry } from '@jotl/antd';
+import dayjs from "dayjs";
+import { JotlForm } from "@jotl/form";
+import { createAntdRegistry } from "@jotl/antd";
 
 // Create it once outside the component; a new registry on every render makes the form re-plan.
 const registry = createAntdRegistry({ dayjs });

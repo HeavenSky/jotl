@@ -10,22 +10,22 @@
 
 1. 在 `.jotl` 文件所在目录或任一上级目录新建 `jotl.config.json`：
 
-   ```json
-   { "widgets": { "ImagePicker": "url", "tag-list": "array", "headline": "string" } }
-   ```
+    ```json
+    { "widgets": { "ImagePicker": "url", "tag-list": "array", "headline": "string" } }
+    ```
 
-   配置文件本身有补全与校验；保存后，已打开的 `.jotl` 文件立即重新检查。
+    配置文件本身有补全与校验；保存后，已打开的 `.jotl` 文件立即重新检查。
 
 2. 在 `.jotl` 文件中使用这些 widget：
 
-   ```jotl
-   Article: {
-     cover: ImagePicker
-     title: string[widget: 'headline']
-   }
-   ```
+    ```jotl
+    Article: {
+      cover: ImagePicker
+      title: string[widget: 'headline']
+    }
+    ```
 
-   `cover` 按 `ImagePicker` 的底层类型编译；`headline` 不再报 widget 未注册警告 `JOTL7001`。
+    `cover` 按 `ImagePicker` 的底层类型编译；`headline` 不再报 widget 未注册警告 `JOTL7001`。
 
 ## 配置中能写什么
 

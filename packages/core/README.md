@@ -11,14 +11,14 @@ Compared with hand-written JSON, a field with its label, constraints and default
 ## Three lines in, a normalized schema out
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
 const result = compile(
-  `User: {
+	`User: {
   name(Name): string[maxLength: 20]
   role?: enum[default: 'user']{ admin(Admin) user(User) }
 }`,
-  'user.jotl'
+	"user.jotl"
 );
 console.log(JSON.stringify(result.value?.schema, null, 2));
 ```
@@ -27,26 +27,26 @@ Output, with whitespace condensed:
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/User",
-  "x-ui": { "version": 1 },
-  "$defs": {
-    "User": {
-      "type": "object",
-      "properties": {
-        "name": { "title": "Name", "type": "string", "maxLength": 20 },
-        "role": {
-          "type": "string",
-          "oneOf": [
-            { "title": "Admin", "const": "admin" },
-            { "title": "User", "const": "user" }
-          ],
-          "default": "user"
-        }
-      },
-      "required": ["name"]
-    }
-  }
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$ref": "#/$defs/User",
+	"x-ui": { "version": 1 },
+	"$defs": {
+		"User": {
+			"type": "object",
+			"properties": {
+				"name": { "title": "Name", "type": "string", "maxLength": 20 },
+				"role": {
+					"type": "string",
+					"oneOf": [
+						{ "title": "Admin", "const": "admin" },
+						{ "title": "User", "const": "user" }
+					],
+					"default": "user"
+				}
+			},
+			"required": ["name"]
+		}
+	}
 }
 ```
 
@@ -54,17 +54,17 @@ A typo does not throw. `compile("A: strng", "a.jotl")` returns `value: undefined
 
 ```json
 {
-  "code": "JOTL1004",
-  "severity": "error",
-  "message": "Unknown component `strng`",
-  "location": {
-    "kind": "source",
-    "range": {
-      "file": "a.jotl",
-      "start": { "line": 1, "column": 4, "offset": 3 },
-      "end": { "line": 1, "column": 9, "offset": 8 }
-    }
-  }
+	"code": "JOTL1004",
+	"severity": "error",
+	"message": "Unknown component `strng`",
+	"location": {
+		"kind": "source",
+		"range": {
+			"file": "a.jotl",
+			"start": { "line": 1, "column": 4, "offset": 3 },
+			"end": { "line": 1, "column": 9, "offset": 8 }
+		}
+	}
 }
 ```
 
@@ -74,24 +74,24 @@ The package is ESM only, so the script uses the `.mjs` extension.
 
 1. Install the package:
 
-   ```sh
-   pnpm add @jotl/core
-   ```
+    ```sh
+    pnpm add @jotl/core
+    ```
 
 2. Save this as `compile.mjs`:
 
-   ```js
-   import { compile } from '@jotl/core';
+    ```js
+    import { compile } from "@jotl/core";
 
-   const result = compile('Todo: {\n  title: string\n  done?: boolean\n}', 'todo.jotl');
-   console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
-   ```
+    const result = compile("Todo: {\n  title: string\n  done?: boolean\n}", "todo.jotl");
+    console.log(JSON.stringify(result.value?.schema ?? result.diagnostics, null, 2));
+    ```
 
 3. Run it and see the JSON Schema:
 
-   ```sh
-   node compile.mjs
-   ```
+    ```sh
+    node compile.mjs
+    ```
 
 ## What you get
 

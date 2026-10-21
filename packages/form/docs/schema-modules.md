@@ -12,8 +12,11 @@ This page shows how to let a schema bring its own widgets as JavaScript modules.
 
 // Custom loading or a base for relative module addresses (./ ../ /)
 <JotlForm
-  schema={schema}
-  schemaModules={{ baseUrl: 'https://cdn.example.com/widgets/', importer: url => import(/* @vite-ignore */ url) }}
+	schema={schema}
+	schemaModules={{
+		baseUrl: "https://cdn.example.com/widgets/",
+		importer: url => import(/* @vite-ignore */ url),
+	}}
 />;
 ```
 

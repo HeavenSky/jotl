@@ -7,11 +7,11 @@
 ## 覆盖一个内置名
 
 ```tsx
-import { createDefaultRegistry } from '@jotl/form';
+import { createDefaultRegistry } from "@jotl/form";
 
 // 每次渲染新建注册表时, 登记内容(含父级)逐项浅相等则沿用上一次的, 不重新规划; 在组件外创建一次可省去比较.
 const registry = createDefaultRegistry().extend();
-registry.register({ name: 'switch', level: 'field', component: MySwitch });
+registry.register({ name: "switch", level: "field", component: MySwitch });
 
 <JotlForm schema={schema} registry={registry} adapters={{ upload: uploadToCdn }} />;
 ```
@@ -48,14 +48,14 @@ registry.register({ name: 'switch', level: 'field', component: MySwitch });
 `createDefaultRegistry()` 已登记原生 HTML widget。用自己的渲染器时，可以把它们登记到任一实现 `@jotl/form/core` `Registry` 接口的注册表：
 
 ```ts
-import { registerHtmlWidgets } from '@jotl/form';
+import { registerHtmlWidgets } from "@jotl/form";
 
 // registry: 任一实现 @jotl/form/core `Registry` 接口的注册表.
 registerHtmlWidgets(registry);
 
 // 替换单个默认组件: 在实例级注册表登记同名组件, 本级覆盖父级.
 const local = registry.extend();
-local.register({ name: 'input', level: 'field', component: MyTextInput });
+local.register({ name: "input", level: "field", component: MyTextInput });
 ```
 
 `htmlWidgets` 是同一批登记项的数组形式；各默认组件也单独导出（`InputWidget`、`FieldDecorator` 等），可登记到其他名字下。

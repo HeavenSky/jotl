@@ -32,13 +32,20 @@ A scene override object and a rule's `ui` may contain only `widget` `props` `dec
 ## Visibility conditions
 
 ```ts
-type Leaf = { field: JsonPointer; base?: 'node' };
+type Leaf = { field: JsonPointer; base?: "node" };
 type Condition =
-  | (Leaf & ({ eq: unknown } | { ne: unknown } | { in: unknown[] } | { notIn: unknown[] } | { truthy: boolean }))
-  | (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
-  | { all: Condition[] }
-  | { any: Condition[] }
-  | { not: Condition };
+	| (Leaf &
+			(
+				| { eq: unknown }
+				| { ne: unknown }
+				| { in: unknown[] }
+				| { notIn: unknown[] }
+				| { truthy: boolean }
+			))
+	| (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
+	| { all: Condition[] }
+	| { any: Condition[] }
+	| { not: Condition };
 ```
 
 - A leaf condition consists of `field`, an optional `base` and exactly one comparison.
@@ -52,8 +59,8 @@ type Condition =
 
 ```ts
 interface UiRule {
-  match: { pointer?: string; type?: string; format?: string; enum?: boolean; widget?: string };
-  ui: XUiVariant;
+	match: { pointer?: string; type?: string; format?: string; enum?: boolean; widget?: string };
+	ui: XUiVariant;
 }
 ```
 

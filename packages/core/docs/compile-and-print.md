@@ -9,10 +9,10 @@ This page shows how to turn Jotl source into JSON Schema 2020-12 and back from y
 `compile(text, file, options?)` parses, checks and compiles one source text. The `file` argument is only written into diagnostic and source map locations; nothing is read from disk.
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
-const result = compile('User: {\n  name(Name): string[maxLength: 20]\n}', 'user.jotl');
-result.value?.sourceMap.get('/$defs/User/properties/name');
+const result = compile("User: {\n  name(Name): string[maxLength: 20]\n}", "user.jotl");
+result.value?.sourceMap.get("/$defs/User/properties/name");
 // {
 //   range:    { file: "user.jotl", start: { line: 2, column: 3, offset: 10 }, end: { line: 2, column: 36, offset: 43 } },
 //   keyRange: { file: "user.jotl", start: { line: 2, column: 3, offset: 10 }, end: { line: 2, column: 7, offset: 14 } }
@@ -39,9 +39,12 @@ When `x-ui` written through the `schema` metadata does not conform to the `x-ui`
 `print(schema, options?)` writes a JSON Schema 2020-12 document as canonical Jotl source. Compiling the printed source again yields a schema deeply equal to the input when the input is expressible in Jotl.
 
 ```ts
-import { print } from '@jotl/core';
+import { print } from "@jotl/core";
 
-print({ type: 'object', properties: { a: { type: 'string', format: 'time' } } }, { rootName: 'Page' }).value;
+print(
+	{ type: "object", properties: { a: { type: "string", format: "time" } } },
+	{ rootName: "Page" }
+).value;
 // "Page: {\n  a?: string[format: 'time']\n}\n"
 ```
 
@@ -63,9 +66,9 @@ How the input is mapped:
 `format(text, file)` rewrites source in canonical layout, keeps every comment, and does not change the compilation result.
 
 ```ts
-import { format } from '@jotl/core';
+import { format } from "@jotl/core";
 
-format('A:{\n// hi\nb:string}', 'a.jotl').value;
+format("A:{\n// hi\nb:string}", "a.jotl").value;
 // "A: {\n  // hi\n  b: string\n}\n"
 ```
 

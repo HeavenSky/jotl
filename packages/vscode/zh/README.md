@@ -28,21 +28,21 @@ Profile: {
 
 ```ts
 export interface Profile {
-  /**
-   * @title Name
-   * @minLength 1
-   */
-  name: string;
-  /**
-   * @format email
-   */
-  email?: string;
-  /**
-   * @asType integer
-   * @minimum 0
-   * @maximum 150
-   */
-  age: number;
+	/**
+	 * @title Name
+	 * @minLength 1
+	 */
+	name: string;
+	/**
+	 * @format email
+	 */
+	email?: string;
+	/**
+	 * @asType integer
+	 * @minimum 0
+	 * @maximum 150
+	 */
+	age: number;
 }
 ```
 
@@ -56,15 +56,15 @@ export interface Profile {
 
 1. 安装插件：
 
-   ```sh
-   code --install-extension heavensky.vscode-jotl
-   ```
+    ```sh
+    code --install-extension heavensky.vscode-jotl
+    ```
 
 2. 把上面的示例存为 `profile.jotl` 并打开：
 
-   ```sh
-   code profile.jotl
-   ```
+    ```sh
+    code profile.jotl
+    ```
 
 3. 点编辑器标题栏的预览按钮，或在命令面板运行 `Jotl: 打开预览`。预览在编辑器旁打开，随编辑更新。
 

@@ -9,14 +9,14 @@
 ## 升级单个文档
 
 ```ts
-import { upgradeSchema } from '@jotl/convert';
+import { upgradeSchema } from "@jotl/convert";
 
 const result = upgradeSchema({
-  $schema: 'http://json-schema.org/draft-04/schema#',
-  id: 'https://x.test/a.json',
-  type: 'object',
-  properties: { n: { $ref: '#/definitions/n' } },
-  definitions: { n: { type: 'number', minimum: 0, exclusiveMinimum: true } },
+	$schema: "http://json-schema.org/draft-04/schema#",
+	id: "https://x.test/a.json",
+	type: "object",
+	properties: { n: { $ref: "#/definitions/n" } },
+	definitions: { n: { type: "number", minimum: 0, exclusiveMinimum: true } },
 });
 // result.value.schema:
 // { $schema: "https://json-schema.org/draft/2020-12/schema", $id: "https://x.test/a.json", type: "object",
@@ -32,10 +32,10 @@ const result = upgradeSchema({
 跨文件引用用 `upgradeDocuments`，并提供按 URI 取文档的回调：
 
 ```ts
-import { upgradeDocuments } from '@jotl/convert';
+import { upgradeDocuments } from "@jotl/convert";
 
-const result = await upgradeDocuments('https://x.test/main.json', {
-  load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
+const result = await upgradeDocuments("https://x.test/main.json", {
+	load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
 });
 // result.value.documents: 键为文档 URI, 按加载顺序排列, 第一项为入口; 每个文档按自己的 $schema 识别版本
 ```

@@ -10,22 +10,22 @@ A `jotl.config.json` gives each widget a name and an underlying type, and the `j
 
 1. Create `jotl.config.json` next to your `.jotl` files or in any parent folder:
 
-   ```json
-   { "widgets": { "ImagePicker": "url", "tag-list": "array", "headline": "string" } }
-   ```
+    ```json
+    { "widgets": { "ImagePicker": "url", "tag-list": "array", "headline": "string" } }
+    ```
 
-   The file itself gets completion and validation, and open `.jotl` files are re-checked as soon as you save it.
+    The file itself gets completion and validation, and open `.jotl` files are re-checked as soon as you save it.
 
 2. Use the widgets in a `.jotl` file:
 
-   ```jotl
-   Article: {
-     cover: ImagePicker
-     title: string[widget: 'headline']
-   }
-   ```
+    ```jotl
+    Article: {
+      cover: ImagePicker
+      title: string[widget: 'headline']
+    }
+    ```
 
-   `cover` compiles with the underlying type of `ImagePicker`, and `headline` no longer triggers the unregistered-widget warning `JOTL7001`.
+    `cover` compiles with the underlying type of `ImagePicker`, and `headline` no longer triggers the unregistered-widget warning `JOTL7001`.
 
 ## What you can write in the config
 

@@ -1,7 +1,7 @@
 packages:
-  - packages/*
-  - apps/*
+    - packages/*
+    - apps/*
 allowBuilds:
-  '@parcel/watcher': true
-  '@vscode/vsce-sign': false
-  esbuild: true
+    "@parcel/watcher": true
+    "@vscode/vsce-sign": false
+    esbuild: true

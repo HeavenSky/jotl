@@ -14,11 +14,11 @@
 
 ```js
 // diagnose.mjs
-import { getDiagnostics } from '@jotl/language-server';
+import { getDiagnostics } from "@jotl/language-server";
 
 const text = "Home: {\n  title: strng\n  logo: string[widget: 'uploader']\n}\n";
-for (const d of getDiagnostics(text, 'file:///home.jotl')) {
-  console.log(d.range.start.line, d.range.start.character, d.code, d.message);
+for (const d of getDiagnostics(text, "file:///home.jotl")) {
+	console.log(d.range.start.line, d.range.start.character, d.code, d.message);
 }
 ```
 
@@ -36,23 +36,23 @@ $ node diagnose.mjs
 
 1. 安装：
 
-   ```sh
-   pnpm add @jotl/language-server
-   ```
+    ```sh
+    pnpm add @jotl/language-server
+    ```
 
 2. 创建服务入口：
 
-   ```sh
-   echo 'import { startServer } from "@jotl/language-server"; startServer();' > jotl-server.mjs
-   ```
+    ```sh
+    echo 'import { startServer } from "@jotl/language-server"; startServer();' > jotl-server.mjs
+    ```
 
 3. 在编辑器的 LSP 客户端里，为 `*.jotl` 文件配置这条启动命令：
 
-   ```sh
-   node jotl-server.mjs --stdio
-   ```
+    ```sh
+    node jotl-server.mjs --stdio
+    ```
 
-   服务端对 `initialize` 的响应中 `serverInfo.name` 为 `jotl-language-server`，文档一打开就推送诊断。也支持 `--node-ipc` 与 `--socket`。
+    服务端对 `initialize` 的响应中 `serverInfo.name` 为 `jotl-language-server`，文档一打开就推送诊断。也支持 `--node-ipc` 与 `--socket`。
 
 ## 能做什么
 

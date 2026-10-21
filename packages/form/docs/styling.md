@@ -9,7 +9,7 @@ This page shows the two ways to include the form's styles and how to reskin them
 If your app does not use Tailwind, import the precompiled CSS once:
 
 ```ts
-import '@jotl/form/style.css';
+import "@jotl/form/style.css";
 ```
 
 ## Override styles with your own CSS
@@ -24,8 +24,8 @@ Set any of these variables on an outer element to change colors and spacing for 
 
 ```css
 .checkout-form {
-  --jotl-focus: #0a7c4a;
-  --jotl-radius: 6px;
+	--jotl-focus: #0a7c4a;
+	--jotl-radius: 6px;
 }
 ```
 
@@ -38,9 +38,9 @@ Create a separate CSS entry for the form and let your Tailwind build (for exampl
 ```css
 /* jotl.css */
 @layer theme, base, components, utilities;
-@import 'tailwindcss/theme.css' layer(theme) prefix(jt);
-@import 'tailwindcss/utilities.css' layer(utilities) source(none);
-@import '@jotl/form/tailwind.css';
+@import "tailwindcss/theme.css" layer(theme) prefix(jt);
+@import "tailwindcss/utilities.css" layer(utilities) source(none);
+@import "@jotl/form/tailwind.css";
 ```
 
 - `tailwind.css` scans the `src` published with the package through `@source`, and `source(none)` turns off scanning of your project, so only the utility classes the widgets use are generated.

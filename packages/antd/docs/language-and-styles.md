@@ -12,15 +12,15 @@ This page tells you which settings control the language of an antd-rendered form
 Set all three to the same language for a consistent form:
 
 ```tsx
-import { ConfigProvider } from 'antd';
-import enUS from 'antd/locale/en_US';
-import dayjs from 'dayjs';
-import 'dayjs/locale/en';
+import { ConfigProvider } from "antd";
+import enUS from "antd/locale/en_US";
+import dayjs from "dayjs";
+import "dayjs/locale/en";
 
-dayjs.locale('en');
+dayjs.locale("en");
 
 <ConfigProvider locale={enUS}>
-  <JotlForm schema={schema} registry={registry} locale="en" />
+	<JotlForm schema={schema} registry={registry} locale="en" />
 </ConfigProvider>;
 ```
 

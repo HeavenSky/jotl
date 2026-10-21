@@ -5,14 +5,14 @@
 This page shows how `migrate(schema, data, opts?)` repairs data saved under an older schema so it fits the new one. It accepts only the `locale` option; other conventions are in [Call the API](./api.md).
 
 ```js
-import { migrate } from '@jotl/data';
+import { migrate } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: { title: { type: 'string' }, count: { type: 'integer' } },
-  required: ['title', 'count'],
+	type: "object",
+	properties: { title: { type: "string" }, count: { type: "integer" } },
+	required: ["title", "count"],
 };
-migrate(schema, { title: 12, count: '3', old: true }).value;
+migrate(schema, { title: 12, count: "3", old: true }).value;
 // { data: { title: "12", count: 3 }, changed: ["/title", "/count", "/old"] }
 ```
 

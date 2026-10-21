@@ -9,14 +9,14 @@ The upgrade detects the input's version and rewrites it step by step to 2020-12.
 ## Upgrade one document
 
 ```ts
-import { upgradeSchema } from '@jotl/convert';
+import { upgradeSchema } from "@jotl/convert";
 
 const result = upgradeSchema({
-  $schema: 'http://json-schema.org/draft-04/schema#',
-  id: 'https://x.test/a.json',
-  type: 'object',
-  properties: { n: { $ref: '#/definitions/n' } },
-  definitions: { n: { type: 'number', minimum: 0, exclusiveMinimum: true } },
+	$schema: "http://json-schema.org/draft-04/schema#",
+	id: "https://x.test/a.json",
+	type: "object",
+	properties: { n: { $ref: "#/definitions/n" } },
+	definitions: { n: { type: "number", minimum: 0, exclusiveMinimum: true } },
 });
 // result.value.schema:
 // { $schema: "https://json-schema.org/draft/2020-12/schema", $id: "https://x.test/a.json", type: "object",
@@ -32,10 +32,10 @@ const result = upgradeSchema({
 For cross-file references use `upgradeDocuments`, and provide a callback that fetches a document by URI:
 
 ```ts
-import { upgradeDocuments } from '@jotl/convert';
+import { upgradeDocuments } from "@jotl/convert";
 
-const result = await upgradeDocuments('https://x.test/main.json', {
-  load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
+const result = await upgradeDocuments("https://x.test/main.json", {
+	load: async uri => ({ value: await fetchJson(uri), diagnostics: [] }),
 });
 // result.value.documents: keyed by document URI, in load order, the first being the entry; each document's version is detected from its own $schema
 ```

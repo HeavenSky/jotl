@@ -9,10 +9,10 @@
 `compile(text, file, options?)` 对一段源码做解析、检查和编译。参数 `file` 只写进诊断与源码映射的位置，不会去读磁盘。
 
 ```ts
-import { compile } from '@jotl/core';
+import { compile } from "@jotl/core";
 
-const result = compile('User: {\n  name(Name): string[maxLength: 20]\n}', 'user.jotl');
-result.value?.sourceMap.get('/$defs/User/properties/name');
+const result = compile("User: {\n  name(Name): string[maxLength: 20]\n}", "user.jotl");
+result.value?.sourceMap.get("/$defs/User/properties/name");
 // {
 //   range:    { file: "user.jotl", start: { line: 2, column: 3, offset: 10 }, end: { line: 2, column: 36, offset: 43 } },
 //   keyRange: { file: "user.jotl", start: { line: 2, column: 3, offset: 10 }, end: { line: 2, column: 7, offset: 14 } }
@@ -39,9 +39,12 @@ result.value?.sourceMap.get('/$defs/User/properties/name');
 `print(schema, options?)` 把 JSON Schema 2020-12 文档写成规范形 Jotl 源码。输入能用 Jotl 表达时，打印结果再编译一次，得到的 schema 与输入深度相等。
 
 ```ts
-import { print } from '@jotl/core';
+import { print } from "@jotl/core";
 
-print({ type: 'object', properties: { a: { type: 'string', format: 'time' } } }, { rootName: 'Page' }).value;
+print(
+	{ type: "object", properties: { a: { type: "string", format: "time" } } },
+	{ rootName: "Page" }
+).value;
 // "Page: {\n  a?: string[format: 'time']\n}\n"
 ```
 
@@ -63,9 +66,9 @@ print({ type: 'object', properties: { a: { type: 'string', format: 'time' } } },
 `format(text, file)` 按规范排版重写源码，保留全部注释，不改变编译结果。
 
 ```ts
-import { format } from '@jotl/core';
+import { format } from "@jotl/core";
 
-format('A:{\n// hi\nb:string}', 'a.jotl').value;
+format("A:{\n// hi\nb:string}", "a.jotl").value;
 // "A: {\n  // hi\n  b: string\n}\n"
 ```
 

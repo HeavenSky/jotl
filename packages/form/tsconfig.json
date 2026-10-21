@@ -1,19 +1,12 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "rootDir": "src",
-    "outDir": "dist",
-    "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "jsx": "react-jsx",
-    "jsxImportSource": "@jotl/form"
-  },
-  "include": ["src"],
-  "references": [
-    {
-      "path": "../core"
-    },
-    {
-      "path": "../data"
-    }
-  ]
+	"extends": "../../tsconfig.base.json",
+	"compilerOptions": {
+		"rootDir": "src",
+		"outDir": "dist",
+		"lib": ["ES2023", "DOM", "DOM.Iterable"],
+		"jsx": "react-jsx",
+		"jsxImportSource": "@jotl/form"
+	},
+	"include": ["src"],
+	"references": [{ "path": "../core" }, { "path": "../data" }]
 }

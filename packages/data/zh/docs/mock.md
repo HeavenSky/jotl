@@ -5,16 +5,16 @@
 读完本页，你能用 `mock(schema, opts?)` 生成满足 schema 的测试数据。它接受 `seed` 与 `locale`，其他约定见[调用约定](./api.md)。
 
 ```js
-import { mock } from '@jotl/data';
+import { mock } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: {
-    e: { type: 'string', format: 'email' },
-    c: { type: 'string', format: 'color' },
-    p: { type: 'string', pattern: '^[A-Z]{3}-[0-9]{2}$' },
-  },
-  required: ['e', 'c', 'p'],
+	type: "object",
+	properties: {
+		e: { type: "string", format: "email" },
+		c: { type: "string", format: "color" },
+		p: { type: "string", pattern: "^[A-Z]{3}-[0-9]{2}$" },
+	},
+	required: ["e", "c", "p"],
 };
 mock(schema, { seed: 2 }).value; // { e: "hnwqmj@example.com", c: "#1c36d9", p: "JZB-11" }
 ```

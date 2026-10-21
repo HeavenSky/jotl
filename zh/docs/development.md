@@ -10,27 +10,27 @@
 
 1. 按 lockfile 安装依赖：
 
-   ```sh
-   pnpm install --frozen-lockfile
-   ```
+    ```sh
+    pnpm install --frozen-lockfile
+    ```
 
 2. 把固定版本的官方 JSON-Schema-Test-Suite 下载到 `vendor/json-schema-test-suite/`（不入库）。`@jotl/convert` 与 `@jotl/data` 的测试依赖它，缺少时这些测试失败；已是固定版本时重跑脚本会跳过下载。
 
-   ```sh
-   bash scripts/fetch-json-schema-test-suite.sh
-   ```
+    ```sh
+    bash scripts/fetch-json-schema-test-suite.sh
+    ```
 
 3. 构建全部包到各自的 `dist/`：
 
-   ```sh
-   pnpm build
-   ```
+    ```sh
+    pnpm build
+    ```
 
 4. 运行全部测试：
 
-   ```sh
-   pnpm test
-   ```
+    ```sh
+    pnpm test
+    ```
 
 ## 命令
 
@@ -78,9 +78,9 @@
 1. 改该包 `package.json` 的 `version`，提交并推送到 `main`。
 2. 推送标签，以 `packages/core` 为例：
 
-   ```sh
-   git tag core@0.0.2 && git push origin core@0.0.2
-   ```
+    ```sh
+    git tag core@0.0.2 && git push origin core@0.0.2
+    ```
 
 包之间经 `workspace:~` 互相依赖，打包时写成 `~<依赖包当前版本>`（例如 `~0.0.2`，匹配 `>=0.0.2 <0.1.0`），所以依赖包发布补丁版本时不必重发依赖它的包。依赖方要用到新版本时先发布被依赖的包；有破坏性变更时升 minor 版本。发布前，工作流会在空目录里用 npm 安装打好的 tarball 及其 peer 依赖并导入入口，带 `bin` 的包还会运行一次 `--version`。这一步从 npm 安装 `@jotl/*` 依赖，所以依赖的版本还没发布时，发布会失败。
 

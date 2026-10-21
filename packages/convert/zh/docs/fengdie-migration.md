@@ -7,14 +7,14 @@
 ## 迁移一份 schema
 
 ```ts
-import { migrateFengdie } from '@jotl/convert';
+import { migrateFengdie } from "@jotl/convert";
 
 const { jotl, schema, umo, diagnostics } = migrateFengdie(
-  `Object(首页) {
+	`Object(首页) {
     title(标题): String[maxLength: 20, required: true]
     start(开始): Date
   }`,
-  'home.fengdie'
+	"home.fengdie"
 );
 // jotl:
 // Root(首页): {

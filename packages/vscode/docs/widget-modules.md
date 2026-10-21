@@ -8,33 +8,33 @@ After this page, the preview form renders your own React widget components inste
 
 1. Point the widget at a module, either in `jotl.config.json`:
 
-   ```json
-   {
-     "widgets": {
-       "ImagePicker": {
-         "base": "url",
-         "module": "https://esm.sh/my-image-picker?external=react,react-dom",
-         "export": "default"
-       }
-     }
-   }
-   ```
+    ```json
+    {
+    	"widgets": {
+    		"ImagePicker": {
+    			"base": "url",
+    			"module": "https://esm.sh/my-image-picker?external=react,react-dom",
+    			"export": "default"
+    		}
+    	}
+    }
+    ```
 
-   or in the `widgets` metadata of the file's root entry, which wins over the config for the same name:
+    or in the `widgets` metadata of the file's root entry, which wins over the config for the same name:
 
-   ```jotl
-   Page: [widgets: {ImagePicker: {base: 'url', module: './widgets/image-picker.js'}}] {
-     cover: ImagePicker
-   }
-   ```
+    ```jotl
+    Page: [widgets: {ImagePicker: {base: 'url', module: './widgets/image-picker.js'}}] {
+      cover: ImagePicker
+    }
+    ```
 
 2. Set `jotl.preview.loadWidgetModules` to `true` in your user or workspace settings:
 
-   ```json
-   { "jotl.preview.loadWidgetModules": true }
-   ```
+    ```json
+    { "jotl.preview.loadWidgetModules": true }
+    ```
 
-   The preview reloads at once and the Form tab renders the module's component in the `cover` field.
+    The preview reloads at once and the Form tab renders the module's component in the `cover` field.
 
 **The setting is off by default, because loading a module runs its code inside the preview.** While it is off, these widgets use the fallback display and the preview shows a notice. In an untrusted workspace the workspace value is ignored, so a repository cannot turn loading on by itself; only your user setting counts.
 

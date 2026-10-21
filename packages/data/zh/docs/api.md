@@ -29,10 +29,10 @@
 选项 `locale`（`"zh-CN"` 或 `"en"`，类型 `LocaleOptions`）只决定本次调用产生的诊断与消息的语言。不传时取 `@jotl/core` 的全局 `getLocale()`，默认 `en`。
 
 ```js
-import { validate } from '@jotl/data';
+import { validate } from "@jotl/data";
 
-const schema = { type: 'object', properties: { title: { type: 'string', title: 'Title' } } };
-validate(schema, { title: 1 }, { locale: 'zh-CN' }).diagnostics[0].message; // "Title 的类型应为字符串"
+const schema = { type: "object", properties: { title: { type: "string", title: "Title" } } };
+validate(schema, { title: 1 }, { locale: "zh-CN" }).diagnostics[0].message; // "Title 的类型应为字符串"
 ```
 
 ## 只处理文档的一部分
@@ -40,22 +40,24 @@ validate(schema, { title: 1 }, { locale: 'zh-CN' }).diagnostics[0].message; // "
 `getDefaults` 与 `validate` 接受选项 `at`（类型 `SubschemaOptions`，即 `{ at?: JsonPointer | JsonSchema }`），只针对大文档中的某个子 schema 求默认值或校验。
 
 ```js
-import { getDefaults, validate } from '@jotl/data';
+import { getDefaults, validate } from "@jotl/data";
 
 const doc = {
-  $defs: {
-    Address: {
-      type: 'object',
-      properties: {
-        city: { type: 'string', title: 'City', default: 'Paris' },
-        zip: { type: 'string', pattern: '^[0-9]{5}$' },
-      },
-      required: ['city'],
-    },
-  },
+	$defs: {
+		Address: {
+			type: "object",
+			properties: {
+				city: { type: "string", title: "City", default: "Paris" },
+				zip: { type: "string", pattern: "^[0-9]{5}$" },
+			},
+			required: ["city"],
+		},
+	},
 };
-getDefaults(doc, { at: '/$defs/Address' }).value; // { city: "Paris" }
-validate(doc, { city: 1, zip: 'x' }, { at: '/$defs/Address' }).diagnostics.map(d => d.location.pointer); // ["/city", "/zip"]
+getDefaults(doc, { at: "/$defs/Address" }).value; // { city: "Paris" }
+validate(doc, { city: 1, zip: "x" }, { at: "/$defs/Address" }).diagnostics.map(
+	d => d.location.pointer
+); // ["/city", "/zip"]
 ```
 
 - 传 JSON 指针时取文档中该处的子 schema；传 schema 值时原样使用，例如你由文档节点合成的有效 schema。

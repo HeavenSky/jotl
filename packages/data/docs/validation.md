@@ -7,17 +7,17 @@ This page shows what `validate` checks, which errors it reports, and how to word
 ## Read validation errors
 
 ```js
-import { validate } from '@jotl/data';
+import { validate } from "@jotl/data";
 
 const schema = {
-  type: 'object',
-  properties: {
-    name: { type: 'string', maxLength: 3, errorMessage: { maxLength: 'At most 3 characters' } },
-    items: { type: 'array', items: { type: 'integer' } },
-  },
-  required: ['name'],
+	type: "object",
+	properties: {
+		name: { type: "string", maxLength: 3, errorMessage: { maxLength: "At most 3 characters" } },
+		items: { type: "array", items: { type: "integer" } },
+	},
+	required: ["name"],
 };
-validate(schema, { name: 'abcd', items: [1, 'x'] });
+validate(schema, { name: "abcd", items: [1, "x"] });
 // value: { valid: false }
 // diagnostics: JOTL4004 /name    "At most 3 characters"
 //              JOTL4001 /items/1 "item 2 of items should be of type integer"

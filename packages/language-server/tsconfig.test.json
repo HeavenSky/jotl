@@ -1,12 +1,12 @@
 {
-  "extends": "./tsconfig.json",
-  "compilerOptions": {
-    "composite": false,
-    "noEmit": true,
-    "declaration": false,
-    "declarationMap": false,
-    "rootDir": "../..",
-    "types": ["node"]
-  },
-  "include": ["test", "../../test-utils"]
+	"extends": "./tsconfig.json",
+	"compilerOptions": {
+		"composite": false,
+		"noEmit": true,
+		"declaration": false,
+		"declarationMap": false,
+		"rootDir": "../..",
+		"types": ["node"]
+	},
+	"include": ["test", "../../test-utils"]
 }

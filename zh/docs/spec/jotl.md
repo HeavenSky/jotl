@@ -85,9 +85,9 @@ Marker   = "<root/>" | "<default/>" ;
 - 顶层条目不能写 `?`。
 - 标识写在顶层条目之前（同一行或上一行），只标记紧随其后的那一条；同一条可以同时带两个标识；写在体内报错；每个标识在整个文件中至多出现一次。
 - 根与默认导出：
-  - 两个标识都不写：第一条既是根也是默认导出。
-  - 只写一个：另一个跟随它。
-  - 两个分别写在不同条目上：各自生效。
+    - 两个标识都不写：第一条既是根也是默认导出。
+    - 只写一个：另一个跟随它。
+    - 两个分别写在不同条目上：各自生效。
 - 根编译为根 schema 的 `$ref: "#/$defs/<名>"`；根的元数据（含 `rules` `id` `widgets`）写在根条目自己的 `[...]` 上。
 - 默认导出只影响 TS 输出的 `export default` 与日后多文件的 `import`，不写进 JSON Schema。`compile` 的结果另给出 `defaultExport`（类型名）：生成 TS 时把它传给 `schemaToTs` 的同名选项，打印 Jotl 时传给 `print` 的同名选项（与根不同时写出 `<default/>`，并给根条目补上 `<root/>`）；`tsToSchema` 的结果同样带出 `defaultExport`。默认导出与根不同时，根类型的注释写 `@root`，见[关键字对照](keyword-mapping.md)。
 - 没有条目的文件只编译出 `$schema`。纯类型库（无根）随多文件 `import` 一起设计。
@@ -118,17 +118,17 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 - 条目之间用换行、`,` 或 `;` 分隔，分隔符都可以省略。
 - 引用类型：在组件位置写大驼峰类型名。可以带[元数据键](#元数据键)表中适用于「任意」的键；指向枚举时另可带 `multiple` 与项数约束，指向对象时另可带 `summary`；这些键编译为 `$ref` 旁的同级关键字。引用不能带体，要改结构就另声明一个类型。适用性以 `packages/core/src/syntax/builtins.ts` 的 `META_KEYS` 为准。
 - 扩展组件：组件位置可以写已登记的扩展组件，底层类型取自登记项（`{ ImagePicker: { type: "string", format: "uri" } }`）；未登记的报错；不想登记时写 `string[widget: 'ImagePicker']`。登记项的值（配置文件与根元数据 `widgets` 写法相同）：
-  - 底层类型：JSON Schema 基本类型名（`string` `number` `integer` `boolean` `array` `object`，编译为 `{ type }`）；其余无体的内置组件名（取该组件编译出的 schema，去掉 `x-ui`；`enum` `union` 不可用）；或 schema 对象（原样使用）。
-  - 模块声明：带 `module` 键的对象 `{ base?, module, export? }`，同时给出实现该 widget 的 ES 模块。`base` 是上一条所说的底层类型，缺省为 `object`；`module` 是非空的模块地址，原样保留，相对路径由使用方按声明所在文件的目录解析；`export` 是导出名，缺省为 `default`；只能有这三个键。不带 `module` 的对象一律当作 schema。
-  - 大驼峰名是扩展组件，其余名字只登记为 widget 名（模块声明仍然有效）。为这类名字写的底层类型不参与编译：字段通过 `widget` 使用它且字段类型不被该底层类型接受时，编译器报 `JOTL1052`（warning）。比较时按去掉 `"null"` 后的 JSON 类型，`number` 也接受 `integer`，`object` 也接受 `money` 与 `bigint`；任一方无法判断（如类型引用、无 `type` 的底层 schema）、不带 `base` 的模块声明以及只登记名字时不报。
+    - 底层类型：JSON Schema 基本类型名（`string` `number` `integer` `boolean` `array` `object`，编译为 `{ type }`）；其余无体的内置组件名（取该组件编译出的 schema，去掉 `x-ui`；`enum` `union` 不可用）；或 schema 对象（原样使用）。
+    - 模块声明：带 `module` 键的对象 `{ base?, module, export? }`，同时给出实现该 widget 的 ES 模块。`base` 是上一条所说的底层类型，缺省为 `object`；`module` 是非空的模块地址，原样保留，相对路径由使用方按声明所在文件的目录解析；`export` 是导出名，缺省为 `default`；只能有这三个键。不带 `module` 的对象一律当作 schema。
+    - 大驼峰名是扩展组件，其余名字只登记为 widget 名（模块声明仍然有效）。为这类名字写的底层类型不参与编译：字段通过 `widget` 使用它且字段类型不被该底层类型接受时，编译器报 `JOTL1052`（warning）。比较时按去掉 `"null"` 后的 JSON 类型，`number` 也接受 `integer`，`object` 也接受 `money` 与 `bigint`；任一方无法判断（如类型引用、无 `type` 的底层 schema）、不带 `base` 的模块声明以及只登记名字时不报。
 - 扩展组件可带的元数据：[元数据键](#元数据键)表中适用于「任意」的键，以及按底层 schema 放行的约束键，规则与同类内置组件一致。底层 `type`（去掉 `"null"` 后唯一）为 `string` 时放行 `minLength` `maxLength` `pattern` `format`；为 `number` 时放行 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` `decimals`；为 `integer` 时放行上下界四键；为 `array` 时放行 `minItems` `maxItems` `uniqueItems`；为 `object` 时放行 `minProperties` `maxProperties`；底层为 `money` `bigint` 形态时放行上下界四键（写成字符串，编译到 `x-decimalRange`）。底层没有 `type`（如只有 `anyOf` `$ref`）或有多个类型时，不放行任何约束键。其余键报 JOTL1007。例：登记 `Rating: {base: 'integer', module: '...'}` 后可以写 `score: Rating[minimum: 0, maximum: 5]`。
-  - 约束合并进底层 schema，同名关键字以元数据为准（如底层为 `{type: 'integer', minimum: 1}` 时，元数据 `minimum: 0` 取代底层的 `minimum`）。`format` 与底层不同时，与内置组件一样报 JOTL1048 warning；上下界一端来自元数据、另一端来自底层且互相冲突时报 JOTL1020。`default` 按合并后的 schema 校验。放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准。
+    - 约束合并进底层 schema，同名关键字以元数据为准（如底层为 `{type: 'integer', minimum: 1}` 时，元数据 `minimum: 0` 取代底层的 `minimum`）。`format` 与底层不同时，与内置组件一样报 JOTL1048 warning；上下界一端来自元数据、另一端来自底层且互相冲突时报 JOTL1020。`default` 按合并后的 schema 校验。放行表以 `packages/core/src/syntax/shapes.ts` 的 `EXTENSION_CONSTRAINT_KEYS` 为准。
 - 登记入口：
-  - 项目配置 `jotl.config.json`：形如 `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`；只有 `widgets` 与 `$schema` 两个键；不合法的项跳过并报配置问题。`readJotlConfig` 的结果中，`config.widgets` 为名字 → 底层 schema，`config.modules` 为模块声明项的名字 → `{ module, export? }`；配置中的模块声明不写进编译产物，由使用方按 `config.modules` 加载。每个源文件使用从所在目录向上找到的最近一个配置，查找到 git 顶层（含 `.git` 的目录）或文件系统根为止。配置文件自身的 JSON Schema 由 `@jotl/core` 的 `createJotlConfigJsonSchema()` 生成。
-  - 根条目元数据 `widgets`：形如 `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`，只能写在根条目上。它由编译器处理，任何调用 `compile` 的入口（含 Playground）都生效；本文件内即可使用这些扩展组件，与其他入口合并，同名时以文件内为准。其中的模块声明编译进根 `x-ui.widgets`（名字 → `{ base?, module, export? }`，声明了 `object` 以外的 `base` 时原样带上，见 [x-ui 规范](x-ui.md)）。类型名与文件内声明的扩展组件重名报 JOTL1028，取值不合法报 JOTL1020。
-  - 命令行：编译 Jotl 的命令自动查找配置，`--config` 指定，`--no-config` 关闭，见 [`jotl` 命令行说明](../../../packages/cli/zh/README.md)。
-  - VS Code（语言服务）：按文档路径查找配置，与设置 `jotl.registeredWidgets`（只有名字）合并，同名时以配置文件为准，只出现在设置中的大驼峰名按 `string` 编译；配置文件变更后重新诊断，见[语言服务说明](../../../packages/language-server/zh/README.md)。
-  - `@jotl/core` `compile` 的 `options.widgets`（组件名 → 底层 schema）：该包不读文件，由调用方传入；`readJotlConfig` 与 `configCompileOptions` 把配置内容换算为该选项。`options.widgetTypes`（非大驼峰 widget 名 → 底层 schema）只用于 `JOTL1052` 检查；`readJotlConfig` 的结果中为 `config.widgetTypes`，由 `configCompileOptions(config.widgets, config.widgetTypes)` 传入。
+    - 项目配置 `jotl.config.json`：形如 `{ "widgets": { "ImagePicker": { "base": "url", "module": "https://esm.sh/image-picker" }, "tag-list": "array", "headline": "string" } }`；只有 `widgets` 与 `$schema` 两个键；不合法的项跳过并报配置问题。`readJotlConfig` 的结果中，`config.widgets` 为名字 → 底层 schema，`config.modules` 为模块声明项的名字 → `{ module, export? }`；配置中的模块声明不写进编译产物，由使用方按 `config.modules` 加载。每个源文件使用从所在目录向上找到的最近一个配置，查找到 git 顶层（含 `.git` 的目录）或文件系统根为止。配置文件自身的 JSON Schema 由 `@jotl/core` 的 `createJotlConfigJsonSchema()` 生成。
+    - 根条目元数据 `widgets`：形如 `Form: [widgets: {ImagePicker: {base: 'url', module: 'https://esm.sh/image-picker'}}] {...}`，只能写在根条目上。它由编译器处理，任何调用 `compile` 的入口（含 Playground）都生效；本文件内即可使用这些扩展组件，与其他入口合并，同名时以文件内为准。其中的模块声明编译进根 `x-ui.widgets`（名字 → `{ base?, module, export? }`，声明了 `object` 以外的 `base` 时原样带上，见 [x-ui 规范](x-ui.md)）。类型名与文件内声明的扩展组件重名报 JOTL1028，取值不合法报 JOTL1020。
+    - 命令行：编译 Jotl 的命令自动查找配置，`--config` 指定，`--no-config` 关闭，见 [`jotl` 命令行说明](../../../packages/cli/zh/README.md)。
+    - VS Code（语言服务）：按文档路径查找配置，与设置 `jotl.registeredWidgets`（只有名字）合并，同名时以配置文件为准，只出现在设置中的大驼峰名按 `string` 编译；配置文件变更后重新诊断，见[语言服务说明](../../../packages/language-server/zh/README.md)。
+    - `@jotl/core` `compile` 的 `options.widgets`（组件名 → 底层 schema）：该包不读文件，由调用方传入；`readJotlConfig` 与 `configCompileOptions` 把配置内容换算为该选项。`options.widgetTypes`（非大驼峰 widget 名 → 底层 schema）只用于 `JOTL1052` 检查；`readJotlConfig` 的结果中为 `config.widgetTypes`，由 `configCompileOptions(config.widgets, config.widgetTypes)` 传入。
 
 各类条目能写的部分：
 
@@ -229,14 +229,14 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 只接受两种：
 
 1. 可区分联合：`union[discriminator: 'kind'] { text(文本): {...}  image(图片): ImageBlock }`
-   - 分支的键是区分字段的取值，标签为分支标题；分支内容是对象体或对象类型引用。
-   - 区分字段由编译器补为 `const`，分支里不写；编译为 `oneOf`。
-   - 至少需要一个分支；没有体或体为空报 JOTL1047。
-   - 数据：`{ "kind": "text", "content": "..." }`。
+    - 分支的键是区分字段的取值，标签为分支标题；分支内容是对象体或对象类型引用。
+    - 区分字段由编译器补为 `const`，分支里不写；编译为 `oneOf`。
+    - 至少需要一个分支；没有体或体为空报 JOTL1047。
+    - 数据：`{ "kind": "text", "content": "..." }`。
 2. 按 JSON 类型区分：`union[union_item: 'number|string', item_meta: {string: {pattern: '^\\d+%$'}}]`
-   - 各分支的 JSON 类型（string number boolean array object）互不相同，每种至多一个；`money` `bigint` 按自身的 `type` 字段区分，不占 object 的名额；`any` 匹配所有类型，不能与其他名字并列。
-   - 同属一种 JSON 类型的分支（`email|url`）编译报错，提示改用可区分联合。
-   - 编译为 `anyOf`。
+    - 各分支的 JSON 类型（string number boolean array object）互不相同，每种至多一个；`money` `bigint` 按自身的 `type` 字段区分，不占 object 的名额；`any` 匹配所有类型，不能与其他名字并列。
+    - 同属一种 JSON 类型的分支（`email|url`）编译报错，提示改用可区分联合。
+    - 编译为 `anyOf`。
 
 - `null` 不进联合，可空一律写 `nullable: true`。
 - 渲染：左侧用下拉选择分支（`props: {selector: 'buttons'}` 且分支不超过 4 个时为分段按钮），右侧是当前分支的内容，空间不足时换行（见 [HTML 组件约定](html-widgets.md)）。切换分支时用新分支的默认值替换；各分支最后一次的值在本次编辑中缓存，切回时恢复。
@@ -304,9 +304,9 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `number` / `integer` 共用数字框。`decimals` 指定小数位：`integer` 固定为 0，`number` 默认不限；输入框按它设 `step`，失焦时舍入。校验编译为 `x-decimals`，由 ajv 自定义关键字按十进制位数检查，不用 `multipleOf`。
 - 精确数字符串：`^-?\d+(\.\d+)?$`，只禁止指数、千分位与空白。
 - `money` 的值：`{ type: 'money', value, currency, unit? }`
-  - `value` 为精确数字符串。没有 `unit` 时表示主单位，小数位定长，默认取 ISO 4217 位数（CNY USD 为 2，JPY 为 0），前提是写了元数据 `currency`，且所列币种都已知、位数相同，否则不限；有 `unit` 时默认不限；两种情况都可用 `decimals` 覆盖。
-  - `currency` 为 ISO 4217 代码，总是存入数据；元数据 `currency: 'CNY'` 表示固定（编译为 `const`），`currency: ['CNY', 'USD']` 表示可选（编译为 `enum`，首个为默认）。
-  - `unit` 由业务定义，只校验为字符串，原样透传；元数据 `unit: 'fen'` 表示固定，`unit: ['yuan', 'fen']` 表示可选，不写则不显示单位选择。
+    - `value` 为精确数字符串。没有 `unit` 时表示主单位，小数位定长，默认取 ISO 4217 位数（CNY USD 为 2，JPY 为 0），前提是写了元数据 `currency`，且所列币种都已知、位数相同，否则不限；有 `unit` 时默认不限；两种情况都可用 `decimals` 覆盖。
+    - `currency` 为 ISO 4217 代码，总是存入数据；元数据 `currency: 'CNY'` 表示固定（编译为 `const`），`currency: ['CNY', 'USD']` 表示可选（编译为 `enum`，首个为默认）。
+    - `unit` 由业务定义，只校验为字符串，原样透传；元数据 `unit: 'fen'` 表示固定，`unit: ['yuan', 'fen']` 表示可选，不写则不显示单位选择。
 - `bigint` 的值：`{ type: 'bigint', value }`，`value` 满足 `^-?\d+$`。
 - 范围：`money` `bigint` 上的 `minimum` `maximum` `exclusiveMinimum` `exclusiveMaximum` 写成字符串，编译为作用于 `value` 的 `x-decimalRange`，按精确数比较；默认不限正负。
 - 运算：`@jotl/form/core` 依赖 `big.js`，提供 `toBig(x): Big` 与 `fromBig(b, template, decimals?)`；不提供单位换算。

@@ -1,33 +1,33 @@
 {
-  "name": "@jotl/cli",
-  "version": "0.0.2",
-  "description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HeavenSky/jotl.git",
-    "directory": "packages/cli"
-  },
-  "bin": {
-    "jotl": "./dist/bin.js"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc -b",
-    "typecheck:test": "tsc -p tsconfig.test.json"
-  },
-  "dependencies": {
-    "@jotl/convert": "workspace:~",
-    "@jotl/core": "workspace:~",
-    "@jotl/data": "workspace:~"
-  }
+	"name": "@jotl/cli",
+	"version": "0.0.2",
+	"description": "Compile Jotl to JSON Schema and TypeScript, validate JSON data, and migrate legacy schemas from the terminal or CI.",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/HeavenSky/jotl.git",
+		"directory": "packages/cli"
+	},
+	"bin": {
+		"jotl": "./dist/bin.js"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"typecheck:test": "tsc -p tsconfig.test.json"
+	},
+	"dependencies": {
+		"@jotl/convert": "workspace:~",
+		"@jotl/core": "workspace:~",
+		"@jotl/data": "workspace:~"
+	}
 }

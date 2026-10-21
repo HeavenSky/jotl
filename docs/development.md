@@ -10,27 +10,27 @@ Run every command at the repository root.
 
 1. Install dependencies from the lockfile:
 
-   ```sh
-   pnpm install --frozen-lockfile
-   ```
+    ```sh
+    pnpm install --frozen-lockfile
+    ```
 
 2. Download the pinned version of the official JSON-Schema-Test-Suite into `vendor/json-schema-test-suite/` (not committed). The tests of `@jotl/convert` and `@jotl/data` read it and fail when it is missing; rerunning the script skips the download when the pinned commit is already present.
 
-   ```sh
-   bash scripts/fetch-json-schema-test-suite.sh
-   ```
+    ```sh
+    bash scripts/fetch-json-schema-test-suite.sh
+    ```
 
 3. Build all packages into their own `dist/`:
 
-   ```sh
-   pnpm build
-   ```
+    ```sh
+    pnpm build
+    ```
 
 4. Run all tests:
 
-   ```sh
-   pnpm test
-   ```
+    ```sh
+    pnpm test
+    ```
 
 ## Commands
 
@@ -78,9 +78,9 @@ Each package is released on its own by pushing a tag: `<directory>@<version>` re
 1. Bump `version` in the package's `package.json`, commit and push to `main`.
 2. Push the tag, for example for `packages/core`:
 
-   ```sh
-   git tag core@0.0.2 && git push origin core@0.0.2
-   ```
+    ```sh
+    git tag core@0.0.2 && git push origin core@0.0.2
+    ```
 
 Packages depend on each other through `workspace:~`, which is packed as `~<dependency's current version>` (for example `~0.0.2`, matching `>=0.0.2 <0.1.0`), so a patch release of a dependency does not require republishing its dependents. Release the dependency first when a dependent needs its new version, and bump the minor version for a breaking change. Before publishing, the workflow installs the packed tarball with npm in an empty directory, together with its peer dependencies, and imports it (and runs `--version` for packages with a `bin`). This install pulls `@jotl/*` dependencies from npm, so a release fails until the versions it depends on are published.
 

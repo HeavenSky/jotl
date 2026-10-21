@@ -32,13 +32,20 @@
 ## 显示条件
 
 ```ts
-type Leaf = { field: JsonPointer; base?: 'node' };
+type Leaf = { field: JsonPointer; base?: "node" };
 type Condition =
-  | (Leaf & ({ eq: unknown } | { ne: unknown } | { in: unknown[] } | { notIn: unknown[] } | { truthy: boolean }))
-  | (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
-  | { all: Condition[] }
-  | { any: Condition[] }
-  | { not: Condition };
+	| (Leaf &
+			(
+				| { eq: unknown }
+				| { ne: unknown }
+				| { in: unknown[] }
+				| { notIn: unknown[] }
+				| { truthy: boolean }
+			))
+	| (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
+	| { all: Condition[] }
+	| { any: Condition[] }
+	| { not: Condition };
 ```
 
 - 叶子条件由 `field`、可选的 `base` 和恰好一个比较项组成。
@@ -52,8 +59,8 @@ type Condition =
 
 ```ts
 interface UiRule {
-  match: { pointer?: string; type?: string; format?: string; enum?: boolean; widget?: string };
-  ui: XUiVariant;
+	match: { pointer?: string; type?: string; format?: string; enum?: boolean; widget?: string };
+	ui: XUiVariant;
 }
 ```
 

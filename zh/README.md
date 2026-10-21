@@ -20,47 +20,33 @@ Home: {
 
 ```json
 {
-  "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$ref": "#/$defs/Home",
-  "x-ui": {
-    "version": 1
-  },
-  "$defs": {
-    "Home": {
-      "type": "object",
-      "properties": {
-        "title": {
-          "title": "Title",
-          "type": "string",
-          "maxLength": 20,
-          "default": "Welcome"
-        },
-        "mode": {
-          "title": "Mode",
-          "type": "string",
-          "oneOf": [
-            {
-              "title": "Light",
-              "const": "light"
-            },
-            {
-              "title": "Dark",
-              "const": "dark"
-            }
-          ],
-          "default": "light"
-        },
-        "tags": {
-          "type": "array",
-          "maxItems": 5,
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": ["title", "mode"]
-    }
-  }
+	"$schema": "https://json-schema.org/draft/2020-12/schema",
+	"$ref": "#/$defs/Home",
+	"x-ui": { "version": 1 },
+	"$defs": {
+		"Home": {
+			"type": "object",
+			"properties": {
+				"title": {
+					"title": "Title",
+					"type": "string",
+					"maxLength": 20,
+					"default": "Welcome"
+				},
+				"mode": {
+					"title": "Mode",
+					"type": "string",
+					"oneOf": [
+						{ "title": "Light", "const": "light" },
+						{ "title": "Dark", "const": "dark" }
+					],
+					"default": "light"
+				},
+				"tags": { "type": "array", "maxItems": 5, "items": { "type": "string" } }
+			},
+			"required": ["title", "mode"]
+		}
+	}
 }
 ```
 

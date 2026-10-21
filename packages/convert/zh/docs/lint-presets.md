@@ -10,19 +10,24 @@
 
 ```json
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
-  "extends": ["@jotl/convert/tsdoc.json"]
+	"$schema": "https://developer.microsoft.com/json-schemas/tsdoc/v0/tsdoc.schema.json",
+	"extends": ["@jotl/convert/tsdoc.json"]
 }
 ```
 
 eslint-plugin-tsdoc 读取 ESLint 运行目录（启用类型感知 lint 时为 TypeScript 程序所在目录）下的 `tsdoc.json`，不读被检查文件旁边的，所以把它放在项目根目录。然后启用规则：
 
 ```js
-import tsParser from '@typescript-eslint/parser';
-import tsdoc from 'eslint-plugin-tsdoc';
+import tsParser from "@typescript-eslint/parser";
+import tsdoc from "eslint-plugin-tsdoc";
 
 export default [
-  { files: ['**/*.ts'], languageOptions: { parser: tsParser }, plugins: { tsdoc }, rules: { 'tsdoc/syntax': 'warn' } },
+	{
+		files: ["**/*.ts"],
+		languageOptions: { parser: tsParser },
+		plugins: { tsdoc },
+		rules: { "tsdoc/syntax": "warn" },
+	},
 ];
 ```
 
@@ -31,17 +36,17 @@ export default [
 `definedTags` 包含全部自定义标签，另加 `defaultValue` 与 `privateRemarks`：
 
 ```js
-import tsParser from '@typescript-eslint/parser';
-import jsdoc from 'eslint-plugin-jsdoc';
-import { definedTags } from '@jotl/convert/eslint';
+import tsParser from "@typescript-eslint/parser";
+import jsdoc from "eslint-plugin-jsdoc";
+import { definedTags } from "@jotl/convert/eslint";
 
 export default [
-  {
-    files: ['**/*.ts'],
-    languageOptions: { parser: tsParser },
-    plugins: { jsdoc },
-    rules: { 'jsdoc/check-tag-names': ['error', { definedTags }] },
-  },
+	{
+		files: ["**/*.ts"],
+		languageOptions: { parser: tsParser },
+		plugins: { jsdoc },
+		rules: { "jsdoc/check-tag-names": ["error", { definedTags }] },
+	},
 ];
 ```
 

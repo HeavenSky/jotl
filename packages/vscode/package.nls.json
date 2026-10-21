@@ -1,9 +1,9 @@
 {
-  "extension.description": "Write JSON Schema in Jotl with checks as you type, and see the compiled schema, TypeScript declarations and form update live.",
-  "category": "Jotl",
-  "command.showPreview": "Open Preview",
-  "config.registeredWidgets": "Widget names registered by your project in addition to the built-in ones. The language server offers them in completions and does not report them as unregistered widgets. PascalCase names are also extension widgets compiled as string; declare widgets in jotl.config.json to give them another underlying type (the file takes precedence).",
-  "config.preview.loadWidgetModules": "Load extension widget modules in the preview form: modules declared in jotl.config.json and in the root widgets metadata of a Jotl file (https URLs or paths relative to the declaring file). Modules run inside the preview and share its React. When off, these widgets use the fallback display and the preview shows a notice.",
-  "capabilities.untrustedWorkspaces": "In untrusted workspaces the workspace value of jotl.preview.loadWidgetModules is ignored, so a repository cannot turn on loading of widget module code by itself.",
-  "jsonValidation.configSchema": "./dist/jotl.config.schema.json"
+	"extension.description": "Write JSON Schema in Jotl with checks as you type, and see the compiled schema, TypeScript declarations and form update live.",
+	"category": "Jotl",
+	"command.showPreview": "Open Preview",
+	"config.registeredWidgets": "Widget names registered by your project in addition to the built-in ones. The language server offers them in completions and does not report them as unregistered widgets. PascalCase names are also extension widgets compiled as string; declare widgets in jotl.config.json to give them another underlying type (the file takes precedence).",
+	"config.preview.loadWidgetModules": "Load extension widget modules in the preview form: modules declared in jotl.config.json and in the root widgets metadata of a Jotl file (https URLs or paths relative to the declaring file). Modules run inside the preview and share its React. When off, these widgets use the fallback display and the preview shows a notice.",
+	"capabilities.untrustedWorkspaces": "In untrusted workspaces the workspace value of jotl.preview.loadWidgetModules is ignored, so a repository cannot turn on loading of widget module code by itself.",
+	"jsonValidation.configSchema": "./dist/jotl.config.schema.json"
 }

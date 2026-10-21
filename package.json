@@ -1,27 +1,27 @@
 {
-  "name": "jotl-monorepo",
-  "private": true,
-  "license": "MIT",
-  "type": "module",
-  "scripts": {
-    "build": "tsc -b",
-    "clean": "tsc -b --clean",
-    "test": "vitest run",
-    "lint": "oxlint --fix",
-    "lint:check": "oxlint",
-    "fmt": "oxfmt --write",
-    "fmt:check": "oxfmt --check",
-    "check": "oxlint && oxfmt --check && tsc -b && pnpm -r --if-present run typecheck:test && vitest run && pnpm --filter @jotl/playground run build"
-  },
-  "devDependencies": {
-    "@types/node": "^26.6.4",
-    "oxfmt": "^0.74.0",
-    "oxlint": "^1.89.0",
-    "typescript": "6.0.3",
-    "vitest": "^5.0.3"
-  },
-  "engines": {
-    "node": ">=22"
-  },
-  "packageManager": "pnpm@12.6.0"
+	"name": "jotl-monorepo",
+	"private": true,
+	"license": "MIT",
+	"type": "module",
+	"scripts": {
+		"build": "tsc -b",
+		"clean": "tsc -b --clean",
+		"test": "vitest run",
+		"lint": "oxlint --fix",
+		"lint:check": "oxlint --deny-warnings",
+		"fmt": "oxfmt --write",
+		"fmt:check": "oxfmt --check",
+		"check": "oxlint --deny-warnings && oxfmt --check && tsc -b && pnpm -r --if-present run typecheck:test && vitest run && pnpm --filter @jotl/playground run build"
+	},
+	"devDependencies": {
+		"@types/node": "^26.6.4",
+		"oxfmt": "^0.74.0",
+		"oxlint": "^1.89.0",
+		"typescript": "6.0.3",
+		"vitest": "^5.0.3"
+	},
+	"engines": {
+		"node": ">=22"
+	},
+	"packageManager": "pnpm@12.6.0"
 }

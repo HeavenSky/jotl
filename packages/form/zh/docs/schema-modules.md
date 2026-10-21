@@ -12,8 +12,11 @@
 
 // 自定义加载, 或为相对模块地址(./ ../ /)指定基准
 <JotlForm
-  schema={schema}
-  schemaModules={{ baseUrl: 'https://cdn.example.com/widgets/', importer: url => import(/* @vite-ignore */ url) }}
+	schema={schema}
+	schemaModules={{
+		baseUrl: "https://cdn.example.com/widgets/",
+		importer: url => import(/* @vite-ignore */ url),
+	}}
 />;
 ```
 

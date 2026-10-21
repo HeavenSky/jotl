@@ -87,8 +87,8 @@
 - 不带 preflight；生成的样式规则都在 cascade layer 中（`theme` `components` `utilities`，另有 Tailwind 的 `properties`），宿主未分层的样式优先。
 - 主题：设计变量经 `@theme inline` 接到 `--jotl-*` 变量（`--jotl-border` `--jotl-focus` `--jotl-error` `--jotl-muted` `--jotl-radius` `--jotl-gap` 等），在任意子树上覆盖这些变量即可换肤；默认值见 [`packages/form/theme.css`](../../../packages/form/theme.css)。
 - 两种接入方式：
-  - 不用 Tailwind 的宿主引入预编译的 `@jotl/form/style.css`；不引入时 widget 仍然可用。
-  - Tailwind v4 宿主在一个独立的 CSS 入口中引入 `tailwindcss/theme.css`（`prefix(jt)`）和 `tailwindcss/utilities.css`（`source(none)`），再引入 `@jotl/form/tailwind.css`，写法见 [交给宿主的 Tailwind v4 构建编译](../../../packages/form/zh/docs/styling.md#交给宿主的-tailwind-v4-构建编译)，其中还要先声明层顺序。前缀只对这个入口生效，不能并入宿主自己的 `@import "tailwindcss"`。
+    - 不用 Tailwind 的宿主引入预编译的 `@jotl/form/style.css`；不引入时 widget 仍然可用。
+    - Tailwind v4 宿主在一个独立的 CSS 入口中引入 `tailwindcss/theme.css`（`prefix(jt)`）和 `tailwindcss/utilities.css`（`source(none)`），再引入 `@jotl/form/tailwind.css`，写法见 [交给宿主的 Tailwind v4 构建编译](../../../packages/form/zh/docs/styling.md#交给宿主的-tailwind-v4-构建编译)，其中还要先声明层顺序。前缀只对这个入口生效，不能并入宿主自己的 `@import "tailwindcss"`。
 - `style.css` 由 `pnpm run build:css` 生成；测试会重新生成并比对，文件过期时测试失败。
 - widget 包另外导出 `styles`（各 widget 的工具类）和 `cn`（合并类名），供自定义 widget 复用同样的外观。
 

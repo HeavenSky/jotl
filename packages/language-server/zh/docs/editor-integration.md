@@ -9,7 +9,7 @@
 `startServer()` 创建连接、注册全部处理函数并开始监听。它按进程参数 `--node-ipc`、`--stdio` 或 `--socket` 选择传输方式，返回该连接。
 
 ```js
-import { startServer } from '@jotl/language-server';
+import { startServer } from "@jotl/language-server";
 
 startServer();
 ```

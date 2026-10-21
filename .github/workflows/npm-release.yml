@@ -9,278 +9,278 @@ name: Release npm package
 run-name: Release ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', inputs.packages, inputs.dry_run && ' (dry run)' || '') || github.ref_name }}
 
 on:
-  push:
-    tags: ['*@*']
-  workflow_dispatch:
-    inputs:
-      packages:
-        description: '要发布的包: all, 或包目录名列表(例: core form), 顺序按依赖自动确定'
-        required: true
-        default: all
-      dry_run:
-        description: '只构建与冒烟安装, 不发布'
-        type: boolean
-        default: false
+    push:
+        tags: ["*@*"]
+    workflow_dispatch:
+        inputs:
+            packages:
+                description: "要发布的包: all, 或包目录名列表(例: core form), 顺序按依赖自动确定"
+                required: true
+                default: all
+            dry_run:
+                description: "只构建与冒烟安装, 不发布"
+                type: boolean
+                default: false
 
 permissions:
-  contents: read
+    contents: read
 
 concurrency:
-  group: npm-release-${{ github.ref }}
-  cancel-in-progress: false
+    group: npm-release-${{ github.ref }}
+    cancel-in-progress: false
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      actions: read # 查询 CI 结果
-      contents: read
-    outputs:
-      count: ${{ steps.pkg.outputs.count }}
-      dist_tags: ${{ steps.pkg.outputs.dist_tags }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
+    build:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            actions: read # 查询 CI 结果
+            contents: read
+        outputs:
+            count: ${{ steps.pkg.outputs.count }}
+            dist_tags: ${{ steps.pkg.outputs.dist_tags }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
 
-      # 解析要发布的包, 按 @jotl/* 依赖拓扑排序; npm 上已有的版本跳过.
-      # 输出 release.tsv(每行: 目录 包名 版本 dist-tag, 按发布顺序), 一个都不用发时 count=0
-      - name: Resolve packages
-        id: pkg
-        env:
-          EVENT: ${{ github.event_name }}
-          TAG: ${{ github.ref_name }}
-          REF: ${{ github.ref }}
-          INPUT: ${{ inputs.packages }}
-        run: |
-          if [ "$EVENT" = workflow_dispatch ]; then
-            if [ "$REF" != refs/heads/main ]; then
-              echo "::error::手动发布只能在 main 上运行"
-              exit 1
-            fi
-            selection="$INPUT"
-          else
-            dir="${TAG%@*}"
-            version="${TAG##*@}"
-            if [ ! -f "packages/$dir/package.json" ]; then
-              echo "::error::packages/$dir 不存在"
-              exit 1
-            fi
-            actual="$(node -p "require('./packages/$dir/package.json').version")"
-            if [ "$actual" != "$version" ]; then
-              echo "::error::tag 版本 $version 与 packages/$dir/package.json 的 $actual 不一致"
-              exit 1
-            fi
-            selection="$dir"
-          fi
-          SELECTION="$selection" node <<'EOF' > "$RUNNER_TEMP/candidates.tsv"
-          const fs = require("node:fs");
-          const dirs = fs.readdirSync("packages").filter((d) => fs.existsSync(`packages/${d}/package.json`));
-          const pkgs = new Map(dirs.map((d) => [d, JSON.parse(fs.readFileSync(`packages/${d}/package.json`, "utf8"))]));
-          const publishable = dirs.filter((d) => pkgs.get(d).private !== true);
-          const words = process.env.SELECTION.split(/[\s,]+/).filter(Boolean);
-          const fail = (m) => { console.error(`::error::${m}`); process.exit(1); };
-          if (words.length === 0) fail("packages 为空");
-          const chosen = words.includes("all") ? publishable : words;
-          for (const d of chosen) {
-            if (!pkgs.has(d)) fail(`packages/${d} 不存在`);
-            if (!publishable.includes(d)) fail(`packages/${d} 是 private 包, 不发布`);
-          }
-          // 按包间依赖排序: 被依赖的包在前; 同层按目录名排序, 结果稳定
-          const byName = new Map(publishable.map((d) => [pkgs.get(d).name, d]));
-          const deps = (d) => { const p = pkgs.get(d); return Object.keys({ ...p.dependencies, ...p.peerDependencies }).map((n) => byName.get(n)).filter(Boolean); };
-          const order = [];
-          const state = new Map();
-          const visit = (d) => {
-            if (state.get(d) === "done") return;
-            if (state.get(d) === "visiting") fail(`包间依赖有环: ${d}`);
-            state.set(d, "visiting");
-            for (const x of deps(d).sort()) if (chosen.includes(x)) visit(x);
-            state.set(d, "done");
-            order.push(d);
-          };
-          for (const d of [...new Set(chosen)].sort()) visit(d);
-          for (const d of order) console.log([d, pkgs.get(d).name, pkgs.get(d).version].join("\t"));
-          EOF
-          : > "$RUNNER_TEMP/release.tsv"
-          while IFS=$'\t' read -r dir name version; do
-            if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
-              echo "$name@$version 已在 npm 上, 跳过发布"
-              continue
-            fi
-            # 带预发布后缀(例: 0.0.2-beta.1)的版本发布到 next, 不覆盖 latest
-            case "$version" in
-              *-*) dist_tag=next ;;
-              *) dist_tag=latest ;;
-            esac
-            printf '%s\t%s\t%s\t%s\n' "$dir" "$name" "$version" "$dist_tag" >> "$RUNNER_TEMP/release.tsv"
-          done < "$RUNNER_TEMP/candidates.tsv"
-          echo "发布顺序:"
-          cat "$RUNNER_TEMP/release.tsv"
-          echo "count=$(wc -l < "$RUNNER_TEMP/release.tsv" | tr -d ' ')" >> "$GITHUB_OUTPUT"
+            # 解析要发布的包, 按 @jotl/* 依赖拓扑排序; npm 上已有的版本跳过.
+            # 输出 release.tsv(每行: 目录 包名 版本 dist-tag, 按发布顺序), 一个都不用发时 count=0
+            - name: Resolve packages
+              id: pkg
+              env:
+                  EVENT: ${{ github.event_name }}
+                  TAG: ${{ github.ref_name }}
+                  REF: ${{ github.ref }}
+                  INPUT: ${{ inputs.packages }}
+              run: |
+                  if [ "$EVENT" = workflow_dispatch ]; then
+                    if [ "$REF" != refs/heads/main ]; then
+                      echo "::error::手动发布只能在 main 上运行"
+                      exit 1
+                    fi
+                    selection="$INPUT"
+                  else
+                    dir="${TAG%@*}"
+                    version="${TAG##*@}"
+                    if [ ! -f "packages/$dir/package.json" ]; then
+                      echo "::error::packages/$dir 不存在"
+                      exit 1
+                    fi
+                    actual="$(node -p "require('./packages/$dir/package.json').version")"
+                    if [ "$actual" != "$version" ]; then
+                      echo "::error::tag 版本 $version 与 packages/$dir/package.json 的 $actual 不一致"
+                      exit 1
+                    fi
+                    selection="$dir"
+                  fi
+                  SELECTION="$selection" node <<'EOF' > "$RUNNER_TEMP/candidates.tsv"
+                  const fs = require("node:fs");
+                  const dirs = fs.readdirSync("packages").filter((d) => fs.existsSync(`packages/${d}/package.json`));
+                  const pkgs = new Map(dirs.map((d) => [d, JSON.parse(fs.readFileSync(`packages/${d}/package.json`, "utf8"))]));
+                  const publishable = dirs.filter((d) => pkgs.get(d).private !== true);
+                  const words = process.env.SELECTION.split(/[\s,]+/).filter(Boolean);
+                  const fail = (m) => { console.error(`::error::${m}`); process.exit(1); };
+                  if (words.length === 0) fail("packages 为空");
+                  const chosen = words.includes("all") ? publishable : words;
+                  for (const d of chosen) {
+                    if (!pkgs.has(d)) fail(`packages/${d} 不存在`);
+                    if (!publishable.includes(d)) fail(`packages/${d} 是 private 包, 不发布`);
+                  }
+                  // 按包间依赖排序: 被依赖的包在前; 同层按目录名排序, 结果稳定
+                  const byName = new Map(publishable.map((d) => [pkgs.get(d).name, d]));
+                  const deps = (d) => { const p = pkgs.get(d); return Object.keys({ ...p.dependencies, ...p.peerDependencies }).map((n) => byName.get(n)).filter(Boolean); };
+                  const order = [];
+                  const state = new Map();
+                  const visit = (d) => {
+                    if (state.get(d) === "done") return;
+                    if (state.get(d) === "visiting") fail(`包间依赖有环: ${d}`);
+                    state.set(d, "visiting");
+                    for (const x of deps(d).sort()) if (chosen.includes(x)) visit(x);
+                    state.set(d, "done");
+                    order.push(d);
+                  };
+                  for (const d of [...new Set(chosen)].sort()) visit(d);
+                  for (const d of order) console.log([d, pkgs.get(d).name, pkgs.get(d).version].join("\t"));
+                  EOF
+                  : > "$RUNNER_TEMP/release.tsv"
+                  while IFS=$'\t' read -r dir name version; do
+                    if [ "$(npm view "$name@$version" version 2>/dev/null)" = "$version" ]; then
+                      echo "$name@$version 已在 npm 上, 跳过发布"
+                      continue
+                    fi
+                    # 带预发布后缀(例: 0.0.2-beta.1)的版本发布到 next, 不覆盖 latest
+                    case "$version" in
+                      *-*) dist_tag=next ;;
+                      *) dist_tag=latest ;;
+                    esac
+                    printf '%s\t%s\t%s\t%s\n' "$dir" "$name" "$version" "$dist_tag" >> "$RUNNER_TEMP/release.tsv"
+                  done < "$RUNNER_TEMP/candidates.tsv"
+                  echo "发布顺序:"
+                  cat "$RUNNER_TEMP/release.tsv"
+                  echo "count=$(wc -l < "$RUNNER_TEMP/release.tsv" | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
-      # 不重复跑检查: 等待同一提交在 main 上的 CI 结束, 通过才发布
-      - name: Wait for CI
-        if: steps.pkg.outputs.count != '0'
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          started=$SECONDS
-          while :; do
-            state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=1" \
-              --jq '.workflow_runs[0] | if . == null then "missing" else "\(.status)/\(.conclusion // "")" end')"
-            case "$state" in
-              completed/success) echo "CI 已通过"; exit 0 ;;
-              completed/*) echo "::error::CI 未通过($state), 不发布"; exit 1 ;;
-              missing)
-                if [ $((SECONDS - started)) -gt 300 ]; then
-                  echo "::error::提交 $GITHUB_SHA 没有 CI 运行记录, 先把它推送到 main"
-                  exit 1
-                fi ;;
-            esac
-            echo "CI 状态: $state, 30 秒后重试"
-            sleep 30
-          done
+            # 不重复跑检查: 等待同一提交在 main 上的 CI 结束, 通过才发布
+            - name: Wait for CI
+              if: steps.pkg.outputs.count != '0'
+              env:
+                  GH_TOKEN: ${{ github.token }}
+              run: |
+                  started=$SECONDS
+                  while :; do
+                    state="$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/ci.yml/runs?head_sha=$GITHUB_SHA&event=push&per_page=1" \
+                      --jq '.workflow_runs[0] | if . == null then "missing" else "\(.status)/\(.conclusion // "")" end')"
+                    case "$state" in
+                      completed/success) echo "CI 已通过"; exit 0 ;;
+                      completed/*) echo "::error::CI 未通过($state), 不发布"; exit 1 ;;
+                      missing)
+                        if [ $((SECONDS - started)) -gt 300 ]; then
+                          echo "::error::提交 $GITHUB_SHA 没有 CI 运行记录, 先把它推送到 main"
+                          exit 1
+                        fi ;;
+                    esac
+                    echo "CI 状态: $state, 30 秒后重试"
+                    sleep 30
+                  done
 
-      # pnpm 版本取仓库根 package.json 的 packageManager; 必须在 setup-node 之前, cache: pnpm 需要 pnpm 已在 PATH 上.
-      - uses: pnpm/action-setup@v4
-        if: steps.pkg.outputs.count != '0'
+            # pnpm 版本取仓库根 package.json 的 packageManager; 必须在 setup-node 之前, cache: pnpm 需要 pnpm 已在 PATH 上.
+            - uses: pnpm/action-setup@v4
+              if: steps.pkg.outputs.count != '0'
 
-      - uses: actions/setup-node@v7
-        if: steps.pkg.outputs.count != '0'
-        with:
-          node-version: 22
-          cache: pnpm
+            - uses: actions/setup-node@v7
+              if: steps.pkg.outputs.count != '0'
+              with:
+                  node-version: 22
+                  cache: pnpm
 
-      # pnpm pack 把 workspace: 依赖换成各依赖包当前的版本; tarball 按发布顺序加序号前缀
-      - name: Build and pack
-        if: steps.pkg.outputs.count != '0'
-        run: |
-          pnpm install --frozen-lockfile
-          pnpm build
-          mkdir -p "$RUNNER_TEMP/pack"
-          i=0
-          while IFS=$'\t' read -r dir name version dist_tag; do
-            i=$((i + 1))
-            out="$RUNNER_TEMP/pack-$dir"
-            mkdir -p "$out"
-            (cd "packages/$dir" && pnpm pack --pack-destination "$out")
-            tgz="$(ls "$out"/*.tgz)"
-            if tar -xzOf "$tgz" package/package.json | grep -q '"workspace:'; then
-              echo "::error::$name 的包中仍有 workspace: 依赖"
-              exit 1
-            fi
-            mv "$tgz" "$RUNNER_TEMP/pack/$(printf '%02d' "$i")-$(basename "$tgz")"
-          done < "$RUNNER_TEMP/release.tsv"
-          cp "$RUNNER_TEMP/release.tsv" "$RUNNER_TEMP/pack/release.tsv"
-          ls -l "$RUNNER_TEMP/pack"
+            # pnpm pack 把 workspace: 依赖换成各依赖包当前的版本; tarball 按发布顺序加序号前缀
+            - name: Build and pack
+              if: steps.pkg.outputs.count != '0'
+              run: |
+                  pnpm install --frozen-lockfile
+                  pnpm build
+                  mkdir -p "$RUNNER_TEMP/pack"
+                  i=0
+                  while IFS=$'\t' read -r dir name version dist_tag; do
+                    i=$((i + 1))
+                    out="$RUNNER_TEMP/pack-$dir"
+                    mkdir -p "$out"
+                    (cd "packages/$dir" && pnpm pack --pack-destination "$out")
+                    tgz="$(ls "$out"/*.tgz)"
+                    if tar -xzOf "$tgz" package/package.json | grep -q '"workspace:'; then
+                      echo "::error::$name 的包中仍有 workspace: 依赖"
+                      exit 1
+                    fi
+                    mv "$tgz" "$RUNNER_TEMP/pack/$(printf '%02d' "$i")-$(basename "$tgz")"
+                  done < "$RUNNER_TEMP/release.tsv"
+                  cp "$RUNNER_TEMP/release.tsv" "$RUNNER_TEMP/pack/release.tsv"
+                  ls -l "$RUNNER_TEMP/pack"
 
-      # 按多数用户的安装方式验证包能装能用: 在空目录用 npm 一次安装本次全部 tarball, 导入各入口, 带 bin 的再跑一次 --version.
-      # 本次一起发布的 @jotl/* 上游用本次的 tarball, 其余 @jotl/* 依赖从 npm 安装, 须已发布;
-      # peerDependencies 全部显式安装(含可选的, 例: @jotl/form 主入口要 react), 取声明范围内的最新版; 不执行依赖的安装脚本.
-      - name: Smoke test with npm install
-        if: steps.pkg.outputs.count != '0'
-        run: |
-          dir="$RUNNER_TEMP/smoke"
-          mkdir -p "$dir"
-          cd "$dir"
-          npm init -y >/dev/null
-          npm install --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/pack/*.tgz
-          node -e '
-            const fs = require("node:fs");
-            const names = fs.readFileSync(process.argv[1], "utf8").trim().split("\n").map((l) => l.split("\t")[1]);
-            const peers = {};
-            for (const n of names) Object.assign(peers, require(`./node_modules/${n}/package.json`).peerDependencies ?? {});
-            const specs = Object.entries(peers).filter(([n]) => !names.includes(n)).map(([n, r]) => `${n}@${r}`);
-            if (specs.length) require("node:child_process").execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...specs], { stdio: "inherit" });
-          ' "$RUNNER_TEMP/release.tsv"
-          while IFS=$'\t' read -r _ name _ _; do
-            NAME="$name" node --input-type=module -e 'await import(process.env.NAME); console.log(`导入成功: ${process.env.NAME}`)'
-            for bin in $(node -p "Object.keys(require('./node_modules/$name/package.json').bin ?? {}).join(' ')"); do
-              npm exec --no -- "$bin" --version
-            done
-          done < "$RUNNER_TEMP/release.tsv"
+            # 按多数用户的安装方式验证包能装能用: 在空目录用 npm 一次安装本次全部 tarball, 导入各入口, 带 bin 的再跑一次 --version.
+            # 本次一起发布的 @jotl/* 上游用本次的 tarball, 其余 @jotl/* 依赖从 npm 安装, 须已发布;
+            # peerDependencies 全部显式安装(含可选的, 例: @jotl/form 主入口要 react), 取声明范围内的最新版; 不执行依赖的安装脚本.
+            - name: Smoke test with npm install
+              if: steps.pkg.outputs.count != '0'
+              run: |
+                  dir="$RUNNER_TEMP/smoke"
+                  mkdir -p "$dir"
+                  cd "$dir"
+                  npm init -y >/dev/null
+                  npm install --ignore-scripts --no-audit --no-fund "$RUNNER_TEMP"/pack/*.tgz
+                  node -e '
+                    const fs = require("node:fs");
+                    const names = fs.readFileSync(process.argv[1], "utf8").trim().split("\n").map((l) => l.split("\t")[1]);
+                    const peers = {};
+                    for (const n of names) Object.assign(peers, require(`./node_modules/${n}/package.json`).peerDependencies ?? {});
+                    const specs = Object.entries(peers).filter(([n]) => !names.includes(n)).map(([n, r]) => `${n}@${r}`);
+                    if (specs.length) require("node:child_process").execFileSync("npm", ["install", "--ignore-scripts", "--no-audit", "--no-fund", ...specs], { stdio: "inherit" });
+                  ' "$RUNNER_TEMP/release.tsv"
+                  while IFS=$'\t' read -r _ name _ _; do
+                    NAME="$name" node --input-type=module -e 'await import(process.env.NAME); console.log(`导入成功: ${process.env.NAME}`)'
+                    for bin in $(node -p "Object.keys(require('./node_modules/$name/package.json').bin ?? {}).join(' ')"); do
+                      npm exec --no -- "$bin" --version
+                    done
+                  done < "$RUNNER_TEMP/release.tsv"
 
-      # 选中的全部包(含已在 npm 上而跳过的), 供 tag job 补推 tag
-      - uses: actions/upload-artifact@v7
-        with:
-          name: plan
-          path: ${{ runner.temp }}/candidates.tsv
-          if-no-files-found: error
-          retention-days: 7
+            # 选中的全部包(含已在 npm 上而跳过的), 供 tag job 补推 tag
+            - uses: actions/upload-artifact@v7
+              with:
+                  name: plan
+                  path: ${{ runner.temp }}/candidates.tsv
+                  if-no-files-found: error
+                  retention-days: 7
 
-      - uses: actions/upload-artifact@v7
-        if: steps.pkg.outputs.count != '0'
-        with:
-          name: package
-          path: ${{ runner.temp }}/pack/
-          if-no-files-found: error
-          retention-days: 7
+            - uses: actions/upload-artifact@v7
+              if: steps.pkg.outputs.count != '0'
+              with:
+                  name: package
+                  path: ${{ runner.temp }}/pack/
+                  if-no-files-found: error
+                  retention-days: 7
 
-  publish:
-    needs: build
-    if: needs.build.outputs.count != '0' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      id-token: write # npm Trusted Publishing
-    steps:
-      - uses: actions/download-artifact@v8
-        with:
-          name: package
-          path: pack
-      # Trusted Publishing 需要 npm >= 11.5.1 与 Node >= 22.14.0
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 24.x
-          registry-url: https://registry.npmjs.org
-          package-manager-cache: false
-      # 钉死版本, 发布工具也由提交锁定; 升级时改这一处
-      - run: npm i -g npm@11.21.1
-      # 只发布 build 产出的 tarball, 不安装依赖也不执行任何脚本; 按序号(依赖顺序)逐个发布, 失败即停, 已发布的不回滚, 重跑时会跳过
-      # 必须带 ./: 写成 pack/x.tgz 会被 npm 当成 GitHub 简写 <用户>/<仓库> 去 git 拉取
-      # OIDC 换取 npm token 失败时 npm 只在 verbose 级别记录原因, 随后匿名上传得到 404; 开 verbose 以便排查
-      - name: Publish
-        env:
-          NPM_CONFIG_LOGLEVEL: verbose
-        run: |
-          i=0
-          while IFS=$'\t' read -r dir name version dist_tag; do
-            i=$((i + 1))
-            tgz="$(ls ./pack/"$(printf '%02d' "$i")"-*.tgz)"
-            echo "::group::发布 $name@$version ($dist_tag)"
-            npm publish "./$tgz" --provenance --access public --tag "$dist_tag"
-            echo "::endgroup::"
-          done < pack/release.tsv
+    publish:
+        needs: build
+        if: needs.build.outputs.count != '0' && !(github.event_name == 'workflow_dispatch' && inputs.dry_run)
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            id-token: write # npm Trusted Publishing
+        steps:
+            - uses: actions/download-artifact@v8
+              with:
+                  name: package
+                  path: pack
+            # Trusted Publishing 需要 npm >= 11.5.1 与 Node >= 22.14.0
+            - uses: actions/setup-node@v7
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  package-manager-cache: false
+            # 钉死版本, 发布工具也由提交锁定; 升级时改这一处
+            - run: npm i -g npm@11.21.1
+            # 只发布 build 产出的 tarball, 不安装依赖也不执行任何脚本; 按序号(依赖顺序)逐个发布, 失败即停, 已发布的不回滚, 重跑时会跳过
+            # 必须带 ./: 写成 pack/x.tgz 会被 npm 当成 GitHub 简写 <用户>/<仓库> 去 git 拉取
+            # OIDC 换取 npm token 失败时 npm 只在 verbose 级别记录原因, 随后匿名上传得到 404; 开 verbose 以便排查
+            - name: Publish
+              env:
+                  NPM_CONFIG_LOGLEVEL: verbose
+              run: |
+                  i=0
+                  while IFS=$'\t' read -r dir name version dist_tag; do
+                    i=$((i + 1))
+                    tgz="$(ls ./pack/"$(printf '%02d' "$i")"-*.tgz)"
+                    echo "::group::发布 $name@$version ($dist_tag)"
+                    npm publish "./$tgz" --provenance --access public --tag "$dist_tag"
+                    echo "::endgroup::"
+                  done < pack/release.tsv
 
-  # 手动发布时, 为选中且该版本已在 npm 上的包补推 <包目录名>@<版本> tag; 远端已有该 tag 时跳过.
-  # 部分包发布失败时也运行, 重跑时之前已发布(因而被跳过)的包同样会补上 tag; GITHUB_TOKEN 推的 tag 不会再触发本 workflow
-  tag:
-    needs: [build, publish]
-    if: always() && github.event_name == 'workflow_dispatch' && !inputs.dry_run && needs.build.result == 'success'
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/download-artifact@v8
-        with:
-          name: plan
-          path: ${{ runner.temp }}/plan
-      - name: Push tags
-        run: |
-          while IFS=$'\t' read -r dir name version; do
-            tag="$dir@$version"
-            if [ "$(npm view "$name@$version" version 2>/dev/null)" != "$version" ]; then
-              echo "$name@$version 不在 npm 上, 不打 tag"
-              continue
-            fi
-            if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
-              echo "tag $tag 已存在, 跳过"
-              continue
-            fi
-            git tag "$tag" "$GITHUB_SHA"
-            git push origin "refs/tags/$tag"
-          done < "$RUNNER_TEMP/plan/candidates.tsv"
+    # 手动发布时, 为选中且该版本已在 npm 上的包补推 <包目录名>@<版本> tag; 远端已有该 tag 时跳过.
+    # 部分包发布失败时也运行, 重跑时之前已发布(因而被跳过)的包同样会补上 tag; GITHUB_TOKEN 推的 tag 不会再触发本 workflow
+    tag:
+        needs: [build, publish]
+        if: always() && github.event_name == 'workflow_dispatch' && !inputs.dry_run && needs.build.result == 'success'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            - uses: actions/checkout@v7
+            - uses: actions/download-artifact@v8
+              with:
+                  name: plan
+                  path: ${{ runner.temp }}/plan
+            - name: Push tags
+              run: |
+                  while IFS=$'\t' read -r dir name version; do
+                    tag="$dir@$version"
+                    if [ "$(npm view "$name@$version" version 2>/dev/null)" != "$version" ]; then
+                      echo "$name@$version 不在 npm 上, 不打 tag"
+                      continue
+                    fi
+                    if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null; then
+                      echo "tag $tag 已存在, 跳过"
+                      continue
+                    fi
+                    git tag "$tag" "$GITHUB_SHA"
+                    git push origin "refs/tags/$tag"
+                  done < "$RUNNER_TEMP/plan/candidates.tsv"

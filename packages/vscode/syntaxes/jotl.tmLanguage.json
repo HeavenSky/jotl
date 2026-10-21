@@ -1,750 +1,426 @@
 {
-  "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-  "name": "Jotl",
-  "scopeName": "source.jotl",
-  "fileTypes": ["jotl"],
-  "patterns": [
-    {
-      "include": "#comments"
-    },
-    {
-      "include": "#marker"
-    },
-    {
-      "include": "#separator"
-    },
-    {
-      "include": "#label"
-    },
-    {
-      "include": "#optional"
-    },
-    {
-      "include": "#enum-content"
-    },
-    {
-      "include": "#content"
-    },
-    {
-      "include": "#metadata"
-    },
-    {
-      "include": "#body"
-    },
-    {
-      "include": "#key-type"
-    },
-    {
-      "include": "#key-quoted"
-    },
-    {
-      "include": "#key-other"
-    },
-    {
-      "include": "#illegal-character"
-    }
-  ],
-  "repository": {
-    "comments": {
-      "patterns": [
-        {
-          "include": "#block-comment"
-        },
-        {
-          "include": "#line-comment"
-        }
-      ]
-    },
-    "block-comment": {
-      "name": "comment.block.jotl",
-      "begin": "/\\*",
-      "end": "\\*/",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.comment.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.comment.end.jotl"
-        }
-      }
-    },
-    "line-comment": {
-      "name": "comment.line.double-slash.jotl",
-      "match": "(//).*",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.comment.jotl"
-        }
-      }
-    },
-    "marker": {
-      "name": "meta.marker.jotl",
-      "match": "(<)(root|default)(/>)",
-      "captures": {
-        "1": {
-          "name": "punctuation.definition.marker.begin.jotl"
-        },
-        "2": {
-          "name": "keyword.control.marker.jotl"
-        },
-        "3": {
-          "name": "punctuation.definition.marker.end.jotl"
-        }
-      }
-    },
-    "separator": {
-      "match": "[,;]",
-      "name": "punctuation.separator.field.jotl"
-    },
-    "optional": {
-      "match": "\\?",
-      "name": "keyword.operator.optional.jotl"
-    },
-    "illegal-character": {
-      "match": "[|<>.@=#]",
-      "name": "invalid.illegal.character.jotl"
-    },
-    "label": {
-      "name": "meta.label.jotl",
-      "contentName": "string.unquoted.label.jotl",
-      "begin": "\\(",
-      "end": "\\)|(?=$)",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.label.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.label.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#label-content"
-        }
-      ]
-    },
-    "label-content": {
-      "patterns": [
-        {
-          "match": "\\\\[\\\\()]",
-          "name": "constant.character.escape.jotl"
-        },
-        {
-          "begin": "\\(",
-          "end": "\\)|(?=$)",
-          "patterns": [
-            {
-              "include": "#label-content"
-            }
-          ]
-        }
-      ]
-    },
-    "key-type": {
-      "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-      "name": "entity.name.type.alias.jotl"
-    },
-    "key-field": {
-      "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-      "name": "variable.other.property.jotl"
-    },
-    "key-quoted": {
-      "match": "\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'",
-      "captures": {
-        "0": {
-          "name": "variable.other.property.jotl",
-          "patterns": [
-            {
-              "include": "#string"
-            }
-          ]
-        }
-      }
-    },
-    "key-other": {
-      "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[0-9]+(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])|\\*",
-      "name": "variable.other.property.jotl"
-    },
-    "enum-content": {
-      "begin": "(:)\\s*((?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])enum(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}]))",
-      "end": "(?<=\\})|(?=[,;}])|(?<=[\\p{ID_Continue}$\\x{200C}\\x{200D}\\]])(?=\\s*[^\\s\\[{])|^(?=\\s*[^\\s\\[{])",
-      "beginCaptures": {
-        "1": {
-          "name": "punctuation.separator.type.jotl"
-        },
-        "2": {
-          "name": "support.type.builtin.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#metadata"
-        },
-        {
-          "include": "#enum-body"
-        }
-      ]
-    },
-    "content": {
-      "begin": ":",
-      "end": "(?<=\\})|(?=[,;}])|(?<=[\\p{ID_Continue}$\\x{200C}\\x{200D}\\]])(?=\\s*[^\\s\\[{]|\\s*$)",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.separator.type.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#metadata"
-        },
-        {
-          "include": "#body"
-        },
-        {
-          "include": "#component"
-        },
-        {
-          "include": "#illegal-character"
-        }
-      ]
-    },
-    "component": {
-      "patterns": [
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:string|text|richtext|number|integer|money|bigint|boolean|enum|date|time|datetime|url|email|color|image|file|object|array|map|union|any|jsontext)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "support.type.builtin.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:import|export|from)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "invalid.illegal.reserved.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "entity.name.type.jotl"
-        }
-      ]
-    },
-    "body": {
-      "name": "meta.object.type.jotl",
-      "begin": "\\{",
-      "end": "\\}",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.object.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.object.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#marker"
-        },
-        {
-          "include": "#separator"
-        },
-        {
-          "include": "#label"
-        },
-        {
-          "include": "#optional"
-        },
-        {
-          "include": "#enum-content"
-        },
-        {
-          "include": "#content"
-        },
-        {
-          "include": "#metadata"
-        },
-        {
-          "include": "#body"
-        },
-        {
-          "include": "#key-field"
-        },
-        {
-          "include": "#key-quoted"
-        },
-        {
-          "include": "#key-other"
-        },
-        {
-          "include": "#illegal-character"
-        }
-      ]
-    },
-    "enum-body": {
-      "name": "meta.enum.jotl",
-      "begin": "\\{",
-      "end": "\\}",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.enum.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.enum.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#separator"
-        },
-        {
-          "include": "#label"
-        },
-        {
-          "include": "#metadata"
-        },
-        {
-          "include": "#string"
-        },
-        {
-          "include": "#number"
-        },
-        {
-          "include": "#constant"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "variable.other.enummember.jotl"
-        },
-        {
-          "include": "#illegal-character"
-        }
-      ]
-    },
-    "metadata": {
-      "name": "meta.metadata.jotl",
-      "begin": "\\[",
-      "end": "\\]",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.metadata.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.metadata.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#type-string"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:description|default|examples|deprecated|readOnly|writeOnly|errorMessage|comment|minLength|maxLength|pattern|format|minimum|maximum|exclusiveMinimum|exclusiveMaximum|decimals|minItems|maxItems|uniqueItems|minProperties|maxProperties|closed|nullable|multiple|array_item|map_item|union_item|json_item|item_meta|key_meta|discriminator|currency|unit|thousands|value_format|widget|props|decorator|hidden|order|groups|layout|columns|summary|root_if|node_if|variants|rules|id|schema|widgets|x_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "entity.other.attribute-name.metadata.jotl"
-        },
-        {
-          "include": "#json-members"
-        }
-      ]
-    },
-    "json-members": {
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#type-string-member"
-        },
-        {
-          "include": "#condition-op"
-        },
-        {
-          "match": "(?:\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*')(?=\\s*:)",
-          "captures": {
-            "0": {
-              "name": "support.type.property-name.jotl",
-              "patterns": [
-                {
-                  "include": "#string"
-                }
-              ]
-            }
-          }
-        },
-        {
-          "match": ":",
-          "name": "punctuation.separator.key-value.jotl"
-        },
-        {
-          "match": ",",
-          "name": "punctuation.separator.comma.jotl"
-        },
-        {
-          "include": "#json-value"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "support.type.property-name.jotl"
-        },
-        {
-          "include": "#illegal-character"
-        }
-      ]
-    },
-    "condition-op": {
-      "patterns": [
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(op)\\s*(:)\\s*((\")(eq|ne|in|not_in|gt|gte|lt|lte|truthy|falsy)(\"))",
-          "captures": {
-            "1": {
-              "name": "support.type.property-name.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.double.jotl"
-            },
-            "4": {
-              "name": "punctuation.definition.string.begin.jotl"
-            },
-            "5": {
-              "name": "support.constant.condition-operator.jotl"
-            },
-            "6": {
-              "name": "punctuation.definition.string.end.jotl"
-            }
-          }
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(op)\\s*(:)\\s*((')(eq|ne|in|not_in|gt|gte|lt|lte|truthy|falsy)('))",
-          "captures": {
-            "1": {
-              "name": "support.type.property-name.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.single.jotl"
-            },
-            "4": {
-              "name": "punctuation.definition.string.begin.jotl"
-            },
-            "5": {
-              "name": "support.constant.condition-operator.jotl"
-            },
-            "6": {
-              "name": "punctuation.definition.string.end.jotl"
-            }
-          }
-        }
-      ]
-    },
-    "json-value": {
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "include": "#string"
-        },
-        {
-          "include": "#number"
-        },
-        {
-          "include": "#constant"
-        },
-        {
-          "include": "#json-object"
-        },
-        {
-          "include": "#json-array"
-        }
-      ]
-    },
-    "json-object": {
-      "name": "meta.object.literal.jotl",
-      "begin": "\\{",
-      "end": "\\}",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.dictionary.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.dictionary.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#json-members"
-        }
-      ]
-    },
-    "json-array": {
-      "name": "meta.array.literal.jotl",
-      "begin": "\\[",
-      "end": "\\]",
-      "beginCaptures": {
-        "0": {
-          "name": "punctuation.definition.array.begin.jotl"
-        }
-      },
-      "endCaptures": {
-        "0": {
-          "name": "punctuation.definition.array.end.jotl"
-        }
-      },
-      "patterns": [
-        {
-          "include": "#comments"
-        },
-        {
-          "match": ",",
-          "name": "punctuation.separator.comma.jotl"
-        },
-        {
-          "include": "#json-value"
-        },
-        {
-          "include": "#illegal-character"
-        }
-      ]
-    },
-    "string": {
-      "patterns": [
-        {
-          "name": "string.quoted.double.jotl",
-          "begin": "\"",
-          "end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "punctuation.definition.string.end.jotl"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#string-escape"
-            }
-          ]
-        },
-        {
-          "name": "string.quoted.single.jotl",
-          "begin": "'",
-          "end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "0": {
-              "name": "punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "punctuation.definition.string.end.jotl"
-            }
-          },
-          "patterns": [
-            {
-              "include": "#string-escape"
-            }
-          ]
-        }
-      ]
-    },
-    "string-escape": {
-      "patterns": [
-        {
-          "match": "\\\\(?:['\"\\\\/bfnrtv]|0(?![0-9])|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|$)",
-          "name": "constant.character.escape.jotl"
-        },
-        {
-          "match": "\\\\.",
-          "name": "invalid.illegal.unrecognized-string-escape.jotl"
-        }
-      ]
-    },
-    "number": {
-      "patterns": [
-        {
-          "match": "(?<![\\p{ID_Continue}$.])[+-]?(?:0[xX][0-9a-fA-F]+|(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)(?![\\p{ID_Continue}$.])",
-          "name": "constant.numeric.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$.])[+-]?(?:Infinity|NaN)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "invalid.illegal.number.jotl"
-        }
-      ]
-    },
-    "constant": {
-      "patterns": [
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:true|false)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "constant.language.boolean.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:null)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "constant.language.null.jotl"
-        }
-      ]
-    },
-    "type-string": {
-      "patterns": [
-        {
-          "begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(')",
-          "end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "1": {
-              "name": "entity.other.attribute-name.metadata.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.single.jotl punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "string.quoted.single.jotl punctuation.definition.string.end.jotl"
-            }
-          },
-          "contentName": "meta.type-string.jotl string.quoted.single.jotl",
-          "patterns": [
-            {
-              "include": "#type-string-content"
-            }
-          ]
-        },
-        {
-          "begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(\")",
-          "end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "1": {
-              "name": "entity.other.attribute-name.metadata.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.double.jotl punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "string.quoted.double.jotl punctuation.definition.string.end.jotl"
-            }
-          },
-          "contentName": "meta.type-string.jotl string.quoted.double.jotl",
-          "patterns": [
-            {
-              "include": "#type-string-content"
-            }
-          ]
-        }
-      ]
-    },
-    "type-string-member": {
-      "patterns": [
-        {
-          "begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(')",
-          "end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "1": {
-              "name": "support.type.property-name.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.single.jotl punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "string.quoted.single.jotl punctuation.definition.string.end.jotl"
-            }
-          },
-          "contentName": "meta.type-string.jotl string.quoted.single.jotl",
-          "patterns": [
-            {
-              "include": "#type-string-content"
-            }
-          ]
-        },
-        {
-          "begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(\")",
-          "end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
-          "beginCaptures": {
-            "1": {
-              "name": "support.type.property-name.jotl"
-            },
-            "2": {
-              "name": "punctuation.separator.key-value.jotl"
-            },
-            "3": {
-              "name": "string.quoted.double.jotl punctuation.definition.string.begin.jotl"
-            }
-          },
-          "endCaptures": {
-            "1": {
-              "name": "string.quoted.double.jotl punctuation.definition.string.end.jotl"
-            }
-          },
-          "contentName": "meta.type-string.jotl string.quoted.double.jotl",
-          "patterns": [
-            {
-              "include": "#type-string-content"
-            }
-          ]
-        }
-      ]
-    },
-    "type-string-content": {
-      "patterns": [
-        {
-          "include": "#string-escape"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:string|text|richtext|number|integer|money|bigint|boolean|enum|date|time|datetime|url|email|color|image|file|object|array|map|union|any|jsontext|tuple)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "support.type.builtin.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])null(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "invalid.illegal.jotl"
-        },
-        {
-          "match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
-          "name": "entity.name.type.jotl"
-        },
-        {
-          "match": "\\|",
-          "name": "punctuation.separator.type-union.jotl"
-        }
-      ]
-    }
-  }
+	"$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+	"name": "Jotl",
+	"scopeName": "source.jotl",
+	"fileTypes": ["jotl"],
+	"patterns": [
+		{ "include": "#comments" },
+		{ "include": "#marker" },
+		{ "include": "#separator" },
+		{ "include": "#label" },
+		{ "include": "#optional" },
+		{ "include": "#enum-content" },
+		{ "include": "#content" },
+		{ "include": "#metadata" },
+		{ "include": "#body" },
+		{ "include": "#key-type" },
+		{ "include": "#key-quoted" },
+		{ "include": "#key-other" },
+		{ "include": "#illegal-character" }
+	],
+	"repository": {
+		"comments": {
+			"patterns": [{ "include": "#block-comment" }, { "include": "#line-comment" }]
+		},
+		"block-comment": {
+			"name": "comment.block.jotl",
+			"begin": "/\\*",
+			"end": "\\*/",
+			"beginCaptures": { "0": { "name": "punctuation.definition.comment.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.comment.end.jotl" } }
+		},
+		"line-comment": {
+			"name": "comment.line.double-slash.jotl",
+			"match": "(//).*",
+			"captures": { "1": { "name": "punctuation.definition.comment.jotl" } }
+		},
+		"marker": {
+			"name": "meta.marker.jotl",
+			"match": "(<)(root|default)(/>)",
+			"captures": {
+				"1": { "name": "punctuation.definition.marker.begin.jotl" },
+				"2": { "name": "keyword.control.marker.jotl" },
+				"3": { "name": "punctuation.definition.marker.end.jotl" }
+			}
+		},
+		"separator": { "match": "[,;]", "name": "punctuation.separator.field.jotl" },
+		"optional": { "match": "\\?", "name": "keyword.operator.optional.jotl" },
+		"illegal-character": { "match": "[|<>.@=#]", "name": "invalid.illegal.character.jotl" },
+		"label": {
+			"name": "meta.label.jotl",
+			"contentName": "string.unquoted.label.jotl",
+			"begin": "\\(",
+			"end": "\\)|(?=$)",
+			"beginCaptures": { "0": { "name": "punctuation.definition.label.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.label.end.jotl" } },
+			"patterns": [{ "include": "#label-content" }]
+		},
+		"label-content": {
+			"patterns": [
+				{ "match": "\\\\[\\\\()]", "name": "constant.character.escape.jotl" },
+				{
+					"begin": "\\(",
+					"end": "\\)|(?=$)",
+					"patterns": [{ "include": "#label-content" }]
+				}
+			]
+		},
+		"key-type": {
+			"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+			"name": "entity.name.type.alias.jotl"
+		},
+		"key-field": {
+			"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+			"name": "variable.other.property.jotl"
+		},
+		"key-quoted": {
+			"match": "\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*'",
+			"captures": {
+				"0": {
+					"name": "variable.other.property.jotl",
+					"patterns": [{ "include": "#string" }]
+				}
+			}
+		},
+		"key-other": {
+			"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[0-9]+(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])|\\*",
+			"name": "variable.other.property.jotl"
+		},
+		"enum-content": {
+			"begin": "(:)\\s*((?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])enum(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}]))",
+			"end": "(?<=\\})|(?=[,;}])|(?<=[\\p{ID_Continue}$\\x{200C}\\x{200D}\\]])(?=\\s*[^\\s\\[{])|^(?=\\s*[^\\s\\[{])",
+			"beginCaptures": {
+				"1": { "name": "punctuation.separator.type.jotl" },
+				"2": { "name": "support.type.builtin.jotl" }
+			},
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#metadata" },
+				{ "include": "#enum-body" }
+			]
+		},
+		"content": {
+			"begin": ":",
+			"end": "(?<=\\})|(?=[,;}])|(?<=[\\p{ID_Continue}$\\x{200C}\\x{200D}\\]])(?=\\s*[^\\s\\[{]|\\s*$)",
+			"beginCaptures": { "0": { "name": "punctuation.separator.type.jotl" } },
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#metadata" },
+				{ "include": "#body" },
+				{ "include": "#component" },
+				{ "include": "#illegal-character" }
+			]
+		},
+		"component": {
+			"patterns": [
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:string|text|richtext|number|integer|money|bigint|boolean|enum|date|time|datetime|url|email|color|image|file|object|array|map|union|any|jsontext)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "support.type.builtin.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:import|export|from)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "invalid.illegal.reserved.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "entity.name.type.jotl"
+				}
+			]
+		},
+		"body": {
+			"name": "meta.object.type.jotl",
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": { "0": { "name": "punctuation.definition.object.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.object.end.jotl" } },
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#marker" },
+				{ "include": "#separator" },
+				{ "include": "#label" },
+				{ "include": "#optional" },
+				{ "include": "#enum-content" },
+				{ "include": "#content" },
+				{ "include": "#metadata" },
+				{ "include": "#body" },
+				{ "include": "#key-field" },
+				{ "include": "#key-quoted" },
+				{ "include": "#key-other" },
+				{ "include": "#illegal-character" }
+			]
+		},
+		"enum-body": {
+			"name": "meta.enum.jotl",
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": { "0": { "name": "punctuation.definition.enum.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.enum.end.jotl" } },
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#separator" },
+				{ "include": "#label" },
+				{ "include": "#metadata" },
+				{ "include": "#string" },
+				{ "include": "#number" },
+				{ "include": "#constant" },
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "variable.other.enummember.jotl"
+				},
+				{ "include": "#illegal-character" }
+			]
+		},
+		"metadata": {
+			"name": "meta.metadata.jotl",
+			"begin": "\\[",
+			"end": "\\]",
+			"beginCaptures": { "0": { "name": "punctuation.definition.metadata.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.metadata.end.jotl" } },
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#type-string" },
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:description|default|examples|deprecated|readOnly|writeOnly|errorMessage|comment|minLength|maxLength|pattern|format|minimum|maximum|exclusiveMinimum|exclusiveMaximum|decimals|minItems|maxItems|uniqueItems|minProperties|maxProperties|closed|nullable|multiple|array_item|map_item|union_item|json_item|item_meta|key_meta|discriminator|currency|unit|thousands|value_format|widget|props|decorator|hidden|order|groups|layout|columns|summary|root_if|node_if|variants|rules|id|schema|widgets|x_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "entity.other.attribute-name.metadata.jotl"
+				},
+				{ "include": "#json-members" }
+			]
+		},
+		"json-members": {
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#type-string-member" },
+				{ "include": "#condition-op" },
+				{
+					"match": "(?:\"(?:[^\"\\\\]|\\\\.)*\"|'(?:[^'\\\\]|\\\\.)*')(?=\\s*:)",
+					"captures": {
+						"0": {
+							"name": "support.type.property-name.jotl",
+							"patterns": [{ "include": "#string" }]
+						}
+					}
+				},
+				{ "match": ":", "name": "punctuation.separator.key-value.jotl" },
+				{ "match": ",", "name": "punctuation.separator.comma.jotl" },
+				{ "include": "#json-value" },
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "support.type.property-name.jotl"
+				},
+				{ "include": "#illegal-character" }
+			]
+		},
+		"condition-op": {
+			"patterns": [
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(op)\\s*(:)\\s*((\")(eq|ne|in|not_in|gt|gte|lt|lte|truthy|falsy)(\"))",
+					"captures": {
+						"1": { "name": "support.type.property-name.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": { "name": "string.quoted.double.jotl" },
+						"4": { "name": "punctuation.definition.string.begin.jotl" },
+						"5": { "name": "support.constant.condition-operator.jotl" },
+						"6": { "name": "punctuation.definition.string.end.jotl" }
+					}
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(op)\\s*(:)\\s*((')(eq|ne|in|not_in|gt|gte|lt|lte|truthy|falsy)('))",
+					"captures": {
+						"1": { "name": "support.type.property-name.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": { "name": "string.quoted.single.jotl" },
+						"4": { "name": "punctuation.definition.string.begin.jotl" },
+						"5": { "name": "support.constant.condition-operator.jotl" },
+						"6": { "name": "punctuation.definition.string.end.jotl" }
+					}
+				}
+			]
+		},
+		"json-value": {
+			"patterns": [
+				{ "include": "#comments" },
+				{ "include": "#string" },
+				{ "include": "#number" },
+				{ "include": "#constant" },
+				{ "include": "#json-object" },
+				{ "include": "#json-array" }
+			]
+		},
+		"json-object": {
+			"name": "meta.object.literal.jotl",
+			"begin": "\\{",
+			"end": "\\}",
+			"beginCaptures": { "0": { "name": "punctuation.definition.dictionary.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.dictionary.end.jotl" } },
+			"patterns": [{ "include": "#json-members" }]
+		},
+		"json-array": {
+			"name": "meta.array.literal.jotl",
+			"begin": "\\[",
+			"end": "\\]",
+			"beginCaptures": { "0": { "name": "punctuation.definition.array.begin.jotl" } },
+			"endCaptures": { "0": { "name": "punctuation.definition.array.end.jotl" } },
+			"patterns": [
+				{ "include": "#comments" },
+				{ "match": ",", "name": "punctuation.separator.comma.jotl" },
+				{ "include": "#json-value" },
+				{ "include": "#illegal-character" }
+			]
+		},
+		"string": {
+			"patterns": [
+				{
+					"name": "string.quoted.double.jotl",
+					"begin": "\"",
+					"end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"0": { "name": "punctuation.definition.string.begin.jotl" }
+					},
+					"endCaptures": { "1": { "name": "punctuation.definition.string.end.jotl" } },
+					"patterns": [{ "include": "#string-escape" }]
+				},
+				{
+					"name": "string.quoted.single.jotl",
+					"begin": "'",
+					"end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"0": { "name": "punctuation.definition.string.begin.jotl" }
+					},
+					"endCaptures": { "1": { "name": "punctuation.definition.string.end.jotl" } },
+					"patterns": [{ "include": "#string-escape" }]
+				}
+			]
+		},
+		"string-escape": {
+			"patterns": [
+				{
+					"match": "\\\\(?:['\"\\\\/bfnrtv]|0(?![0-9])|x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|$)",
+					"name": "constant.character.escape.jotl"
+				},
+				{ "match": "\\\\.", "name": "invalid.illegal.unrecognized-string-escape.jotl" }
+			]
+		},
+		"number": {
+			"patterns": [
+				{
+					"match": "(?<![\\p{ID_Continue}$.])[+-]?(?:0[xX][0-9a-fA-F]+|(?:[0-9]+\\.?[0-9]*|\\.[0-9]+)(?:[eE][+-]?[0-9]+)?)(?![\\p{ID_Continue}$.])",
+					"name": "constant.numeric.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$.])[+-]?(?:Infinity|NaN)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "invalid.illegal.number.jotl"
+				}
+			]
+		},
+		"constant": {
+			"patterns": [
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:true|false)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "constant.language.boolean.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:null)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "constant.language.null.jotl"
+				}
+			]
+		},
+		"type-string": {
+			"patterns": [
+				{
+					"begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(')",
+					"end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"1": { "name": "entity.other.attribute-name.metadata.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": {
+							"name": "string.quoted.single.jotl punctuation.definition.string.begin.jotl"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "string.quoted.single.jotl punctuation.definition.string.end.jotl"
+						}
+					},
+					"contentName": "meta.type-string.jotl string.quoted.single.jotl",
+					"patterns": [{ "include": "#type-string-content" }]
+				},
+				{
+					"begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(\")",
+					"end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"1": { "name": "entity.other.attribute-name.metadata.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": {
+							"name": "string.quoted.double.jotl punctuation.definition.string.begin.jotl"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "string.quoted.double.jotl punctuation.definition.string.end.jotl"
+						}
+					},
+					"contentName": "meta.type-string.jotl string.quoted.double.jotl",
+					"patterns": [{ "include": "#type-string-content" }]
+				}
+			]
+		},
+		"type-string-member": {
+			"patterns": [
+				{
+					"begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(')",
+					"end": "(')|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"1": { "name": "support.type.property-name.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": {
+							"name": "string.quoted.single.jotl punctuation.definition.string.begin.jotl"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "string.quoted.single.jotl punctuation.definition.string.end.jotl"
+						}
+					},
+					"contentName": "meta.type-string.jotl string.quoted.single.jotl",
+					"patterns": [{ "include": "#type-string-content" }]
+				},
+				{
+					"begin": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(array_item|map_item|union_item|json_item)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])\\s*(:)\\s*(\")",
+					"end": "(\")|(?<!\\\\)(?=\\n)|(?<![\\\\\\n])\\z",
+					"beginCaptures": {
+						"1": { "name": "support.type.property-name.jotl" },
+						"2": { "name": "punctuation.separator.key-value.jotl" },
+						"3": {
+							"name": "string.quoted.double.jotl punctuation.definition.string.begin.jotl"
+						}
+					},
+					"endCaptures": {
+						"1": {
+							"name": "string.quoted.double.jotl punctuation.definition.string.end.jotl"
+						}
+					},
+					"contentName": "meta.type-string.jotl string.quoted.double.jotl",
+					"patterns": [{ "include": "#type-string-content" }]
+				}
+			]
+		},
+		"type-string-content": {
+			"patterns": [
+				{ "include": "#string-escape" },
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:string|text|richtext|number|integer|money|bigint|boolean|enum|date|time|datetime|url|email|color|image|file|object|array|map|union|any|jsontext|tuple)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "support.type.builtin.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])null(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "invalid.illegal.jotl"
+				},
+				{
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])[\\p{ID_Start}$_][\\p{ID_Continue}$\\x{200C}\\x{200D}]*(?:-[\\p{ID_Continue}$\\x{200C}\\x{200D}]+)*(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"name": "entity.name.type.jotl"
+				},
+				{ "match": "\\|", "name": "punctuation.separator.type-union.jotl" }
+			]
+		}
+	}
 }

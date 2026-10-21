@@ -2,7 +2,15 @@
 
 构建, 调试, 打包或发布 `packages/vscode` 时读本页; 对应 `packages/vscode` 的 `build.mjs`, `scripts/`, 与仓库根 `.github/workflows/vscode-release.yml`. 不进 vsix.
 
-插件的工程骨架来自 vsc-ext 范式: `.template-shared` 记录 A 类骨架文件的基线 hash, `pnpm run check` 会核对它们未偏离; 本插件有意偏离的文件以 `!<路径>  <原因>` 行写在该清单里. NEVER 在本目录跑 `scripts/check-template.mjs --update`.
+插件的工程骨架来自 vsc-ext 范式. 以下文件有意偏离骨架, 同步骨架时不要整份覆盖:
+
+- `.github/workflows/release.yml`: monorepo 下 GitHub 只读仓库根的 `.github`; 发布工作流在仓库根 `.github/workflows/vscode-release.yml`(pnpm, `vscode-v*` 标签, 先构建 workspace 再在本目录跑门禁与打包).
+- `.vscode/launch.json`: 产物是 `dist/*.cjs` 而不是 `out/*.js`, `outFiles` 改为 `dist/**/*.cjs`, 否则断点绑不到源码.
+- `build.mjs`: 要产出 `extension.cjs`, `server.cjs`, `preview.js`(浏览器 iife) 三份 bundle, 并复制 `preview-form.css`, 生成 `x-ui.schema.json` 与 `jotl.config.schema.json`.
+- `scripts/lib/shoot-ext.mjs`: 暂不做功能截图, 不引入 playwright-core 与 sharp.
+- `scripts/package.mjs`: 允许清单另外放行 `server.cjs`, `preview.js`, `preview-form.css` 与 `jsonValidation` 引用的 `x-ui.schema.json`; 透传 `--pre-release`; vsce 推导基址时忽略 `repository.directory`, 需成对传入指向 `packages/vscode` 的 `baseContentUrl`/`baseImagesUrl`.
+- `tsconfig.json`: 是根 `tsc -b` 的项目引用(composite, 引用 `../language-server`, 产出 `dist` 声明), 不能换成 noEmit 的独立配置.
+- `vitest.config.mts`: 测试含 `.tsx`(预览 webview 组件, jsdom), 骨架只收 ts 与 mjs.
 
 ## 构建
 
@@ -39,7 +47,7 @@ pnpm --filter ./packages/vscode run compile
 在 `packages/vscode` 下执行(先在仓库根 `pnpm build`):
 
 ```sh
-pnpm run check       # 图标产物, 清单占位符, l10n, 骨架漂移
+pnpm run check       # 图标产物, 清单占位符, l10n
 pnpm run typecheck
 pnpm test
 pnpm run package     # 生产构建 + 打 vsix 到 artifacts/ + 内容断言

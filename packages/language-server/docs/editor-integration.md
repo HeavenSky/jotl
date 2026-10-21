@@ -9,7 +9,7 @@ After reading this page you can wire `@jotl/language-server` into any LSP client
 `startServer()` creates a connection, registers every handler and starts listening. It picks the transport from the process arguments `--node-ipc`, `--stdio` or `--socket`, and returns the connection.
 
 ```js
-import { startServer } from '@jotl/language-server';
+import { startServer } from "@jotl/language-server";
 
 startServer();
 ```

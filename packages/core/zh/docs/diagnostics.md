@@ -9,11 +9,11 @@
 所有 Jotl 包的公开函数都返回 `Result<T>`，即 `{ value, diagnostics }`，不抛异常。
 
 ```ts
-import { compile, hasErrors } from '@jotl/core';
+import { compile, hasErrors } from "@jotl/core";
 
-const result = compile('A: strng', 'a.jotl');
+const result = compile("A: strng", "a.jotl");
 if (result.value === undefined || hasErrors(result.diagnostics)) {
-  for (const d of result.diagnostics) console.log(d.code, d.severity, d.message);
+	for (const d of result.diagnostics) console.log(d.code, d.severity, d.message);
 }
 // JOTL1004 error Unknown component `strng`
 ```
@@ -42,10 +42,10 @@ if (result.value === undefined || hasErrors(result.diagnostics)) {
 消息与生成的文字有英文（`"en"`，即默认值 `DEFAULT_LOCALE`）和中文（`"zh-CN"`）两种。语言是全局设置，各包创建诊断与生成文字时都读取它。
 
 ```ts
-import { compile, setLocale } from '@jotl/core';
+import { compile, setLocale } from "@jotl/core";
 
-setLocale('zh-CN');
-compile('A: strng', 'a.jotl').diagnostics[0].message; // "未知组件 `strng`"
+setLocale("zh-CN");
+compile("A: strng", "a.jotl").diagnostics[0].message; // "未知组件 `strng`"
 ```
 
 - `getLocale()` 返回当前语言，类型为 `Locale`。
@@ -59,12 +59,16 @@ compile('A: strng', 'a.jotl').diagnostics[0].message; // "未知组件 `strng`"
 每个包（或包内模块）在自己的 `diagnostics.ts` 里用 `defineDiagnostics` 定义代码表。消息只写在代码表里：`message` 是中文模板，可选的 `en` 是英文模板。
 
 ```ts
-import { defineDiagnostics, hasErrors } from '@jotl/core';
+import { defineDiagnostics, hasErrors } from "@jotl/core";
 
 const diagnostic = defineDiagnostics({
-  JOTL9999: { severity: 'warning', message: '字段 {name} 已弃用', en: 'Field {name} is deprecated' },
+	JOTL9999: {
+		severity: "warning",
+		message: "字段 {name} 已弃用",
+		en: "Field {name} is deprecated",
+	},
 });
-const d = diagnostic('JOTL9999', { name: 'title' });
+const d = diagnostic("JOTL9999", { name: "title" });
 // { code: "JOTL9999", severity: "warning", message: "Field title is deprecated" }
 hasErrors([d]); // false
 ```

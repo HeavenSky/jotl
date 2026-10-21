@@ -1,31 +1,31 @@
 {
-  "name": "@jotl/language-server",
-  "version": "0.0.2",
-  "description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/HeavenSky/jotl.git",
-    "directory": "packages/language-server"
-  },
-  "files": [
-    "dist"
-  ],
-  "type": "module",
-  "exports": {
-    ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
-    }
-  },
-  "scripts": {
-    "build": "tsc -b",
-    "typecheck:test": "tsc -p tsconfig.test.json"
-  },
-  "dependencies": {
-    "@jotl/convert": "workspace:~",
-    "@jotl/core": "workspace:~",
-    "@jotl/form": "workspace:~",
-    "vscode-languageserver": "^10.1.2"
-  }
+	"name": "@jotl/language-server",
+	"version": "0.0.2",
+	"description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
+	"license": "MIT",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/HeavenSky/jotl.git",
+		"directory": "packages/language-server"
+	},
+	"files": [
+		"dist"
+	],
+	"type": "module",
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"scripts": {
+		"build": "tsc -b",
+		"typecheck:test": "tsc -p tsconfig.test.json"
+	},
+	"dependencies": {
+		"@jotl/convert": "workspace:~",
+		"@jotl/core": "workspace:~",
+		"@jotl/form": "workspace:~",
+		"vscode-languageserver": "^10.1.2"
+	}
 }

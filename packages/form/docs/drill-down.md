@@ -9,7 +9,7 @@ This page explains how `JotlForm` shows objects, arrays and dictionaries, and ho
 By default the form shows one page per level. Scalar fields of the current level are edited in place; composite fields (objects, arrays, dictionaries, unions with object branches, recursive nodes) appear as entry rows that open the next level. The breadcrumb at the top lists each level's label, and clicking a parent level goes back.
 
 ```tsx
-const [path, setPath] = useState('');
+const [path, setPath] = useState("");
 <JotlForm schema={schema} path={path} onPathChange={setPath} />;
 ```
 

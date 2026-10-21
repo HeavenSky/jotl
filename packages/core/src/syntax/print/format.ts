@@ -1,8 +1,8 @@
 // 格式化: Jotl 源码 → 规范排版, 保留全部注释.
-import { type Result, hasErrors } from '../../schema/index.js';
-import { byPosition } from '../diagnostics.js';
-import { parseSource } from '../parser.js';
-import { renderFile } from './render.js';
+import { type Result, hasErrors } from "../../schema/index.js";
+import { byPosition } from "../diagnostics.js";
+import { parseSource } from "../parser.js";
+import { renderFile } from "./render.js";
 
 /**
  * 按规范排版重写源码, 不改变编译结果.
@@ -12,8 +12,8 @@ import { renderFile } from './render.js';
  * 有语法错误时原样返回源码, 并附带语法诊断.
  */
 export function format(text: string, file: string): Result<string> {
-  const { ast, diagnostics } = parseSource(text, file);
-  diagnostics.sort(byPosition);
-  if (hasErrors(diagnostics)) return { value: text, diagnostics };
-  return { value: renderFile(ast, { text, comments: ast.comments }), diagnostics };
+	const { ast, diagnostics } = parseSource(text, file);
+	diagnostics.sort(byPosition);
+	if (hasErrors(diagnostics)) return { value: text, diagnostics };
+	return { value: renderFile(ast, { text, comments: ast.comments }), diagnostics };
 }

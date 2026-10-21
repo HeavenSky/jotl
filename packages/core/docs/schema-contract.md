@@ -10,13 +10,13 @@ This page shows which shared types and helpers to use when your code reads or wr
 - `JSON_SCHEMA_DIALECT` is `"https://json-schema.org/draft/2020-12/schema"`.
 - `SUBSCHEMA_KEYWORDS` lists the keywords that hold subschemas, in three groups by shape:
 
-  ```ts
-  {
-    single: ["additionalProperties", "items", "contains", "propertyNames", "not", "if", "then", "else", "unevaluatedItems", "unevaluatedProperties", "contentSchema"],
-    array: ["prefixItems", "allOf", "anyOf", "oneOf"],
-    map: ["properties", "patternProperties", "$defs", "dependentSchemas"],
-  }
-  ```
+    ```ts
+    {
+      single: ["additionalProperties", "items", "contains", "propertyNames", "not", "if", "then", "else", "unevaluatedItems", "unevaluatedProperties", "contentSchema"],
+      array: ["prefixItems", "allOf", "anyOf", "oneOf"],
+      map: ["properties", "patternProperties", "$defs", "dependentSchemas"],
+    }
+    ```
 
 - `orderKeywords(schema)` reorders keywords by normalization rule 7 of the [Jotl syntax specification](../../../docs/spec/jotl.md), recurses into subschemas, and returns a new object. For example, `{ type: "string", title: "T", maxLength: 1 }` becomes `{ title: "T", type: "string", maxLength: 1 }`.
 
