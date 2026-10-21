@@ -1,9 +1,12 @@
 # Changelog
 
-## v0.0.2 2026-10-18 Stricter diagnostics
+## v0.0.2 2026-10-21 Stricter diagnostics
 
 - New diagnostics: an empty discriminated union, string constraints on a timestamp `value_format` field, and a `node_if` path starting with `$.` (use `root_if` to read from the root).
-- The preview form reports an empty widget name in `x-ui` widgets, and a read-only number field keeps its thousands separators when focused.
+- A `datetime` or `format: 'time'` default without a time zone now reports `JOTL1008`, matching form validation, which already rejected it.
+- `default` values are now also checked against `value_format` strings using `YY` `M` `D` `H` `h` `hh` `m` `s`; `h` and `hh` are read together with `A` / `a`.
+- Completion inside `item_meta` works when it comes before `array_item`, `map_item` and the like.
+- The preview form reports an empty widget name in `x-ui` widgets, a read-only number field keeps its thousands separators when focused, and load failures of widget modules are reported in the preview language.
 - The TypeScript declarations in the preview keep nullable unions as `(A | B) | null` and mark every closed object with `@closed` (`money` and `bigint` ranges with `@decimalRange`), on the holding property for array elements and nullable objects, so converting back yields the same schema.
 
 ## v0.0.1 2026-10-16 Initial release
