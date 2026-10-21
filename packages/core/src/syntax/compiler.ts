@@ -1897,20 +1897,23 @@ class Compiler {
 	}
 
 	/**
-	 * 场景覆盖中的 `widget` 与字段上的 `widget` 做同样两项检查: 声明了底层类型的非内置名查 JOTL1052, 内置名查 JOTL1045(引用与扩展组件不查);
-	 * 只报 warning, 覆盖对象原样写入. `decorator` 是外壳 widget, 不接管字段的值, 不查.
+	 * 场景覆盖中的 `widget` 与字段上的 `widget` 做同样两项检查: 声明了底层类型的非内置名查 JOTL1052, 内置名查 JOTL1045(引用与扩展组件不查).
+	 * 都报 warning; 内置 widget 不适用时返回 false, 由调用方与字段上一样丢弃该 widget. `decorator` 是外壳 widget, 不接管字段的值, 不查.
 	 */
 	private checkVariantWidget(
 		schema: JsonSchemaObject,
 		kind: MetaTarget,
 		value: ValueNode,
 		widget: unknown
-	): void {
-		if (typeof widget !== "string" || widget === "" || value.kind !== "ObjectValue") return;
+	): boolean {
+		if (typeof widget !== "string" || widget === "" || value.kind !== "ObjectValue")
+			return true;
 		const span = value.members.find(mm => mm.key.value === "widget")!.value.span;
 		if (!BUILTIN_WIDGETS.has(widget)) {
 			if (Object.hasOwn(this.widgetTypes, widget)) this.checkWidgetType(schema, widget, span);
-		} else if (kind !== "ref" && kind !== "ext") this.builtinWidgetFits(schema, widget, span);
+			return true;
+		}
+		return kind === "ref" || kind === "ext" || this.builtinWidgetFits(schema, widget, span);
 	}
 
 	/** 字段名, 供场景覆盖检查; 非对象为 undefined. */
@@ -2004,7 +2007,11 @@ class Compiler {
 					);
 					continue;
 				}
-				this.checkVariantWidget(schema, kind, member.value, r.variant.widget);
+				// 不适用的内置 widget 与字段上一样丢弃(报 JOTL1045), 该场景沿用字段的 widget; 丢弃后没有其他覆盖项时不写该场景.
+				if (!this.checkVariantWidget(schema, kind, member.value, r.variant.widget)) {
+					delete r.variant.widget;
+					if (Object.keys(r.variant).length === 0) continue;
+				}
 				defineKey(out, member.key.value, r.variant);
 			}
 			if (Object.keys(out).length > 0)

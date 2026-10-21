@@ -188,7 +188,7 @@ describe("元数据", () => {
 		expect(fieldCodes(": string[widget: 'my-editor']")).toEqual([]);
 	});
 
-	it("场景覆盖中的 widget 同样检查适用性(JOTL1045 JOTL1052), 诊断落在各场景的 widget 值上, 覆盖照常写入", () => {
+	it("场景覆盖中的 widget 同样检查适用性(JOTL1045 JOTL1052), 诊断落在各场景的 widget 值上; 不适用的内置 widget 与字段上一样丢弃", () => {
 		const result = compile(
 			"A: {\n  n: integer[variants: {m: {widget: 'textarea'}, p: {hidden: true, widget: 'radio'}}]\n}",
 			FILE
@@ -201,18 +201,25 @@ describe("元数据", () => {
 			{ code: "JOTL1045", line: 2, column: 37 },
 			{ code: "JOTL1045", line: 2, column: 76 },
 		]);
-		expect(result.value?.schema.$defs?.A).toMatchObject({
-			properties: {
-				n: {
-					"x-ui": {
-						variants: {
-							m: { widget: "textarea" },
-							p: { hidden: true, widget: "radio" },
-						},
-					},
-				},
-			},
+		const nOf = (r: ReturnType<typeof compile>) =>
+			(r.value?.schema.$defs?.A as JsonSchemaObject | undefined)?.properties?.n as
+				| JsonSchemaObject
+				| undefined;
+		// 丢弃后 m 场景没有其他覆盖项, 不写入; p 场景保留其余覆盖项.
+		expect(nOf(result)).toEqual({
+			type: "integer",
+			minimum: -Number.MAX_SAFE_INTEGER,
+			maximum: Number.MAX_SAFE_INTEGER,
+			"x-ui": { variants: { p: { hidden: true } } },
 		});
+		const only = compile("A: {\n  n: integer[variants: {m: {widget: 'textarea'}}]\n}", FILE);
+		expect(nOf(only)?.["x-ui"]).toBeUndefined();
+		// JOTL1052 与字段上一样只提醒, widget 照常写入.
+		const typed = compile("A: {\n  n: integer[variants: {m: {widget: 'headline'}}]\n}", FILE, {
+			widgetTypes: { headline: { type: "string" } },
+		});
+		expect(typed.diagnostics.map(d => d.code)).toEqual(["JOTL1052"]);
+		expect(nOf(typed)?.["x-ui"]).toEqual({ variants: { m: { widget: "headline" } } });
 		const widgetTypes = {
 			headline: { type: "string" },
 			gauge: { type: "number" },
