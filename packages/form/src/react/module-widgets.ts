@@ -15,7 +15,7 @@ export interface ModuleWidgetOptions {
   importer?: (url: string) => Promise<unknown>;
   /** 相对地址(./ ../ /)的基准; 不给时原样交给 importer. */
   baseUrl?: string;
-  /** 加载失败文案的语言; 缺省取全局当前语言. */
+  /** 加载失败文案的语言; 缺省取触发加载的表单的语言(JotlForm 的 locale, 未指定时为全局语言). */
   locale?: Locale;
 }
 
@@ -45,10 +45,10 @@ export function moduleWidgetRegistrations(
       level: spec.level ?? "field",
       // 有 load 时 component 是加载前的占位; undefined 时渲染器显示内置的加载中提示.
       component: undefined as unknown as ReactWidgetComponent,
-      load: async () => {
+      load: async (ctx) => {
         const loaded = await importer(url);
         const component = typeof loaded === "object" && loaded !== null ? (loaded as Record<string, unknown>)[exportName] : undefined;
-        if (!isComponent(component)) throw new Error(l10n(`扩展组件 ${name}: 模块 ${url} 的导出 ${exportName} 不是 React 组件`, `Widget ${name}: export ${exportName} of module ${url} is not a React component`, options.locale));
+        if (!isComponent(component)) throw new Error(l10n(`扩展组件 ${name}: 模块 ${url} 的导出 ${exportName} 不是 React 组件`, `Widget ${name}: export ${exportName} of module ${url} is not a React component`, options.locale ?? ctx?.locale));
         return component;
       },
     };

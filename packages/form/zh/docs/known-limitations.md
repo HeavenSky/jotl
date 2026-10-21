@@ -22,7 +22,7 @@ schema 带 `patternProperties` 的对象整体降级为 `json` widget（F7，不
 
 ## schema 模块按 field 级登记
 
-根 `x-ui.widgets` 中声明的 widget 一律按 `field` 级登记，接管整个值；声明里不能指定其他级别。要按其他级别登记模块 widget，自己调用 `moduleWidgetRegistrations` 并传 `level`，再把结果登记到自己的注册表，见[不用 `JotlForm` 时登记模块](schema-modules.md#不用-jotlform-时登记模块)。直接调用时不传 `locale`，加载失败文案跟随 `getLocale()` 的全局语言，而不是表单的 `locale`；要与表单一致就传 `locale`。
+根 `x-ui.widgets` 中声明的 widget 一律按 `field` 级登记，接管整个值；声明里不能指定其他级别。要按其他级别登记模块 widget，自己调用 `moduleWidgetRegistrations` 并传 `level`，再把结果登记到自己的注册表，见[不用 `JotlForm` 时登记模块](schema-modules.md#不用-jotlform-时登记模块)。
 
 ## 自带的富文本编辑器很简陋
 

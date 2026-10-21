@@ -24,7 +24,7 @@ registry.register({ name: "switch", level: "field", component: MySwitch });
 
 | Field | Use |
 |---|---|
-| `load` | Loads the component on demand. Until it resolves, `component` renders as a placeholder; on failure a retry is shown and the next candidate widget is used |
+| `load` | Loads the component on demand; it receives `{ locale }`, the language of the form that first triggers loading. Until it resolves, `component` renders as a placeholder; on failure a retry is shown and the next candidate widget is used |
 | `accepts(schema)` | Rejects data shapes the widget cannot handle; a rejected widget falls back with F2. Built-in names are already shape-checked by `plan()`, so the default registrations carry no `accepts` |
 | `match(schema, ctx)` | Makes the widget a candidate by score: a score above 0 takes part, higher scores rank first, and on equal scores the earlier registration in `list()` wins (this level before the parent). Matched widgets rank after the names in `x-ui` and before the built-in default for the shape |
 | `claims(schema)` | For composite widgets: the relative child data paths the widget renders itself, or `"all"` |

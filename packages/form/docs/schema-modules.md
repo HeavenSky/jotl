@@ -28,5 +28,5 @@ With `schemaModules`, `JotlForm` registers these declarations into the form's ow
 ## Register modules without `JotlForm`
 
 - `schemaWidgetModules(schema)` reads the module declarations from the root `x-ui.widgets` and skips invalid items.
-- `moduleWidgetRegistrations(modules, { importer?, baseUrl?, locale? })` turns name → `{ module, export?, level? }` into registrations with `load` for your own registry; `level` defaults to `field`.
+- `moduleWidgetRegistrations(modules, { importer?, baseUrl?, locale? })` turns name → `{ module, export?, level? }` into registrations with `load` for your own registry; `level` defaults to `field`, and without `locale` load-failure messages use the language of the form that first loads the widget.
 - For module declarations from `jotl.config.json` (`readJotlConfig(...).config.modules` of `@jotl/core`), pass the configuration file's location as `baseUrl`.

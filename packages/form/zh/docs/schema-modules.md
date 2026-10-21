@@ -28,5 +28,5 @@
 ## 不用 `JotlForm` 时登记模块
 
 - `schemaWidgetModules(schema)` 从根 `x-ui.widgets` 读出模块声明，跳过不合法的项。
-- `moduleWidgetRegistrations(modules, { importer?, baseUrl?, locale? })` 把名字 → `{ module, export?, level? }` 转为带 `load` 的登记项，供登记到自己的注册表；`level` 缺省为 `field`。
+- `moduleWidgetRegistrations(modules, { importer?, baseUrl?, locale? })` 把名字 → `{ module, export?, level? }` 转为带 `load` 的登记项，供登记到自己的注册表；`level` 缺省为 `field`；不传 `locale` 时加载失败文案取首个加载该 widget 的表单的语言。
 - 模块声明来自 `jotl.config.json`（`@jotl/core` 的 `readJotlConfig(...).config.modules`）时，`baseUrl` 传配置文件的位置。

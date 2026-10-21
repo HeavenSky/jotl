@@ -22,7 +22,7 @@ The field shell adds `for` to its `<label>` after rendering, once it knows the i
 
 ## Schema modules register at the field level
 
-Widgets declared in the root `x-ui.widgets` are registered at the `field` level and take over the whole value; a declaration cannot choose another level. To register a module widget at another level, call `moduleWidgetRegistrations` with `level` and add the result to your registry, see [Register modules without `JotlForm`](schema-modules.md#register-modules-without-jotlform). When you call it without `locale`, load-failure messages follow the global language from `getLocale()`, not the form's `locale`; pass `locale` to match the form.
+Widgets declared in the root `x-ui.widgets` are registered at the `field` level and take over the whole value; a declaration cannot choose another level. To register a module widget at another level, call `moduleWidgetRegistrations` with `level` and add the result to your registry, see [Register modules without `JotlForm`](schema-modules.md#register-modules-without-jotlform).
 
 ## The bundled rich text editor is minimal
 

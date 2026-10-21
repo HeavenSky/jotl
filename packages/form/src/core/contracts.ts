@@ -1,5 +1,5 @@
 // 组件契约(CT5): 注册, 解析上下文, 渲染计划与各层组件 props; 与 UI 框架无关.
-import type { Condition, Diagnostic, JsonPointer, JsonSchema, JsonSchemaObject, Result, XUiGroup } from "@jotl/core";
+import type { Condition, Diagnostic, JsonPointer, JsonSchema, JsonSchemaObject, Locale, Result, XUiGroup } from "@jotl/core";
 
 export type WidgetLevel = "view" | "layout" | "composite" | "field" | "decorator";
 
@@ -25,8 +25,8 @@ export interface WidgetRegistration<C = unknown> {
   match?: (schema: JsonSchemaObject, ctx: ResolveContext) => number;
   /** 复合组件接管的子数据路径(相对). */
   claims?: (schema: JsonSchemaObject) => JsonPointer[] | "all";
-  /** 懒加载(D35); 有 load 时 component 为加载前的占位, 加载失败按 F9 处理. */
-  load?: () => Promise<C>;
+  /** 懒加载(D35); 有 load 时 component 为加载前的占位, 加载失败按 F9 处理; ctx.locale 为首个触发加载的表单的语言. */
+  load?: (ctx?: { locale: Locale }) => Promise<C>;
 }
 
 export interface Registry<C> {

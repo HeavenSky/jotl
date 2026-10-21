@@ -24,7 +24,7 @@ registry.register({ name: "switch", level: "field", component: MySwitch });
 
 | 字段 | 用途 |
 |---|---|
-| `load` | 按需加载组件。加载完成前渲染 `component` 作为占位；失败时显示重试并改用下一个候选 widget |
+| `load` | 按需加载组件，参数为 `{ locale }`，即首个触发加载的表单的语言。加载完成前渲染 `component` 作为占位；失败时显示重试并改用下一个候选 widget |
 | `accepts(schema)` | 拒绝 widget 处理不了的数据形态，被拒绝时按 F2 降级。内置名已由 `plan()` 检查形态，所以默认登记项不带 `accepts` |
 | `match(schema, ctx)` | 按分值让 widget 成为候选：分值大于 0 才参与，分值高的排前，分值相同时 `list()` 中靠前的登记胜出（本级在父级之前）。匹配到的 widget 排在 `x-ui` 写明的名字之后、该形态的内置默认之前 |
 | `claims(schema)` | 用于复合 widget：由它自己渲染的相对子数据路径，或 `"all"` |

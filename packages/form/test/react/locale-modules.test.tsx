@@ -4,7 +4,7 @@ import { act, fireEvent, screen, waitFor } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { JsonSchema } from "@jotl/core";
 import type { FieldProps } from "../../src/core/index.js";
-import { moduleWidgetRegistrations, schemaWidgetModules, type DegradeEvent } from "../../src/react/index.js";
+import { createDefaultRegistry, moduleWidgetRegistrations, schemaWidgetModules, type DegradeEvent } from "../../src/react/index.js";
 import { byPath, renderForm } from "./helpers.js";
 
 describe("locale", () => {
@@ -122,5 +122,18 @@ describe("扩展组件模块", () => {
     await waitFor(() => expect(events.some((e) => e.code === "F9")).toBe(true));
     const error = events.find((e) => e.code === "F9")!.error as Error;
     expect(error.message).toBe("Widget Picker: export default of module https://cdn.example/picker-en.js is not a React component");
+  });
+
+  it("直接调用 moduleWidgetRegistrations 不传 locale 时, 加载失败文案取触发加载的表单的 locale", async () => {
+    const events: DegradeEvent[] = [];
+    const registry = createDefaultRegistry().extend();
+    const importer = async () => ({ default: "not a component" });
+    for (const r of moduleWidgetRegistrations({ Picker: { module: "https://cdn.example/picker-direct.js" } }, { importer })) registry.register(r);
+    const plain = { type: "object", properties: { img: { type: "string", "x-ui": { widget: "Picker" } } } } as JsonSchema;
+    renderForm({ schema: plain, registry, defaultValue: { img: "a" }, locale: "en", onDegrade: (e) => events.push(e) });
+    await waitFor(() => expect(events.some((e) => e.code === "F9")).toBe(true));
+    expect((events.find((e) => e.code === "F9")!.error as Error).message).toBe(
+      "Widget Picker: export default of module https://cdn.example/picker-direct.js is not a React component",
+    );
   });
 });
