@@ -1,5 +1,6 @@
 // 预览面板(E6): 命令 `jotl.showPreview` 在编辑器旁打开 webview, 展示当前 Jotl 文档的 JSON Schema, TS 与表单预览, 随编辑与切换编辑器更新;
-// 设置 `jotl.preview.loadWidgetModules` 开启时把扩展组件模块的来源放进 CSP 与 localResourceRoots.
+// 设置 `jotl.preview.loadWidgetModules` 开启时把扩展组件模块的来源放进 CSP 与 localResourceRoots;
+// 再开启 `jotl.preview.allowModuleStyles` 时 CSP 另放行模块自带的样式.
 import { dirname } from "node:path";
 import type { PreviewContent } from "@jotl/language-server";
 import {
@@ -20,6 +21,7 @@ import {
 	LOAD_WIDGET_MODULES_SETTING,
 	type PreviewModules,
 	SHARED_MODULE_SHIMS,
+	schemaModuleRefs,
 	type WidgetModuleRef,
 } from "./preview-modules.js";
 import { isFromWebview, type ToWebview } from "./preview-protocol.js";
@@ -35,6 +37,8 @@ const FORM_STYLE_FILE = "preview-form.css";
 const LANGUAGE_ID = "jotl";
 const UPDATE_DELAY_MS = 200;
 const CONFIGURATION_SECTION = "jotl";
+/** 必须等于 package.json 中 `contributes.configuration` 声明的设置名(去掉 `jotl.` 前缀). */
+const ALLOW_MODULE_STYLES_SETTING = "preview.allowModuleStyles";
 
 export type RequestPreview = (uri: string) => Promise<PreviewContent | null>;
 export type Log = (message: string) => void;
@@ -47,7 +51,7 @@ class PreviewController implements Disposable {
 	private timer: ReturnType<typeof setTimeout> | undefined;
 	/** 只投递最后一次请求的结果, 防止慢响应覆盖新内容. */
 	private sequence = 0;
-	/** 当前 HTML 外壳对应的模块开关与本地资源目录; 变化时重建外壳. */
+	/** 当前 HTML 外壳对应的模块与模块样式开关, 本地资源目录; 变化时重建外壳. */
 	private shellKey = "";
 	private readonly subscriptions: Disposable[];
 
@@ -82,8 +86,8 @@ class PreviewController implements Disposable {
 			}),
 			workspace.onDidChangeConfiguration(event => {
 				if (
-					event.affectsConfiguration(
-						`${CONFIGURATION_SECTION}.${LOAD_WIDGET_MODULES_SETTING}`
+					[LOAD_WIDGET_MODULES_SETTING, ALLOW_MODULE_STYLES_SETTING].some(setting =>
+						event.affectsConfiguration(`${CONFIGURATION_SECTION}.${setting}`)
 					)
 				)
 					this.schedule();
@@ -112,7 +116,7 @@ class PreviewController implements Disposable {
 			{ viewColumn: ViewColumn.Beside, preserveFocus: true },
 			{ enableScripts: true }
 		);
-		this.renderShell(panel, false, [], {});
+		this.renderShell(panel, false, false, [], {});
 		const { webview } = panel;
 		webview.onDidReceiveMessage((message: unknown) => {
 			if (isFromWebview(message)) void this.update();
@@ -130,6 +134,7 @@ class PreviewController implements Disposable {
 	private renderShell(
 		panel: WebviewPanel,
 		load: boolean,
+		styles: boolean,
 		moduleRoots: readonly Uri[],
 		imports: Readonly<Record<string, string>>
 	): void {
@@ -148,6 +153,7 @@ class PreviewController implements Disposable {
 			lang: env.language,
 			...(load
 				? {
+						allowModuleStyles: styles,
 						sharedModules: {
 							...imports,
 							...Object.fromEntries(
@@ -160,7 +166,7 @@ class PreviewController implements Disposable {
 					}
 				: {}),
 		});
-		this.shellKey = shellKey(load, moduleRoots, imports);
+		this.shellKey = shellKey(load, styles, moduleRoots, imports);
 	}
 
 	/**
@@ -171,11 +177,9 @@ class PreviewController implements Disposable {
 		panel: WebviewPanel,
 		document: TextDocument,
 		content: PreviewContent
-	): { modules: PreviewModules; roots: Uri[]; imports: Record<string, string> } {
-		const load =
-			workspace
-				.getConfiguration(CONFIGURATION_SECTION, document.uri)
-				.get<boolean>(LOAD_WIDGET_MODULES_SETTING, false) === true;
+	): { modules: PreviewModules; styles: boolean; roots: Uri[]; imports: Record<string, string> } {
+		const configuration = workspace.getConfiguration(CONFIGURATION_SECTION, document.uri);
+		const load = configuration.get<boolean>(LOAD_WIDGET_MODULES_SETTING, false) === true;
 		const { webview } = panel;
 		const isFile = document.uri.scheme === "file";
 		const documentDir = isFile ? dirname(document.uri.fsPath) : undefined;
@@ -193,11 +197,21 @@ class PreviewController implements Disposable {
 			config[name] = { ...ref, module: webview.asWebviewUri(Uri.file(path)).toString() };
 			dirs.add(dirname(path));
 		}
-		if (!load) return { modules: { load, config, baseUrl: undefined }, roots: [], imports: {} };
+		if (!load)
+			return {
+				modules: { load, config, baseUrl: undefined },
+				styles: false,
+				roots: [],
+				imports: {},
+			};
+		const schema: unknown =
+			content.schema === undefined ? undefined : JSON.parse(content.schema);
+		// 只在确有模块要加载时放宽样式; 没有模块时 CSP 与关闭该设置时相同.
+		const styles =
+			configuration.get<boolean>(ALLOW_MODULE_STYLES_SETTING, false) === true &&
+			(Object.keys(config).length > 0 || Object.keys(schemaModuleRefs(schema)).length > 0);
 		let imports: Record<string, string> = {};
 		if (documentDir !== undefined) {
-			const schema: unknown =
-				content.schema === undefined ? undefined : JSON.parse(content.schema);
 			const found = schemaModuleImports(schema, documentDir, file =>
 				webview.asWebviewUri(Uri.file(file)).toString()
 			);
@@ -213,7 +227,7 @@ class PreviewController implements Disposable {
 			documentDir === undefined
 				? undefined
 				: `${webview.asWebviewUri(Uri.file(documentDir)).toString().replace(/\/$/, "")}/`;
-		return { modules: { load, config, baseUrl }, roots, imports };
+		return { modules: { load, config, baseUrl }, styles, roots, imports };
 	}
 
 	private cancel(): void {
@@ -256,9 +270,13 @@ class PreviewController implements Disposable {
 				const panel = this.panel;
 				if (sequence !== this.sequence || document !== this.document || panel === undefined)
 					return;
-				const { modules, roots, imports } = this.resolveModules(panel, document, content);
-				if (shellKey(modules.load, roots, imports) !== this.shellKey) {
-					this.renderShell(panel, modules.load, roots, imports);
+				const { modules, styles, roots, imports } = this.resolveModules(
+					panel,
+					document,
+					content
+				);
+				if (shellKey(modules.load, styles, roots, imports) !== this.shellKey) {
+					this.renderShell(panel, modules.load, styles, roots, imports);
 					return;
 				}
 				message = { type: "update", fileName: fileName(document), content, modules };
@@ -287,11 +305,13 @@ class PreviewController implements Disposable {
 
 function shellKey(
 	load: boolean,
+	styles: boolean,
 	roots: readonly Uri[],
 	imports: Readonly<Record<string, string>>
 ): string {
 	return JSON.stringify([
 		load,
+		styles,
 		roots.map(root => root.toString()),
 		Object.entries(imports).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)),
 	]);

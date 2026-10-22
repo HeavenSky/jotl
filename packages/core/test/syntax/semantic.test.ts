@@ -292,12 +292,33 @@ describe("元数据", () => {
 		expect(fieldCodes(": date[default: '2020-02-29']")).toEqual([]);
 		expect(fieldCodes(": datetime[default: '2026-10-13 09:30']")).toEqual(["JOTL1008"]);
 		expect(fieldCodes(": datetime[default: '2026-01-01T09:00:00']")).toEqual(["JOTL1008"]);
-		expect(fieldCodes(": datetime[default: '2026-01-01 09:00:00+08']")).toEqual([]);
+		// 与 @jotl/data 运行期一致: 偏移须为 Z 或 ±HH:mm, 闰秒换算到 UTC 须为 23:59.
+		expect(fieldCodes(": datetime[default: '2026-01-01 09:00:00+08']")).toEqual(["JOTL1008"]);
+		expect(fieldCodes(": datetime[default: '2026-01-01 09:00:00+08:00']")).toEqual([]);
+		expect(fieldCodes(": datetime[default: '1998-12-31T15:59:60-08:00']")).toEqual([]);
+		expect(fieldCodes(": datetime[default: '1998-12-31T23:59:60+01:00']")).toEqual([
+			"JOTL1008",
+		]);
+		expect(
+			fieldCodes(": string[format: 'time', default: '00:59:59.999999999999999Z']")
+		).toEqual([]);
+		expect(fieldCodes(": string[format: 'time', default: '09:00:00+0800']")).toEqual([
+			"JOTL1008",
+		]);
 		expect(fieldCodes(": string[format: 'time', default: '09:00:00']")).toEqual(["JOTL1008"]);
 		expect(fieldCodes(": string[format: 'time', default: '09:00:00.5Z']")).toEqual([]);
 		expect(fieldCodes(": datetime[default: '2026-10-13T09:30:15+08:00']")).toEqual([]);
 		expect(fieldCodes(": string[format: 'time', default: '25:00:00']")).toEqual(["JOTL1008"]);
 		expect(fieldCodes(": string[format: 'uuid', default: 'abc']")).toEqual(["JOTL1008"]);
+		expect(
+			fieldCodes(
+				": string[format: 'uuid', default: 'urn:uuid:2eb8aa08-aa98-11ea-b4aa-73b441d16380']"
+			)
+		).toEqual(["JOTL1008"]);
+		expect(fieldCodes(": string[format: 'hostname', default: 'example.']")).toEqual([
+			"JOTL1008",
+		]);
+		expect(fieldCodes(": string[format: 'hostname', default: 'example.com']")).toEqual([]);
 		expect(fieldCodes(": string[format: 'ipv4', default: '1.2.3.256']")).toEqual(["JOTL1008"]);
 		expect(fieldCodes(": string[format: 'ipv6', default: '1::2::3']")).toEqual(["JOTL1008"]);
 		expect(fieldCodes(": string[format: 'ipv6', default: '::ffff:1.2.3.4']")).toEqual([]);

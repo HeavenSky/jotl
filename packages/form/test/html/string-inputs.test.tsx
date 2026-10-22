@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import {
 	EmailWidget,
 	InputWidget,
+	nativeMaxLength,
 	PasswordWidget,
 	TextareaWidget,
 	UrlWidget,
@@ -56,6 +57,30 @@ describe("input", () => {
 		expect(new RegExp(`^(?:${native})$`).test("xa1")).toBe(false);
 	});
 
+	it("原生 maxLength 补上当前值中代理对的个数, 已输入的补充平面字符按一个字符计", () => {
+		const schema = { type: "string" as const, maxLength: 3 };
+		const { rerender } = render(
+			<InputWidget {...fieldProps<string>({ schema, value: "abc" })} />
+		);
+		expect(control().maxLength).toBe(3);
+		rerender(<InputWidget {...fieldProps<string>({ schema, value: "😀a" })} />);
+		expect(control().maxLength).toBe(4);
+		rerender(<InputWidget {...fieldProps<string>({ schema, value: "😀😀𠀀" })} />);
+		expect(control().maxLength).toBe(6);
+		rerender(<PasswordWidget {...fieldProps<string>({ schema, value: "😀a" })} />);
+		expect(control().maxLength).toBe(4);
+	});
+
+	it("nativeMaxLength: 非法上限不写, 孤立代理项按一个字符计", () => {
+		expect(nativeMaxLength(2, "")).toBe(2);
+		expect(nativeMaxLength(2, "😀")).toBe(3);
+		expect(nativeMaxLength(2, "\ud83d")).toBe(2);
+		expect(nativeMaxLength(0, "😀")).toBe(1);
+		expect(nativeMaxLength(undefined, "😀")).toBeUndefined();
+		expect(nativeMaxLength(-1, "")).toBeUndefined();
+		expect(nativeMaxLength(1.5, "")).toBeUndefined();
+	});
+
 	it("没有约束时不写原生属性", () => {
 		render(<InputWidget {...fieldProps<string>()} />);
 		expect(control().hasAttribute("maxlength")).toBe(false);
@@ -98,6 +123,18 @@ describe("textarea", () => {
 		expect(textarea.maxLength).toBe(5);
 		fireEvent.change(textarea, { target: { value: "新" } });
 		expect(props.onChange).toHaveBeenLastCalledWith("新");
+	});
+
+	it("maxLength 按码点计: 值含补充平面字符时原生上限相应放宽", () => {
+		render(
+			<TextareaWidget
+				{...fieldProps<string>({
+					value: "😀\n😀",
+					schema: { type: "string", maxLength: 5 },
+				})}
+			/>
+		);
+		expect((screen.getByRole("textbox") as HTMLTextAreaElement).maxLength).toBe(7);
 	});
 
 	it.each(MODES)("mode=%s", mode => {

@@ -259,6 +259,15 @@ const FOLD_GROUPS =
 /** `iu` 下 `\w` 额外匹配的字母. */
 const UNICODE_WORD_EXTRA = "\u017f\u212a";
 
+/** `iu` 下的单词字符; 它与补集都在大小写折叠下封闭, `\b` `\B` `\W` 据此改写. */
+const UNICODE_WORD = `[\\w${UNICODE_WORD_EXTRA}]`;
+
+/** `iu` 下 `\b` `\B` 的等价写法: 前后两侧恰有一侧是单词字符(`\B` 为两侧同为或同不为). */
+const UNICODE_BOUNDARY: Readonly<Record<string, string>> = {
+	"\\b": `(?:(?<=${UNICODE_WORD})(?!${UNICODE_WORD})|(?<!${UNICODE_WORD})(?=${UNICODE_WORD}))`,
+	"\\B": `(?:(?<=${UNICODE_WORD})(?=${UNICODE_WORD})|(?<!${UNICODE_WORD})(?!${UNICODE_WORD}))`,
+};
+
 /** 字符的转义写法; 不带 `u` 时按 UTF-16 码元写 `\uXXXX`. */
 function escapeChar(char: string, unicode: boolean): string {
 	if (unicode) return `\\u{${char.codePointAt(0)!.toString(16)}}`;
@@ -281,8 +290,36 @@ function foldVariants(char: string, unicode: boolean): string[] | undefined {
 
 const CODE_ESCAPE = /^(?:x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|u\{[0-9a-fA-F]+\}|c[A-Za-z])/;
 
-/** 逐码点补折叠写法的区间上限; 更大的区间(如 `[\u0100-\uffff]`)不改写. */
-const MAX_FOLD_RANGE = 1000;
+const FOLD_GROUP_CHARS: ReadonlySet<string> = new Set(FOLD_GROUPS.join(""));
+
+type FoldTable = readonly (readonly [number, readonly string[]])[];
+
+/** 有大小写变体的码点与其全部写法, 按码点升序; 键为是否带 `u`, 首次改写区间时计算(全 Unicode 约 3000 个). */
+const foldTables = new Map<boolean, FoldTable>();
+
+/** 不带 `u` 时只含 BMP: 补充平面字符是两个代理码元, 没有大小写折叠. */
+function foldTable(unicode: boolean): FoldTable {
+	let table = foldTables.get(unicode);
+	if (table === undefined) {
+		const entries: [number, string[]][] = [];
+		for (let cp = 0; cp <= (unicode ? 0x10ffff : 0xffff); cp++) {
+			if (cp >= 0xd800 && cp <= 0xdfff) continue;
+			const char = String.fromCodePoint(cp);
+			// 大小写映射都不变且不在特殊折叠组里的字符只匹配自身, 免得逐个编译正则.
+			if (
+				char.toLowerCase() === char &&
+				char.toUpperCase() === char &&
+				!FOLD_GROUP_CHARS.has(char)
+			)
+				continue;
+			const variants = foldVariants(char, unicode);
+			if (variants !== undefined) entries.push([cp, variants]);
+		}
+		table = entries;
+		foldTables.set(unicode, table);
+	}
+	return table;
+}
 
 interface Atom {
 	text: string;
@@ -292,9 +329,9 @@ interface Atom {
 
 /**
  * 把 `i` 标志改写进 pattern: 字母改为 `[aA]`, 字符类内补上另一种大小写; 按 {@link foldVariants} 补上特殊折叠(`iu` 下 `[kKK]`, `[ςσΣ]`).
- * 区间逐码点补上区间外的写法(`[à-ç]` → `[à-çÀ-Ç]`); `iu` 下字符类外的 `\W` 改为 `[^\wſK]`.
- * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 超过 {@link MAX_FOLD_RANGE} 个码点的区间, 不带 `u` 时以补充平面字符为端点的区间,
- * `iu` 下字符类内的 `\W` 与 `\b` `\B` 时返回 undefined.
+ * 区间按 {@link foldTable} 补上区间内字符在区间外的写法(`[à-ç]` → `[à-çÀ-Ç]`).
+ * `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`: 字符类外的 `\W` 改为 `[^\wſK]`, `\b` `\B` 改为前后断言, 字符类内的 `\W` 改为与 `[^\wſK]` 的并集.
+ * 遇到属性类 `\p{...}`, 反向引用, 内联修饰符, 不带 `u` 时以补充平面字符为端点的区间时返回 undefined.
  */
 function foldCase(source: string, unicode: boolean): string | undefined {
 	const chars = [...source];
@@ -333,10 +370,10 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 	const foldAtom = (atom: Atom): string | undefined => {
 		if (atom.char === undefined) {
 			if (!unicode) return atom.text;
-			// `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`, `\W` 相应不含; `\b` `\B` 无法等价改写.
-			if (atom.text === "\\w") return `[\\w${UNICODE_WORD_EXTRA}]`;
+			// `iu` 下 `\w` 另含 `ſ` 与开尔文 `K`, `\W` 相应不含, `\b` `\B` 按同一单词字符集判断.
+			if (atom.text === "\\w") return UNICODE_WORD;
 			if (atom.text === "\\W") return `[^\\w${UNICODE_WORD_EXTRA}]`;
-			return /^\\[bB]$/.test(atom.text) ? undefined : atom.text;
+			return UNICODE_BOUNDARY[atom.text] ?? atom.text;
 		}
 		const variants = foldVariants(atom.char, unicode);
 		if (variants === undefined) return atom.text;
@@ -350,6 +387,8 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 		if (negated) i += 1;
 		let body = "";
 		let extra = "";
+		// `iu` 下字符类内的 `\W`: 单词字符集在折叠下封闭, 整个类等于其余成员的折叠与 `[^\wſK]` 的并集.
+		let nonWord = false;
 		while (i < chars.length && chars[i] !== "]") {
 			const start = readAtom();
 			if (start === undefined) return undefined;
@@ -360,8 +399,7 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 				const first = start.char.codePointAt(0)!;
 				const last = end.char.codePointAt(0)!;
 				// 不带 `u` 时字符类按 UTF-16 码元理解, 补充平面字符拆成两个代理码元, 区间含义不同.
-				if (first > last || last - first >= MAX_FOLD_RANGE || (!unicode && last > 0xffff))
-					return undefined;
+				if (first > last || (!unicode && last > 0xffff)) return undefined;
 				body += `${start.text}-${end.text}`;
 				// ASCII 字母段整段补上另一种大小写(`[a-z]` → `[a-zA-Z]`), 其余写法逐个补上.
 				const covered = new Set<string>();
@@ -377,8 +415,9 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 						covered.add(swapCase(String.fromCharCode(cp)));
 				}
 				const outside: number[] = [];
-				for (let cp = first; cp <= last; cp++) {
-					for (const v of foldVariants(String.fromCodePoint(cp), unicode) ?? []) {
+				for (const [cp, variants] of foldTable(unicode)) {
+					if (cp < first || cp > last) continue;
+					for (const v of variants) {
 						const vp = v.codePointAt(0)!;
 						if (
 							(vp < first || vp > last) &&
@@ -401,10 +440,14 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 				}
 				continue;
 			}
+			if (unicode && start.text === "\\W") {
+				nonWord = true;
+				continue;
+			}
 			body += start.text === "-" ? "\\-" : start.text;
 			if (start.char === undefined) {
+				// 带 `u` 时字符类内的 `\b` 是退格符, `\B` 不合法(原正则已通不过编译).
 				if (unicode && start.text === "\\w") extra += UNICODE_WORD_EXTRA;
-				else if (unicode && /^\\[WbB]$/.test(start.text)) return undefined;
 				continue;
 			}
 			const variants = foldVariants(start.char, unicode);
@@ -412,7 +455,13 @@ function foldCase(source: string, unicode: boolean): string | undefined {
 		}
 		if (i >= chars.length) return undefined;
 		i += 1;
-		return `[${negated ? "^" : ""}${body}${extra}]`;
+		if (!nonWord) return `[${negated ? "^" : ""}${body}${extra}]`;
+		// 其余成员以 `^` 开头时转义, 免得读成取反; 外包一层组, 后接量词时作用于整个类.
+		const rest = (body + extra).replace(/^\^/, "\\^");
+		if (rest === "") return negated ? UNICODE_WORD : `[^\\w${UNICODE_WORD_EXTRA}]`;
+		return negated
+			? `(?:(?![${rest}])${UNICODE_WORD})`
+			: `(?:[${rest}]|[^\\w${UNICODE_WORD_EXTRA}])`;
 	};
 
 	let out = "";
@@ -543,6 +592,21 @@ class Converter {
 			defs.push([printed, this.root(value as unknown as UmoNode, pointer)]);
 		}
 		if (this.failed) return undefined;
+		// Jotl 文件总有根, 凤蝶的多个导出并列无主次: 取第一个为根, 其余留作命名类型.
+		if (defs.length > 1) {
+			const first = names[0]!;
+			this.warn(
+				"JOTL8121",
+				{
+					name: defs[0]![0],
+					others: defs
+						.slice(1)
+						.map(([name]) => `\`${name}\``)
+						.join(", "),
+				},
+				this.locate(umo[first] as object, appendPointer("", first))
+			);
+		}
 		const head: JsonSchemaObject =
 			defs.length > 0 ? { $ref: `#/$defs/${defs[0]![0]}`, "x-ui": { version: 1 } } : {};
 		return { $schema: JSON_SCHEMA_DIALECT, ...head, $defs: Object.fromEntries(defs) };

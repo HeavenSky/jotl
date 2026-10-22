@@ -14,6 +14,7 @@ export {
 	AntdSwitchWidget,
 } from "./widgets/choice.js";
 export { AntdColorWidget } from "./widgets/color.js";
+export { AntdNullableWidget, AntdTreeWidget, AntdUnionWidget } from "./widgets/composite.js";
 export { AntdFieldDecorator } from "./widgets/field.js";
 export { AntdFormWidget } from "./widgets/form.js";
 export {
@@ -26,6 +27,7 @@ export {
 	AntdUrlWidget,
 } from "./widgets/inputs.js";
 export { AntdPageWidget } from "./widgets/object.js";
+export { AntdOutputWidget } from "./widgets/output.js";
 export {
 	temporalWidgets,
 	type AntdDayjs,

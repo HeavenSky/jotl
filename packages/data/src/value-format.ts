@@ -43,13 +43,44 @@ export function parseValueFormat(fmt: string, text: string): Dayjs | undefined {
 	return strictParse(text, fmt);
 }
 
-/** 取值是否符合存储格式; 类型不对(交给 type 关键字)时返回 true. */
+// 校验格式串能否解析自身写出的值所用的时刻, 避开各地 DST 切换日.
+const PROBE_MOMENT = "2024-01-17T14:05:09.123";
+const roundTripCache = new Map<string, boolean>();
+
+/**
+ * 格式串能否往返: 按它写出固定时刻再严格解析回来. 含 dayjs 写不出(`w` `W` 等缺插件时抛异常)或解析不回(`k` `kk`,
+ * 与其他记号混排的 `X` `x` 等)的记号时为 false; 这类格式串无法判定取值是否合法.
+ */
+function roundTrips(fmt: string): boolean {
+	let result = roundTripCache.get(fmt);
+	if (result === undefined) {
+		try {
+			result = strictParse(dayjs(PROBE_MOMENT).format(fmt), fmt) !== undefined;
+		} catch {
+			result = false;
+		}
+		roundTripCache.set(fmt, result);
+	}
+	return result;
+}
+
+/**
+ * 取值是否符合存储格式; 类型不对(交给 type 关键字)时返回 true.
+ * 格式串无法往返(编译期报 JOTL1053)时跳过校验返回 true: 无法判定时放行, 不误报合法取值.
+ */
 export function isValidValueFormatValue(fmt: string, data: unknown): boolean {
 	if (isTimestampValueFormat(fmt)) return typeof data !== "number" || Number.isInteger(data);
 	if (typeof data !== "string") return true;
 	if (isValueFormatAlias(fmt)) return isRfc3339DateTime(data);
 	// 优先用与时区无关的文本匹配; dayjs 严格解析在本地 DST 跳过的时刻(如纽约 2024-03-10 02:30)会误判不合法.
-	return matchesValueFormatText(fmt, data) ?? parseValueFormat(fmt, data) !== undefined;
+	const matched = matchesValueFormatText(fmt, data);
+	if (matched !== undefined) return matched;
+	if (!roundTrips(fmt)) return true;
+	try {
+		return parseValueFormat(fmt, data) !== undefined;
+	} catch {
+		return true;
+	}
 }
 
 /** 按存储格式写出取值(方案 V3): 时间戳为整数, 其余为字符串. */
@@ -70,7 +101,12 @@ export function formatValueFormat(fmt: string, d: Dayjs): string | number {
 		case "utc":
 			return d.toISOString().replace(/\.\d{3}Z$/, "Z");
 		default:
-			return d.format(fmt);
+			try {
+				return d.format(fmt);
+			} catch {
+				// 含缺插件的记号(`w` `W` `gggg` `GGGG` `z`)时 dayjs 写出抛异常; 这类格式串不校验取值, 退回 RFC 3339.
+				return d.format();
+			}
 	}
 }
 

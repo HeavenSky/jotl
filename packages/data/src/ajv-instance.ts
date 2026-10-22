@@ -1,8 +1,9 @@
-// 创建与缓存校验用的 Ajv 实例: 2020-12 方言, ajv-formats, 自定义 color 格式与 Jotl 扩展关键字.
+// 创建与缓存校验用的 Ajv 实例: 2020-12 方言, ajv-formats(部分 format 按规范收紧), 自定义 color 格式与 Jotl 扩展关键字.
 import { Ajv2020, _, type KeywordCxt, type Options, type ValidateFunction } from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
 import { type JsonSchema, isValueFormatAlias } from "@jotl/core";
 import { countDecimals, rangeViolation } from "./decimal.js";
+import { addStrictFormats } from "./formats.js";
 import { isValidValueFormatValue } from "./value-format.js";
 
 // ajv-formats 是 CJS 包, NodeNext 下默认导入得到的是模块对象.
@@ -29,6 +30,7 @@ const BASE_OPTIONS: Options = {
 export function createAjv(overrides: Options = {}): Ajv2020 {
 	const ajv = new Ajv2020({ ...BASE_OPTIONS, ...overrides });
 	addFormats(ajv);
+	addStrictFormats(ajv);
 	ajv.addFormat("color", COLOR_PATTERN);
 	for (const keyword of JOTL_KEYWORDS) ajv.addKeyword({ keyword });
 	// Ajv 8 的 2020 词汇表漏登记 $anchor(引用解析照常识别它), strictSchema 下会报 unknown keyword.

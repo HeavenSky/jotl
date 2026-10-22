@@ -33,8 +33,8 @@ peer 依赖：`antd` 5 或 6，`react` 18 或 19。
 
 ## 能得到什么
 
-- **不必逐字段接线就是 antd 外观。** 17 个内置 widget 名（传入 `dayjs` 时 20 个），从 `form`、`field` 到 `select`、`color`，都用 antd 组件渲染；见[哪些 widget 用 antd](docs/coverage.md)。
-- **其余部分照常工作。** 没有 antd 版本的名字（`money`、`kv`、`union` 等）经父级注册表取 `@jotl/form` 的原生 widget。
+- **不必逐字段接线就是 antd 外观。** 21 个内置 widget 名（传入 `dayjs` 时 24 个），从 `form`、`field` 到 `select`、`color`，都用 antd 组件渲染；见[哪些 widget 用 antd](docs/coverage.md)。
+- **其余部分照常工作。** 没有 antd 版本的名字（`money`、`kv`、`json` 等）经父级注册表取 `@jotl/form` 的原生 widget。
 - **日期用你自己的 dayjs。** 传入 antd 所用的 `dayjs`，`date`、`time`、`datetime` 按 schema 的存储格式读写；不传时回落到原生日期控件。
 - **可混用，可覆盖。** `antdWidgets()` 与 `registerAntdWidgets()` 把 antd widget 加到任意注册表，各组件也单独导出，可登记到其他名字下。
 

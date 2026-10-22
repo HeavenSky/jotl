@@ -15,6 +15,7 @@ import {
 	AntdSwitchWidget,
 } from "./widgets/choice.js";
 import { AntdColorWidget } from "./widgets/color.js";
+import { AntdNullableWidget, AntdTreeWidget, AntdUnionWidget } from "./widgets/composite.js";
 import { AntdFieldDecorator } from "./widgets/field.js";
 import { AntdFormWidget } from "./widgets/form.js";
 import {
@@ -27,6 +28,7 @@ import {
 	AntdUrlWidget,
 } from "./widgets/inputs.js";
 import { AntdPageWidget } from "./widgets/object.js";
+import { AntdOutputWidget } from "./widgets/output.js";
 import { temporalWidgets, type DayjsFactory } from "./widgets/temporal.js";
 
 export type AntdWidgetComponent = ComponentType<any>;
@@ -53,7 +55,11 @@ const COMPONENTS: Partial<Record<BuiltinWidgetName, AntdWidgetComponent>> = {
 	radio: AntdRadioWidget,
 	select: AntdSelectWidget,
 	color: AntdColorWidget,
+	output: AntdOutputWidget,
 	list: AntdListWidget,
+	union: AntdUnionWidget,
+	nullable: AntdNullableWidget,
+	tree: AntdTreeWidget,
 };
 
 /** 已用 antd 实现的内置 widget 登记; 不带 accepts, 形态检查由 @jotl/form/core 的 plan() 完成. */

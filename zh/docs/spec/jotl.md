@@ -350,7 +350,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - `time` 默认的 `HH:mm:ss` 不是标准 `format: time` 所依据的 RFC 3339 `full-time`：它不带时区，也没有小数秒；`format: time` 要求带时区，并允许小数秒。所以 `time` 默认不再编译为 `format: time`；已有的 `format: time` 按普通字符串打印为 `string[format: 'time']`。schema 中有 `format: time` 而没有 `x-valueFormat` 时，`time` 组件仍按 `HH:mm:ss` 读写：`09:30:15Z` 这类值显示在原值文本框中，组件写回的 `09:30:15` 这类值通不过 `format: time` 校验。
 - 格式串含 `Z` 时接受任意偏移，读入后按本地时区显示，写回时用本地偏移。
 - `value_format` 用在其他组件上报 `JOTL1007`；`time` 用 `x` / `X` 报 `JOTL1020`；`x` / `X` 下写字符串约束 `minLength` `maxLength` `pattern` `format` 报 `JOTL1007`；数据不符合存储格式报 `JOTL4025`。
-- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数；`date` `time` 上的别名按 RFC 3339 检查，`datetime` 上的别名编译为 `format: date-time`，按 `date-time` 检查，与 `@jotl/data` 一致：日期与时间之间用 `T`、`t` 或空格分隔，秒必填（允许 `60`），小数秒可选，时区必填（`Z`、`±HH`、`±HHmm` 或 `±HH:mm`），不带时区的默认值报 `JOTL1008`；格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY YY M MM D DD H HH h hh m mm s ss SSS Z ZZ A a` 与 `[..]` 转义（`h` `hh` 与 `A` `a` 联动换算为 24 小时制），含其他记号（如本地化的 `MMM` `Do` `ddd`）时不检查。
+- 编译期按 `value_format` 检查 `default`，不符时报 `JOTL1008`：时间戳要求整数；`date` `time` 上的别名按 RFC 3339 检查，`datetime` 上的别名编译为 `format: date-time`，按 `date-time` 检查，与 `@jotl/data` 一致：日期与时间之间用 `T`、`t` 或空格分隔，秒必填（`60` 只用于换算到 UTC 为 23:59 的闰秒），小数秒可选，时区必填（`Z` 或 `±HH:mm`），不带时区的默认值报 `JOTL1008`；格式串严格逐位匹配并校验日历日期。格式串只检查 `YYYY YY M MM D DD H HH h hh m mm s ss SSS Z ZZ A a` 与 `[..]` 转义（`h` `hh` 与 `A` `a` 联动换算为 24 小时制），含其他记号（如本地化的 `MMM` `Do` `ddd`）时不检查。含无法往返的记号（`w` `W` `k` `kk` `gggg` `GGGG` `z` `S` `SS`，或与其他记号混排的 `X` / `x`）时报 `JOTL1053`，运行期不校验该格式下的取值。
 
 ## 条件
 
@@ -382,7 +382,7 @@ d?: string[node_if: 'href']
 ## 编译与打印
 
 - 编译结果满足下文的[规范化规则](#规范化规则)。
-- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；等于默认组件的 `x-ui.widget` 不会丢弃，该节点的整个 `x-ui` 经 `schema: {'x-ui': {...}}` 写出；无法表达的关键字经 `schema: {...}` 写出；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名或取值不合法时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；`widget` 为根 `widgets` 中登记的扩展组件、其底层为 `'integer'` 或 `{type: 'integer'}` 且缺少 `minimum` 或 `maximum` 的节点，打印为该组件（如 `Stars[minimum: 0]`），因为写成 `integer` 会补上安全整数上下界；输出源码嵌套会超过 256 层时不输出源码，在超限的节点或值处报 JOTL1029。是否超限在打印过程中判定：写入源码的数据值（`default`、`examples`、`x-ui` 各项、经 `schema` 保留的关键字）计入各自的嵌套，打印时会丢弃的数据（不合法的根 `x-ui`、节点内的 `$defs`）不计入，提升为顶层类型的联合对象分支仍按原位置计深。
+- `print` 输出规范形：字符串用单引号，能不加引号的键不加，各段紧贴，一行一个条目，不写分隔符；等于默认组件的 `x-ui.widget` 不会丢弃，该节点的整个 `x-ui` 经 `schema: {'x-ui': {...}}` 写出；无法表达的关键字经 `schema: {...}` 写出；根以外带 `$id` 的子 schema 整体经 `schema: {...}` 原样写出，其中的 `$ref` 不改指，带 `$defs` 或 `$schema` 时整个节点写为 `schema: {allOf: [...]}`；组件名按 JSON Schema 与 `widget` 还原（`string` + `widget: 'textarea'` 还原为 `text`）；经 `schema` 写出的 `$ref` 会随类型改名、随内联根移入 `$defs/<根名>` 而改指；根 `x-ui.widgets` 写回根条目的 `widgets`（模块声明形态，有 `base` 时一并写回；任一项与类型名重名、取值不合法或带 `level` 时整个 `widgets` 都被忽略，并对 `x-ui` 报 JOTL1032）；`widget` 为根 `widgets` 中登记的扩展组件、其底层为 `'integer'` 或 `{type: 'integer'}` 且缺少 `minimum` 或 `maximum` 的节点，打印为该组件（如 `Stars[minimum: 0]`），因为写成 `integer` 会补上安全整数上下界；输出源码嵌套会超过 256 层时不输出源码，在超限的节点或值处报 JOTL1029。是否超限在打印过程中判定：写入源码的数据值（`default`、`examples`、`x-ui` 各项、经 `schema` 保留的关键字）计入各自的嵌套，打印时会丢弃的数据（不合法的根 `x-ui`、节点内不是对象的 `$defs`）不计入，提升为顶层类型的嵌套 `$defs` 条目按顶层类型计深，提升为顶层类型的联合对象分支仍按原位置计深。
 - v0 写法（`export type X = ...`、`@注解`、`= v`、`Enum` `Image` 等大写语义类型）不再接受；v0 源码先用旧版编译器编译，再用 `print` 打印，即得到 v1 源码。
 
 ## 诊断
@@ -396,7 +396,7 @@ d?: string[node_if: 'href']
 | error   | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层：顶层名不是大驼峰；顶层写了 `?`；标识写在体内；标识重复；类型名重复；类型名与扩展组件（含根元数据 `widgets` 声明的）重名                                                                                                                                                                                                                                                     |
 | error   | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`，可区分联合没有分支）                                                                                                                                                                          |
 | error   | JOTL1005 JOTL1024 JOTL1025 JOTL1046                   | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等）                                                                                                                                                                                                                                    |
-| error   | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017          | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`）                                                                                                   |
+| error   | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 JOTL1053 | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`）；`value_format` 含无法往返的记号                                                                  |
 | error   | JOTL1042 JOTL1043 JOTL1008 JOTL1029                   | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限                                                                                                                                                                                                                                                            |
 | warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 JOTL1052 | `widget`（含 `variants` 中的）不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断）；字段类型不被非大驼峰 widget 名声明的底层类型接受 |
 | error   | JOTL1030 JOTL1031 JOTL1035                            | `print`：输入不是 JSON Schema；含非 JSON 值；`rootName` 不是大驼峰                                                                                                                                                                                                                                                                                                                |
@@ -404,7 +404,7 @@ d?: string[node_if: 'href']
 
 ## 规范化规则
 
-编译器、打印器与各转换模块输出的 schema 都满足以下规则，读取时可以假定已满足。例外：`@jotl/convert` 的版本升级不执行规则 2，嵌套的 `$defs` 保留原位（提到根会改变 `$ref` 的解析）。
+编译器、打印器与各转换模块输出的 schema 都满足以下规则，读取时可以假定已满足。例外：`@jotl/convert` 的版本升级输出 JSON，不执行规则 2，嵌套的 `$defs` 保留原位。`print` 与 `schemaToTs` 先把根资源内（从根到该处不经过带 `$id` 的子 schema）的嵌套 `$defs` 提为根 `$defs` 的条目，与已有条目重名时改名为 `<键>2`、`<键>3`……，指向它们或其内部的 `#/...` 引用随之改指；带 `$id` 的子 schema 是内嵌资源，其中的 `$defs` 与引用相对它自己解析，不提升；文档含 `$dynamicRef`、`$dynamicAnchor` 等动态引用，或根带 `$id` 且有不以 `#` 开头的引用时，整份不提升。
 
 1. 根对象带 `$schema: "https://json-schema.org/draft/2020-12/schema"`。
 2. 命名类型只出现在根的 `$defs` 中。

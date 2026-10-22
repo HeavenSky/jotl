@@ -1,5 +1,6 @@
 // 预览 webview 的 HTML 外壳: 严格 CSP(脚本只放行带 nonce 的那一个, 样式只来自 nonce 与扩展目录), 脚本与表单样式只从扩展目录加载;
 // 开启扩展组件模块时另放行本地资源与 https 模块, 并用 import map 把 react 等说明符指到共享同一份 React 的垫片;
+// 另开启模块样式时放宽 style-src, 让模块的 https 样式表与 CSS-in-JS 插入的内联样式生效;
 // 代码着色与表单的 --jotl-* 变量都接到 VS Code 主题变量上, 随浅色, 深色与高对比度主题切换.
 import { randomBytes } from "node:crypto";
 import type { PreviewText } from "./preview-text.js";
@@ -19,6 +20,8 @@ export interface PreviewHtmlOptions {
 	lang: string;
 	/** 开启扩展组件模块时给出: import map 的说明符 → 垫片地址(经 `webview.asWebviewUri` 转换). */
 	sharedModules?: Readonly<Record<string, string>>;
+	/** 放行扩展组件模块自带的样式(https 样式表与内联样式); 只在给出 sharedModules 时生效. */
+	allowModuleStyles?: boolean;
 }
 
 const NONCE_BYTES = 16;
@@ -94,9 +97,14 @@ function importMap(imports: Readonly<Record<string, string>>): string {
 export function renderPreviewHtml(options: PreviewHtmlOptions): string {
 	const nonce = escapeHtml(options.nonce);
 	const modules = options.sharedModules;
+	// 带 nonce 时浏览器忽略 'unsafe-inline', 所以放宽时去掉 nonce; 外壳自己的 style 标签照常带 nonce, 两种策略下都能生效.
+	const styleSources =
+		modules !== undefined && options.allowModuleStyles === true
+			? `${options.cspSource} https: 'unsafe-inline'`
+			: `${options.cspSource} 'nonce-${nonce}'`;
 	const csp = [
 		"default-src 'none'",
-		`style-src ${options.cspSource} 'nonce-${nonce}'`,
+		`style-src ${styleSources}`,
 		// 表单校验用的 Ajv 按 schema 生成校验函数(new Function), 没有 'unsafe-eval' 时校验抛错; 脚本来源仍只放行带 nonce 的标签.
 		// 动态 import() 不受 nonce 约束, 开启模块时按来源放行垫片与本地模块(扩展与工作区资源)及 https 模块.
 		`script-src 'nonce-${nonce}' 'unsafe-eval'${modules === undefined ? "" : ` ${options.cspSource} https:`}`,

@@ -33,12 +33,18 @@ export type Condition =
 
 export type XUiVariant = Omit<XUi, "variants" | "rules" | "version" | "widgets">;
 
+/** 组件登记级别, 渲染器的组件注册与 x-ui 模块声明共用. */
+export const WIDGET_LEVELS = ["view", "layout", "composite", "field", "decorator"] as const;
+export type WidgetLevel = (typeof WIDGET_LEVELS)[number];
+
 /** 扩展组件模块: ES 模块地址与导出名, 导出名缺省为 `default`. */
 export interface XUiWidgetModule {
 	/** 底层类型: 类型名或 schema 对象; 缺省为 object. */
 	base?: string | JsonSchemaObject;
 	module: string;
 	export?: string;
+	/** 登记级别; 缺省为 field, 组件接管整个值. */
+	level?: WidgetLevel;
 }
 
 export interface XUi {

@@ -70,6 +70,7 @@ import {
 	moneySchema,
 	specialObjectKind,
 } from "../shapes.js";
+import { hoistDefs, restorePointer } from "../../schema/hoist-defs.js";
 import { readWidgetDeclaration } from "../compiler.js";
 import { checkDefaultValue, deepEqual } from "../value-check.js";
 import { MAX_NESTING, parseSource } from "../parser.js";
@@ -351,6 +352,16 @@ const MERGE_KEYWORDS: ReadonlySet<string> = new Set([
 	"$comment",
 	"examples",
 ]);
+/** 合并 allOf 时内联分支允许出现的关键字; 其中的注解上移到合并后的节点, 与节点或其他分支的同名注解冲突时放弃. */
+const INLINE_MERGE_KEYWORDS: ReadonlySet<string> = new Set([
+	"type",
+	"properties",
+	"required",
+	"title",
+	"description",
+	"$comment",
+]);
+const INLINE_ANNOTATIONS = ["title", "description", "$comment"];
 const OPEN_ENUM_TYPES: Readonly<Record<string, (v: unknown) => boolean>> = {
 	string: v => typeof v === "string",
 	number: v => typeof v === "number",
@@ -360,7 +371,7 @@ const OPEN_ENUM_TYPES: Readonly<Record<string, (v: unknown) => boolean>> = {
 
 /**
  * `anyOf: [{const}..., {type: T}]` 且各 const 都是 T 时, 校验上等价于 T; 改写为 T, 常量值记入 examples.
- * 只认 anyOf: oneOf 下与 T 重叠的常量反而不合法.
+ * 只认 anyOf: oneOf 下与 T 重叠的常量反而不合法. 分支带 title 或 description 时改写会丢掉它们, 不改写.
  */
 function openEnum(s: Raw): Raw | undefined {
 	const list = s.anyOf;
@@ -375,20 +386,12 @@ function openEnum(s: Raw): Raw | undefined {
 	if (open.length !== 1) return undefined;
 	const t = open[0]!;
 	const fits = typeof t.type === "string" ? OPEN_ENUM_TYPES[t.type] : undefined;
-	if (
-		fits === undefined ||
-		Object.keys(t).some(k => !["type", "title", "description"].includes(k))
-	)
-		return undefined;
+	if (fits === undefined || Object.keys(t).some(k => k !== "type")) return undefined;
 	if (s.type !== undefined && s.type !== t.type) return undefined;
 	const consts: unknown[] = [];
 	for (const b of list as Raw[]) {
 		if (b === t) continue;
-		if (
-			Object.keys(b).some(k => !["const", "title", "description"].includes(k)) ||
-			!fits(b.const)
-		)
-			return undefined;
+		if (Object.keys(b).some(k => k !== "const") || !fits(b.const)) return undefined;
 		consts.push(b.const);
 	}
 	const out: Raw = { ...s, type: t.type };
@@ -402,6 +405,8 @@ function renameRefs(value: unknown, renamed: ReadonlyMap<string, string>): unkno
 	if (renamed.size === 0) return value;
 	if (Array.isArray(value)) return value.map(v => renameRefs(v, renamed));
 	if (!isSchemaObject(value)) return value;
+	// 内嵌资源(带 `$id`)中的引用相对它自己解析, 不随根的条目改名.
+	if (Object.hasOwn(value, "$id")) return value;
 	const out: Raw = {};
 	for (const [k, v] of Object.entries(value)) {
 		if (k === "$ref" && typeof v === "string") {
@@ -679,6 +684,7 @@ class SchemaPrinter {
 			};
 		}
 		const s = schema as Raw;
+		if (Object.hasOwn(s, "$id")) return this.resource(s, pointer, pos);
 		const opened = openEnum(s);
 		if (opened) return this.nodeAt(opened, pointer, pos);
 		const mark = this.mark();
@@ -712,7 +718,8 @@ class SchemaPrinter {
 
 	/** `anyOf: [T, {type: "null"}]`: 外层关键字与内层合并后按可空打印; 内层不能有外层关键字, 归入 schema 的只能来自外层. */
 	private wrapped(s: Raw, inner: Raw, pointer: JsonPointer, pos: Position): Printed | undefined {
-		if (OUTER_KEYWORDS.some(k => Object.hasOwn(inner, k))) return undefined;
+		if (OUTER_KEYWORDS.some(k => Object.hasOwn(inner, k)) || Object.hasOwn(inner, "$id"))
+			return undefined;
 		if (
 			Object.keys(inner).some(k => k.startsWith("x-") && !GENERATED_EXTENSION_KEYWORDS.has(k))
 		)
@@ -737,6 +744,26 @@ class SchemaPrinter {
 		if (printed === undefined) return undefined;
 		if (printed.leftover.some(k => !Object.hasOwn(s, k) || k === "x-ui")) return undefined;
 		return printed;
+	}
+
+	/**
+	 * 内嵌资源(根以外带 `$id` 的节点): 其中的 `$ref` 相对它自己解析, 不能按根的 `$defs` 还原, 整体经 `schema` 原样写出, 引用不改指.
+	 * 带 `$defs` `$schema` 时这两个关键字不能直接写进 `schema`, 整个节点包进 `allOf`, 校验语义不变.
+	 */
+	private resource(s: Raw, pointer: JsonPointer, pos: Position): Printed {
+		const out: Printed = { comp: "any", metas: new Map(), leftover: [] };
+		const wrap = RESERVED_SCHEMA_KEYWORDS.some(k => Object.hasOwn(s, k));
+		const rest = new Map(Object.entries(wrap ? { allOf: [s] } : s));
+		if (!wrap && pos !== "item" && isPrintableLabel(s.title)) {
+			out.title = s.title;
+			rest.delete("title");
+		}
+		for (const [keyword, v] of rest)
+			limitValueDepth(v, wrap ? pointer : appendPointer(pointer, keyword));
+		if (rest.size === 0) return out;
+		out.leftover = [...rest.keys()];
+		out.metas.set("schema", Object.fromEntries(rest));
+		return out;
 	}
 
 	private fallback(s: Raw, pointer: JsonPointer, pos: Position): Printed {
@@ -783,7 +810,7 @@ class SchemaPrinter {
 			out.title = s.title;
 			rest.delete("title");
 		}
-		if (!this.core(s, rest, out, pointer)) return undefined;
+		if (!this.core(s, rest, out, pointer, pos)) return undefined;
 		const target: MetaTarget =
 			out.comp === undefined ? "object" : isComponentName(out.comp) ? out.comp : "ref";
 		if (nullable === "merge" && !MERGEABLE.has(target)) return undefined;
@@ -802,7 +829,13 @@ class SchemaPrinter {
 
 	// ---- 组件 ----
 
-	private core(s: Raw, rest: Map<string, unknown>, out: Printed, pointer: JsonPointer): boolean {
+	private core(
+		s: Raw,
+		rest: Map<string, unknown>,
+		out: Printed,
+		pointer: JsonPointer,
+		pos: Position
+	): boolean {
 		if (typeof s.$ref === "string") {
 			const target = this.refs.get(s.$ref);
 			if (target === undefined) return false;
@@ -834,10 +867,11 @@ class SchemaPrinter {
 		}
 		if (Array.isArray(s.anyOf)) return this.unionItem(s, "anyOf", rest, out, pointer);
 		if (Array.isArray(s.allOf)) {
-			const merged = this.mergeAllOf(s);
+			const merged = this.mergeAllOf(s, pointer);
 			if (merged === undefined) return false;
 			rest.delete("allOf");
-			return this.object(merged, rest, out, pointer);
+			if (!this.object(merged.schema, rest, out, pointer, merged.fields)) return false;
+			return this.lift(merged.lifted, out, pos);
 		}
 		switch (s.type) {
 			case "string":
@@ -1099,36 +1133,53 @@ class SchemaPrinter {
 	}
 
 	/**
-	 * `allOf` 全是指向普通对象的 `$ref` 时合并为一个对象: 字段与 required 取并集.
-	 * 被引用的对象只能有字段, required 与注解; 带 additionalProperties 等约束时合并会改变校验语义, 放弃.
+	 * `allOf` 的分支全是指向普通对象的 `$ref` 或只含字段, required 与注解的内联对象时合并为一个对象: 字段与 required 取并集.
+	 * 被引用的对象只能有字段, required 与注解(条目照常打印, 注解不丢); 带 additionalProperties 等约束时合并会改变校验语义, 放弃.
+	 * 内联分支的注解上移到合并后的节点, 与节点或其他分支的同名注解冲突时放弃; 节点与各分支中至少一处为 `type: "object"`.
+	 * fields 为来自内联分支的字段在输入中的位置.
 	 */
-	private mergeAllOf(s: Raw): Raw | undefined {
+	private mergeAllOf(
+		s: Raw,
+		pointer: JsonPointer
+	): { schema: Raw; fields: Map<string, JsonPointer>; lifted: Raw } | undefined {
 		if (s.type !== undefined && s.type !== "object") return undefined;
 		if (Object.hasOwn(s, "additionalProperties") || Object.hasOwn(s, "patternProperties"))
 			return undefined;
-		const parts: Raw[] = [s];
-		for (const item of s.allOf as unknown[]) {
-			if (
-				!isSchemaObject(item) ||
-				Object.keys(item).length !== 1 ||
-				typeof (item as Raw).$ref !== "string"
-			)
-				return undefined;
-			const target = this.refs.get((item as Raw).$ref as string)?.schema;
-			if (!isSchemaObject(target)) return undefined;
-			const t = target as Raw;
-			if (t.type !== "object" || Object.keys(t).some(k => !MERGE_KEYWORDS.has(k)))
-				return undefined;
-			parts.push(t);
+		const parts: { schema: Raw; pointer?: JsonPointer }[] = [{ schema: s }];
+		const lifted: Raw = {};
+		for (const [i, item] of (s.allOf as unknown[]).entries()) {
+			if (!isSchemaObject(item)) return undefined;
+			const it = item as Raw;
+			if (Object.hasOwn(it, "$ref")) {
+				if (Object.keys(it).length !== 1 || typeof it.$ref !== "string") return undefined;
+				const target = this.refs.get(it.$ref)?.schema;
+				if (!isSchemaObject(target)) return undefined;
+				const t = target as Raw;
+				if (t.type !== "object" || Object.keys(t).some(k => !MERGE_KEYWORDS.has(k)))
+					return undefined;
+				parts.push({ schema: t });
+				continue;
+			}
+			if (Object.keys(it).some(k => !INLINE_MERGE_KEYWORDS.has(k))) return undefined;
+			if (it.type !== undefined && it.type !== "object") return undefined;
+			for (const k of INLINE_ANNOTATIONS) {
+				if (!Object.hasOwn(it, k)) continue;
+				if (Object.hasOwn(s, k) || Object.hasOwn(lifted, k)) return undefined;
+				lifted[k] = it[k];
+			}
+			parts.push({ schema: it, pointer: appendPointer(pointer, "allOf", i) });
 		}
+		if (!parts.some(p => p.schema.type === "object")) return undefined;
 		const properties: Raw = {};
+		const fields = new Map<string, JsonPointer>();
 		const required = new Set<string>();
-		for (const part of parts) {
+		for (const { schema: part, pointer: at } of parts) {
 			if (Object.hasOwn(part, "properties")) {
 				if (!isSchemaObject(part.properties)) return undefined;
 				for (const [k, v] of Object.entries(part.properties)) {
 					if (Object.hasOwn(properties, k)) return undefined;
 					properties[k] = v;
+					if (at !== undefined) fields.set(k, appendPointer(at, "properties", k));
 				}
 			}
 			if (Object.hasOwn(part, "required")) {
@@ -1142,7 +1193,25 @@ class SchemaPrinter {
 		delete merged.required;
 		const req = Object.keys(properties).filter(k => required.has(k));
 		if (req.length > 0) merged.required = req;
-		return merged;
+		return { schema: merged, fields, lifted };
+	}
+
+	/** 内联 allOf 分支上移的注解; 写不出时返回 false(类型串位置不能带标签), 整个节点回落. */
+	private lift(lifted: Raw, out: Printed, pos: Position): boolean {
+		if (Object.hasOwn(lifted, "title")) {
+			if (pos === "item" || !isPrintableLabel(lifted.title)) return false;
+			out.title = lifted.title;
+		}
+		if (Object.hasOwn(lifted, "description")) {
+			if (typeof lifted.description !== "string") return false;
+			out.metas.set("description", lifted.description);
+		}
+		if (Object.hasOwn(lifted, "$comment")) {
+			if (typeof lifted.$comment !== "string" || !metaAppliesTo("comment", "object"))
+				return false;
+			out.metas.set("comment", lifted.$comment);
+		}
+		return true;
 	}
 
 	/** 沿 `$ref` 找到第一个不是引用的节点; 引用找不到, 成环或目标不是对象时为 undefined. 迭代跟随, 很长的引用链不会耗尽调用栈. */
@@ -1150,6 +1219,8 @@ class SchemaPrinter {
 		const visiting = new Set<string>();
 		let s = schema;
 		while (isSchemaObject(s) && typeof (s as Raw).$ref === "string") {
+			// 内嵌资源中的引用相对它自己解析, 不在根的 `$defs` 中查找.
+			if (Object.hasOwn(s, "$id")) return undefined;
 			const ref = (s as Raw).$ref as string;
 			if (visiting.has(ref)) return undefined;
 			visiting.add(ref);
@@ -1381,7 +1452,8 @@ class SchemaPrinter {
 		s: Raw,
 		rest: Map<string, unknown>,
 		out: Printed,
-		pointer: JsonPointer
+		pointer: JsonPointer,
+		fieldPointers: ReadonlyMap<string, JsonPointer> = new Map()
 	): boolean {
 		const fields: Entry[] = [];
 		const props = s.properties;
@@ -1411,7 +1483,7 @@ class SchemaPrinter {
 		for (const key of keys) {
 			const printed = this.node(
 				(props as Raw)[key] as JsonSchema,
-				appendPointer(pointer, "properties", key),
+				fieldPointers.get(key) ?? appendPointer(pointer, "properties", key),
 				"field"
 			);
 			fields.push(entryOf(fieldKey(key), printed, !required.has(key), true));
@@ -1836,6 +1908,7 @@ function failWith(
  * 根为指向 `$defs` 条目的 `$ref` 时该条目为根(不是第一条时标 `<root/>`); 根为内联 schema 时生成名为 rootName 的第一条类型.
  * options.defaultExport 与根不同时写 `<default/>` 并给根条目补 `<root/>`, 使编译结果的 defaultExport 与之一致.
  * 根 `$id`, `x-ui.rules` 与 `x-ui.widgets` 写为根条目的 `id` `rules` `widgets`; 无法表达且无法经 `schema` 保留的内容报 warning.
+ * 根资源内的嵌套 `$defs` 先按 `hoistDefs` 提为顶层类型; 内嵌资源(带 `$id` 的子 schema)整体经 `schema` 原样写出.
  */
 export function print(schema: JsonSchema, options: PrintOptions = {}): Result<string> {
 	const invalid = findNonJson(schema);
@@ -1844,12 +1917,26 @@ export function print(schema: JsonSchema, options: PrintOptions = {}): Result<st
 	if (typeof schema !== "boolean" && !isSchemaObject(schema)) return failWith("JOTL1030", {});
 	const rootName = options.rootName ?? DEFAULT_ROOT_NAME;
 	if (!isTypeName(rootName)) return failWith("JOTL1035", { name: rootName });
+	// 命名类型只能是顶层条目(规范化规则 2): 根资源内的嵌套 `$defs` 先提到根, 诊断位置再换回输入中的原位置.
+	const { schema: hoisted, moved } = hoistDefs(schema);
+	const restore = (d: Diagnostic): Diagnostic =>
+		d.location?.kind === "pointer"
+			? {
+					...d,
+					location: { ...d.location, pointer: restorePointer(moved, d.location.pointer) },
+				}
+			: d;
 	// 打印与排版按节点递归: 节点层数与数据值的层数一旦注定超过嵌套上限就中止, 免得极深的输入耗尽调用栈.
 	try {
-		return printDocument(schema, rootName, options);
+		const result = printDocument(hoisted, rootName, options);
+		return { ...result, diagnostics: result.diagnostics.map(restore) };
 	} catch (e) {
 		if (e instanceof TooDeep)
-			return failWith("JOTL1029", { max: String(MAX_NESTING) }, e.pointer);
+			return failWith(
+				"JOTL1029",
+				{ max: String(MAX_NESTING) },
+				restorePointer(moved, e.pointer)
+			);
 		throw e;
 	}
 }

@@ -778,3 +778,59 @@ describe("编译器固定形态与往返", () => {
 			expect(result.value).toContain(`  ${key}?: [string, string];`);
 	});
 });
+
+describe("嵌套 $defs", () => {
+	it("根资源内的嵌套 $defs 提为顶层类型, 引用改指; 重名时改名, 诊断指向原位置", () => {
+		const result = schemaToTs(
+			wrap({
+				T: {
+					type: "object",
+					properties: {
+						n: { $ref: "#/$defs/X" },
+						a: { $ref: "#/$defs/T/$defs/X" },
+						b: { $ref: "#/$defs/T/$defs/X/properties/c" },
+					},
+					$defs: { X: { type: "object", properties: { c: { type: "string" } } } },
+				},
+				X: { type: "number" },
+			})
+		);
+		expect(result.value).toContain(
+			"export interface T {\n  n?: X;\n  a?: X2;\n  b?: unknown;\n}"
+		);
+		expect(result.value).toContain("export interface X2 {\n  c?: string;\n}");
+		expect(result.diagnostics.map(d => [d.code, d.location])).toEqual([
+			["JOTL2003", { kind: "pointer", pointer: "/$defs/T/properties/b/$ref" }],
+		]);
+		expect(
+			schemaToTs(
+				wrap({ T: { type: "object", $defs: { X: { type: "string", foo: 1 } } } })
+			).diagnostics.map(d => [d.code, d.location])
+		).toEqual([["JOTL2002", { kind: "pointer", pointer: "/$defs/T/$defs/X" }]]);
+	});
+
+	it("内嵌资源(带 $id 的子 schema)中的 #/$defs/X 不按根上的同名条目输出, 按 unknown 并报 JOTL2003", () => {
+		const result = schemaToTs(
+			wrap({
+				T: {
+					type: "object",
+					properties: {
+						n: { $ref: "#/$defs/X" },
+						a: {
+							$id: "https://example.com/sub",
+							type: "object",
+							properties: { b: { $ref: "#/$defs/X" } },
+							$defs: { X: { type: "string" } },
+						},
+					},
+				},
+				X: { type: "number" },
+			})
+		);
+		expect(result.value).toContain("  n?: X;\n  a?: {\n    b?: unknown;\n  };\n");
+		expect(result.diagnostics.map(d => [d.code, d.location])).toContainEqual([
+			"JOTL2003",
+			{ kind: "pointer", pointer: "/$defs/T/properties/a/properties/b/$ref" },
+		]);
+	});
+});

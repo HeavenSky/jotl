@@ -6,7 +6,7 @@ This page lists where the form behaves differently from what the schema allows o
 
 ## Text inputs stop early on emoji
 
-`maxLength` of the default `input`, `password` and `textarea` widgets is passed to the native `maxlength`, which counts UTF-16 code units. Text with characters outside the Basic Multilingual Plane, such as many emoji, is stopped before it reaches the schema's `maxLength`, which counts characters. Validation still counts characters, so it never reports text the input let through. To allow the full count while typing, register your own text widget that does not set `maxlength`, see [Replace and register widgets](custom-widgets.md). [`@jotl/antd`](../../antd/docs/coverage.md#known-differences-from-the-schema) behaves the same way.
+`maxLength` of the default `input`, `password` and `textarea` widgets is passed to the native `maxlength`, which counts UTF-16 code units, so the widgets add the number of surrogate-pair characters already in the value and typing is counted by characters. Two cases still stop before the schema's `maxLength`: typing a character outside the Basic Multilingual Plane, such as many emoji, when only one character is left, and pasting text that contains them. Validation still counts characters, so it never reports text the input let through. To allow the full count in those cases, register your own text widget that does not set `maxlength`, see [Replace and register widgets](custom-widgets.md). [`@jotl/antd`](../../antd/docs/coverage.md#known-differences-from-the-schema) behaves the same way.
 
 ## Objects with patternProperties are edited as JSON
 

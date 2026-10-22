@@ -161,16 +161,21 @@ function migrateArray(
 	value: unknown[],
 	pointer: JsonPointer
 ): unknown[] {
+	// uniqueItems: 去掉与前面元素深度相等的元素, 保留第一个; 有 prefixItems 或 contains 时元素位置与个数有意义, 不去重.
+	// 去重后低于 minItems 时不补, 交给 validate 报告.
+	const unique =
+		nodes.some(n => n.uniqueItems === true) &&
+		nodes.every(n => n.prefixItems === undefined && n.contains === undefined);
 	const out: unknown[] = [];
 	value.forEach((item, index) => {
-		const migrated = migrateValue(
-			ctx,
-			itemSchemas(nodes, index)[0],
-			item,
-			appendPointer(pointer, index),
-			false
-		);
-		if (migrated.keep) out.push(migrated.value);
+		const itemPointer = appendPointer(pointer, index);
+		const migrated = migrateValue(ctx, itemSchemas(nodes, index)[0], item, itemPointer, false);
+		if (!migrated.keep) return;
+		if (unique && out.some(v => jsonEqual(v, migrated.value))) {
+			if (!ctx.changed.includes(itemPointer)) ctx.changed.push(itemPointer);
+			return;
+		}
+		out.push(migrated.value);
 	});
 	return out;
 }

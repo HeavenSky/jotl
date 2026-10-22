@@ -13,6 +13,11 @@ describe("checkXUi 与 xUiMetaSchema 规则一致", () => {
 			path: "/widgets/ImagePicker/module",
 			kind: "required",
 		});
+		expect(checkXUi({ widgets: { Panel: { module: "a", level: "layout" } } })).toBeUndefined();
+		expect(checkXUi({ widgets: { Panel: { module: "a", level: "row" } } })).toEqual({
+			path: "/widgets/Panel/level",
+			kind: "enum",
+		});
 		expect(checkXUi({ widgets: { ImagePicker: { module: "a", extra: 1 } } })).toEqual({
 			path: "/widgets/ImagePicker/extra",
 			kind: "unknownKey",

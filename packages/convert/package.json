@@ -1,6 +1,6 @@
 {
 	"name": "@jotl/convert",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Turn JSON Schema into TypeScript declarations and back without losing constraints, and bring legacy JSON Schema, OpenAPI and Fengdie schemas up to JSON Schema 2020-12 and Jotl.",
 	"license": "MIT",
 	"repository": {
@@ -42,6 +42,7 @@
 		"@typescript-eslint/parser": "^8.72.0",
 		"ajv": "^8.20.0",
 		"ajv-formats": "^3.0.1",
+		"esbuild": "^0.28.2",
 		"eslint": "^10.13.0",
 		"eslint-plugin-jsdoc": "^65.3.15",
 		"eslint-plugin-tsdoc": "^0.5.4",

@@ -112,14 +112,20 @@ export const MIGRATE_DIAGNOSTICS = {
 	JOTL8119: {
 		severity: "warning",
 		message:
-			"正则标志 `{flag}` 无法安全改写进 pattern(Unicode 属性类, 反向引用, 内联修饰符, 超过 1000 个码点的区间, 带 u 时的 \\b \\B 与字符类内的 \\W 等), pattern 保持原样, 标志记入 x-fengdie.regExpFlags, 校验时区分大小写",
-		en: "Regex flag `{flag}` cannot be safely rewritten into pattern (Unicode property classes, back-references, inline modifiers, ranges over 1000 code points, or with u: \\b, \\B and \\W inside a class); pattern kept as is, flag recorded in x-fengdie.regExpFlags, validation is case-sensitive",
+			"正则标志 `{flag}` 无法安全改写进 pattern(Unicode 属性类, 反向引用, 内联修饰符, 不带 u 时以补充平面字符为端点的区间等), pattern 保持原样, 标志记入 x-fengdie.regExpFlags, 校验时区分大小写",
+		en: "Regex flag `{flag}` cannot be safely rewritten into pattern (Unicode property classes, back-references, inline modifiers, or without u, ranges with a supplementary-plane endpoint); pattern kept as is, flag recorded in x-fengdie.regExpFlags, validation is case-sensitive",
 	},
 	JOTL8120: {
 		severity: "warning",
 		message:
 			"正则标志 `{flag}` 在 pattern 中没有对应写法, 已记入 x-fengdie.regExpFlags, 校验时不生效",
 		en: "Regex flag `{flag}` has no equivalent in pattern; recorded in x-fengdie.regExpFlags and not applied during validation",
+	},
+	JOTL8121: {
+		severity: "warning",
+		message:
+			"凤蝶文档有多个导出, 而 Jotl 文件必须有根: 已取第一个导出 `{name}` 为根, 其余导出 {others} 保留为同一文件中的命名类型($defs)",
+		en: "The Fengdie document has several exports, but a Jotl file must have a root: the first export `{name}` is used as the root, and the other exports {others} are kept as named types ($defs) in the same file",
 	},
 } as const;
 

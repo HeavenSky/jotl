@@ -8,7 +8,7 @@
 
 `format` 为 `idn-email`、`idn-hostname`、`iri` 或 `iri-reference` 的 schema 无法编译，`validate` 返回 `JOTL4017`。改用 `email`、`hostname`、`uri` 或 `pattern`。
 
-对 `email`、`hostname`、`date-time`、`time`、`duration`、`uri`、`uri-reference`、`uri-template` 与 `uuid`，`ajv-formats` 在部分边界用例上的接受与拒绝和官方 JSON Schema 测试集不同。实际使用的 format 见[检查范围](validation.md#检查范围)。
+对 `email`、`hostname`（A-label）、`uri`、`uri-reference` 与 `uri-template`，`ajv-formats` 在部分边界用例上的接受与拒绝和官方 JSON Schema 测试集不同。实际使用的 format 见[检查范围](validation.md#检查范围)。
 
 ## 部分关键字与官方测试集不一致
 
@@ -29,4 +29,4 @@
 
 ## migrate 不修复约束违规
 
-`migrate` 不修复违反 `maxItems`、`uniqueItems`、`maxLength` 等约束或 `format` 的值，因为截断或改写会丢数据。迁移后调用 `validate`，按报告修正，见[无法保留的值](migration.md#无法保留的值)。
+`migrate` 不修复违反 `maxItems`、`maxLength` 等约束或 `format` 的值，因为截断或改写会丢数据。唯一的例外是 `uniqueItems`：完全相同的元素只保留第一个，带 `prefixItems` 或 `contains` 的数组除外。迁移后调用 `validate`，按报告修正，见[无法保留的值](migration.md#无法保留的值)。

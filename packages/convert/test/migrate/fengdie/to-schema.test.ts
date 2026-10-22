@@ -340,7 +340,21 @@ describe("映射表: 根与多文档", () => {
 			type: "array",
 			items: { type: "object" },
 		});
-		expect(codes(result.diagnostics)).toEqual(["JOTL8117"]);
+		expect(codes(result.diagnostics)).toEqual(["JOTL8117", "JOTL8121"]);
+	});
+
+	it("多个导出时报 JOTL8121, 说明根与其余导出, 位置指向第一个导出", () => {
+		const result = migrateFengdie(
+			`export A Object(甲) { t(T) }\nexport b Object(乙) { t(T) }\nexport C Array(丙) { t(T) }`,
+			FILE
+		);
+		expect(located(result.diagnostics)).toEqual([
+			{ code: "JOTL8121", line: 1, column: 10 },
+			{ code: "JOTL8117", line: 2, column: 10 },
+		]);
+		expect(result.diagnostics[0]!.message).toContain("`A`");
+		expect(result.diagnostics[0]!.message).toContain("`B`, `C`");
+		expect(codes(migrateFengdie(`export A Object(甲) { t(T) }`, FILE).diagnostics)).toEqual([]);
 	});
 
 	it("重复的导出名后者覆盖(JOTL8116)", () => {
@@ -513,16 +527,84 @@ describe("元数据表", () => {
 		}
 	}, 30_000);
 
+	it("i 与 u 标志: \\b \\B 改为前后断言, 字符类内的 \\W 改为并集, 大区间按折叠表补全, 匹配位置与原正则一致", () => {
+		const word = "[\\w\u017f\u212a]";
+		expect(field(`: String[regExp: "/\\bk/iu"]`).x).toMatchObject({
+			pattern: `(?:(?<=${word})(?!${word})|(?<!${word})(?=${word}))[kK\u212a]`,
+		});
+		expect(field(`: String[regExp: "/[\\Wk]/iu"]`).x).toMatchObject({
+			pattern: "(?:[kK\u212a]|[^\\w\u017f\u212a])",
+		});
+		expect(field(`: String[regExp: "/[^\\Wk]/iu"]`).x).toMatchObject({
+			pattern: `(?:(?![kK\u212a])${word})`,
+		});
+		// 不带 u 时 \w \b 不受 i 影响, 原样保留.
+		expect(field(`: String[regExp: "/\\b[\\W]/i"]`).x).toMatchObject({ pattern: "\\b[\\W]" });
+		const letters: string[] = [];
+		for (let cp = 0; cp < 0x10000; cp++) {
+			const char = String.fromCharCode(cp);
+			if (char.toLowerCase() !== char || char.toUpperCase() !== char) letters.push(char);
+		}
+		const ascii = Array.from({ length: 95 }, (_, k) => String.fromCharCode(32 + k)).join("");
+		// 单词字符与非单词字符相邻, 分隔与连写各一份; 不带 u 时字符类按 UTF-16 码元理解, 只用 BMP 文本.
+		const bmp = `${letters.join("")}\n${letters.join(" ")}\n${ascii}\b\u017fK\u212ak_s-\u017f ^a1`;
+		const supplementary = "\u{10400}\u{10428} \u{1e900}-\u{1e922}\u{1d400}";
+		const positions = (re: RegExp, text: string) =>
+			[...text.matchAll(re)].map(m => `${m.index}:${m[0]}`).join("\n");
+		const cases: [string, string[]][] = [
+			[
+				"iu",
+				[
+					"\\b",
+					"\\B",
+					"\\bk",
+					"s\\b",
+					"\\B\u017f\\B",
+					"\\b\\w+\\b",
+					"(?<=\\b)a",
+					"(?<!\\B).",
+					"[\\W]",
+					"[\\Wk]",
+					"[^\\Wk]",
+					"[^\\W]",
+					"[\\W\\d]+",
+					"[^\\Ws]+",
+					"[\\W^]",
+					"[^\\W^_]",
+					"[\\Wa-c]",
+					"[\\b\\W]",
+					"(?<=[^\\Wk])x",
+					"[\\u0100-\\uffff]",
+					"[^\\u0100-\\u04e8]",
+					"[\\u{80}-\\u{10ffff}]+",
+					"[^\\u{0}-\\u{24f}]",
+					"[a-\\u{1ffff}]",
+				],
+			],
+			["i", ["\\bk", "[\\W]", "[\\u0100-\\uffff]", "[^\\u0080-\\uffff]", "[a-\\uffff]"]],
+		];
+		for (const [flags, sources] of cases) {
+			const text = flags === "iu" ? bmp + supplementary : bmp;
+			for (const source of sources) {
+				const { x, diagnostics } = field(`: String[regExp: "/${source}/${flags}"]`);
+				expect(
+					codes(diagnostics).filter(c => c === "JOTL8119"),
+					source
+				).toEqual([]);
+				expect(
+					positions(new RegExp((x as { pattern: string }).pattern, "gu"), text),
+					`${flags} ${source}`
+				).toBe(positions(new RegExp(source, `g${flags}`), text));
+			}
+		}
+	}, 30_000);
+
 	it("i 标志无法安全改写时 pattern 保持原样(JOTL8119); m s u y 报 JOTL8120; 未生效的标志记入 x-fengdie", () => {
-		// 超过 1000 个码点的区间; 不带 u 时补充平面字符按两个代理码元理解, 不是码点区间.
-		for (const source of ["\\p{Lu}", "(a)\\1", "[\\u0100-\\u04e8]", "[𐐀-𐐧]"]) {
+		// 不带 u 时补充平面字符按两个代理码元理解, 不是码点区间.
+		for (const source of ["\\p{Lu}", "(a)\\1", "[𐐀-𐐧]"]) {
 			const { x, diagnostics } = field(`: String[regExp: "/${source}/gi"]`);
 			expect(x).toMatchObject({ "x-fengdie": { regExpFlags: "i" } });
 			expect(codes(diagnostics)).toEqual(["JOTL8119"]);
-		}
-		for (const source of ["\\bk", "\\B", "[\\W]"]) {
-			const { diagnostics } = field(`: String[regExp: "/${source}/iu"]`);
-			expect(codes(diagnostics)).toContain("JOTL8119");
 		}
 		const multi = field(`: String[regExp: "/^a$/msi"]`);
 		expect(multi.x).toMatchObject({ pattern: "^[aA]$", "x-fengdie": { regExpFlags: "ms" } });
@@ -670,6 +752,24 @@ describe("元数据表", () => {
 				},
 			],
 			["!($.s === 'a')", { not: { field: "/s", eq: "a" } }],
+			["['a', 'b'].includes($.s)", { field: "/s", in: ["a", "b"] }],
+			[
+				"[1, -2, true, null, 'x',].includes($.zz)",
+				{ field: "/zz", in: [1, -2, true, null, "x"] },
+			],
+			["[].includes($.n)", { field: "/n", in: [] }],
+			["!['a'].includes($.e)", { field: "/e", notIn: ["a"] }],
+			["!!['a'].includes($.e)", { field: "/e", in: ["a"] }],
+			["!(['a'].includes($.e))", { field: "/e", notIn: ["a"] }],
+			[
+				"$.b && [0].includes($.list[0].v)",
+				{
+					all: [
+						{ field: "/b", truthy: true },
+						{ field: "/list/0/v", in: [0] },
+					],
+				},
+			],
 			["$.zz.yy", { field: "/zz/yy", truthy: true }],
 		])("%s", (expr, expected) => {
 			const { visibleIf, trace, codes: c } = cond(expr);
@@ -681,6 +781,13 @@ describe("元数据表", () => {
 		it.each([
 			["其他变量", "showShare"],
 			["函数调用", "$.s.includes('a')"],
+			["includes 的数组元素是路径", "['a', $.s].includes($.o.k)"],
+			["includes 的参数是字面量", "['a'].includes('a')"],
+			["includes 带起始下标", "['a'].includes($.s, 1)"],
+			["includes 的数组有空位", "[, 'a'].includes($.s)"],
+			["数组的其他方法", "['a'].indexOf($.s)"],
+			["includes 再比较", "['a'].includes($.s) === true"],
+			["includes 的参数经过原型成员", "['a'].includes($.s.length)"],
 			["数组长度", "$.list.length > 0"],
 			["字符串长度", "$.s.length"],
 			["未声明路径上的原型成员", "$.zz.length"],

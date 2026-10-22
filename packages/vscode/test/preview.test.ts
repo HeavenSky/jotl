@@ -126,6 +126,44 @@ describe("预览 HTML 外壳", () => {
 		expect(JSON.parse(map!)).toEqual({ imports: shared });
 	});
 
+	it("模块样式: 只在开启模块且开启样式时 style-src 放行扩展资源, https 与内联样式(去掉会让 'unsafe-inline' 失效的 nonce), 外壳样式标签仍带 nonce", () => {
+		const base = {
+			cspSource: CSP_SOURCE,
+			nonce: "abc123",
+			scriptUri: "https://file+.vscode-resource/dist/preview.js",
+			formStyleUri: "https://file+.vscode-resource/dist/preview-form.css",
+			title: "t",
+			text: ZH_TEXT,
+			lang: "en",
+		};
+		const shared = { react: "https://file+.vscode-resource/dist/preview-shim-react.js" };
+		const allowed = renderPreviewHtml({
+			...base,
+			sharedModules: shared,
+			allowModuleStyles: true,
+		});
+		const policy = csp(allowed);
+		expect(policy.get("style-src")).toBe(`${CSP_SOURCE} https: 'unsafe-inline'`);
+		expect(policy.get("script-src")).toBe(`'nonce-abc123' 'unsafe-eval' ${CSP_SOURCE} https:`);
+		expect(policy.get("font-src")).toBe(CSP_SOURCE);
+		expect([...allowed.matchAll(/<style\b[^>]*>/g)].map(m => m[0])).toEqual([
+			'<style nonce="abc123">',
+		]);
+		// 关闭样式开关, 或没有开启模块时, CSP 与默认外壳逐字相同.
+		const defaultPolicy = csp(html).get("style-src");
+		expect(
+			csp(
+				renderPreviewHtml({ ...base, sharedModules: shared, allowModuleStyles: false })
+			).get("style-src")
+		).toBe(defaultPolicy);
+		expect(csp(renderPreviewHtml({ ...base, sharedModules: shared })).get("style-src")).toBe(
+			defaultPolicy
+		);
+		const withoutModules = renderPreviewHtml({ ...base, allowModuleStyles: true });
+		expect(withoutModules).toBe(renderPreviewHtml(base));
+		expect(withoutModules).not.toContain("unsafe-inline");
+	});
+
 	it("nonce 每次不同且有足够长度", () => {
 		const nonces = new Set(Array.from({ length: 20 }, createNonce));
 		expect(nonces.size).toBe(20);
@@ -344,6 +382,42 @@ describe("预览视图模型", () => {
 			P: { module: "https://p" },
 		});
 		expect(schemaModuleRefs(true)).toEqual({});
+	});
+
+	it("模块声明读取 level, 不合法的忽略; 消息中的 level 须为合法取值", () => {
+		expect(
+			schemaModuleRefs({
+				"x-ui": {
+					widgets: {
+						L: { module: "https://l", level: "layout" },
+						D: { module: "./d.js", export: "D", level: "decorator" },
+						Bad: { module: "https://b", level: "row" },
+					},
+				},
+			})
+		).toEqual({
+			L: { module: "https://l", level: "layout" },
+			D: { module: "./d.js", export: "D", level: "decorator" },
+			Bad: { module: "https://b" },
+		});
+		const content = {
+			uri: "u",
+			schema: "{}",
+			diagnostics: [],
+			typescript: "type A = string;",
+			typescriptDiagnostics: [],
+		};
+		const modules = (level: unknown) => ({
+			load: true,
+			config: { A: { module: "https://m/a.js", level } },
+			baseUrl: undefined,
+		});
+		expect(
+			isToWebview({ type: "update", fileName: "a.jotl", content, modules: modules("view") })
+		).toBe(true);
+		expect(
+			isToWebview({ type: "update", fileName: "a.jotl", content, modules: modules("row") })
+		).toBe(false);
 	});
 
 	it("表单语言随 VS Code 显示语言: zh 开头为简体中文, 其余为英文", () => {

@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, fireEvent, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import type { JsonSchema } from "@jotl/core";
 import { createAntdRegistry } from "../src/index.js";
@@ -287,5 +287,167 @@ describe("外壳与控件细节", () => {
 			error.mockRestore();
 			warn.mockRestore();
 		}
+	});
+});
+
+describe("maxLength 按码点计数", () => {
+	it("Input, Input.Password, Input.TextArea 的原生上限补上当前值中代理对的个数", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: {
+				a: { type: "string", maxLength: 3 },
+				p: { type: "string", maxLength: 3, "x-ui": { widget: "password" } },
+				t: { type: "string", maxLength: 3, "x-ui": { widget: "textarea" } },
+			},
+		};
+		renderForm({ schema, defaultValue: { a: "abc", p: "😀a", t: "😀😀" } });
+		const a = byPath("/a") as HTMLInputElement;
+		expect(a.maxLength).toBe(3);
+		expect((byPath("/p") as HTMLInputElement).maxLength).toBe(4);
+		expect((byPath("/t") as HTMLTextAreaElement).maxLength).toBe(5);
+		fireEvent.change(a, { target: { value: "😀b" } });
+		expect(a.maxLength).toBe(4);
+		// 未超出码点上限, 不标为超长.
+		expect(a.closest(".ant-input-out-of-range")).toBeNull();
+	});
+});
+
+describe("复合组件与只读显示", () => {
+	it("output: 原生 output 内用 Typography 显示当前值, 无值时显示 const, 标签经 for 关联", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: { kind: { const: "banner", title: "种类" } },
+		};
+		renderForm({ schema, defaultValue: {} });
+		const output = byPath("/kind");
+		expect(output.tagName).toBe("OUTPUT");
+		expect(output.textContent).toBe("banner");
+		expect(output.querySelector(".ant-typography")).not.toBeNull();
+		expect(screen.getByText("种类").closest("label")?.getAttribute("for")).toBe(output.id);
+	});
+
+	it("nullable: Checkbox 置空开关, 为空时显示空值, 取消后渲染原组件", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: { note: { type: ["string", "null"], title: "备注" } },
+		};
+		const { handle } = renderForm({ schema, defaultValue: { note: "x" } });
+		const group = screen.getByRole("group", { name: "备注" });
+		const toggle = within(group).getByRole("checkbox", { name: "置为空" }) as HTMLInputElement;
+		expect(toggle.closest(".ant-checkbox-wrapper")).not.toBeNull();
+		expect(toggle.checked).toBe(false);
+		expect(within(group).getByRole("textbox")).toBeTruthy();
+		fireEvent.click(toggle);
+		expect(handle().getValues()).toEqual({ note: null });
+		expect(group.textContent).toContain("空值");
+		expect(within(group).queryByRole("textbox")).toBeNull();
+		fireEvent.click(toggle);
+		expect((handle().getValues() as { note: unknown }).note).not.toBeNull();
+		expect(within(group).getByRole("textbox")).toBeTruthy();
+	});
+
+	it("nullable: 非 edit 模式开关禁用", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: { note: { type: ["string", "null"] } },
+		};
+		renderForm({ schema, defaultValue: { note: "x" }, mode: "view" });
+		expect(
+			(screen.getByRole("checkbox", { name: "置为空" }) as HTMLInputElement).disabled
+		).toBe(true);
+	});
+
+	const UNION: JsonSchema = {
+		type: "object",
+		properties: {
+			v: {
+				title: "值",
+				oneOf: [
+					{ type: "string", title: "文本" },
+					{ type: "number", title: "数字" },
+				],
+			},
+		},
+	};
+
+	it("union: Select 选择分支, 内容为当前分支的组件", async () => {
+		const { handle } = renderForm({ schema: UNION, defaultValue: { v: "a" } });
+		const group = screen.getByRole("group", { name: "值" });
+		const select = within(group).getByRole("combobox", { name: "类型" });
+		expect(select.closest(".ant-select")).not.toBeNull();
+		expect((within(group).getByRole("textbox") as HTMLInputElement).value).toBe("a");
+		fireEvent.mouseDown(
+			select
+				.closest(".ant-select")!
+				.querySelector(".ant-select-content, .ant-select-selector") ?? select
+		);
+		const option = await waitFor(() => {
+			const el = document.querySelector('.ant-select-item-option[title="数字"]');
+			if (el === null) throw new Error("下拉未展开");
+			return el;
+		});
+		fireEvent.click(option);
+		expect(typeof (handle().getValues() as { v: unknown }).v).toBe("number");
+	});
+
+	it("union: 只有一个分支时不显示分支选择", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: { v: { title: "值", oneOf: [{ type: "string", title: "文本" }] } },
+		};
+		renderForm({ schema, defaultValue: { v: "a" } });
+		expect(screen.queryByRole("combobox", { name: "类型" })).toBeNull();
+	});
+
+	it("union: x-ui.props.selector 为 buttons 时用 Segmented, 点击切换分支", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			properties: {
+				v: {
+					...(UNION.properties!["v"] as object),
+					"x-ui": { props: { selector: "buttons" } },
+				},
+			},
+		};
+		const { handle } = renderForm({ schema, defaultValue: { v: "a" } });
+		const group = screen.getByRole("radiogroup", { name: "类型" });
+		expect(group.classList.contains("ant-segmented")).toBe(true);
+		const number = within(group).getByLabelText("数字") as HTMLInputElement;
+		expect(number.checked).toBe(false);
+		fireEvent.click(number);
+		expect(typeof (handle().getValues() as { v: unknown }).v).toBe("number");
+		expect((within(group).getByLabelText("数字") as HTMLInputElement).checked).toBe(true);
+	});
+
+	it("tree: 递归节点超过 maxDepth 时为 Button 展开开关, 展开后渲染内容并可编辑", () => {
+		const schema: JsonSchema = {
+			$ref: "#/$defs/Node",
+			$defs: {
+				Node: {
+					type: "object",
+					properties: {
+						name: { type: "string" },
+						children: { type: "array", items: { $ref: "#/$defs/Node" } },
+					},
+				},
+			},
+		};
+		const { handle } = renderForm({
+			schema,
+			defaultValue: { name: "0", children: [{ name: "1", children: [{ name: "2" }] }] },
+			maxDepth: 1,
+		});
+		const toggle = screen.getAllByRole("button", { name: /展\s*开/ })[0]!;
+		expect(toggle.classList.contains("ant-btn")).toBe(true);
+		expect(toggle.getAttribute("aria-expanded")).toBe("false");
+		expect(toggle.hasAttribute("aria-controls")).toBe(false);
+		fireEvent.click(toggle);
+		expect(toggle.getAttribute("aria-expanded")).toBe("true");
+		expect(toggle.textContent?.replace(/\s/g, "")).toBe("收起");
+		const content = document.getElementById(toggle.getAttribute("aria-controls") ?? "");
+		expect(content).not.toBeNull();
+		const name = within(content!).getAllByRole("textbox")[0] as HTMLInputElement;
+		fireEvent.change(name, { target: { value: "一" } });
+		expect(JSON.stringify(handle().getValues())).toContain('"一"');
 	});
 });

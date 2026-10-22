@@ -1,6 +1,6 @@
 {
 	"name": "@jotl/form",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Render a validated React form straight from a JSON Schema, with widgets and layout chosen in the schema itself.",
 	"license": "MIT",
 	"repository": {

@@ -1,5 +1,5 @@
 // 端到端: 每个子命令以共享样例与本包样例为输入, 断言 stdout, stderr 诊断与退出码.
-import { getDefaults } from "@jotl/data";
+import { getDefaults, validate } from "@jotl/data";
 import { migrateFengdie } from "@jotl/convert";
 import { compile, format } from "@jotl/core";
 import { schemaToTs } from "@jotl/convert";
@@ -441,6 +441,64 @@ describe("migrate-schema: 常规 JSON Schema", () => {
 		expect(r.stdout).toContain("count");
 		expect(compile(r.stdout, "out.jotl").value).toBeDefined();
 		expect(codesOf(r.stderr)).toEqual(["JOTL9055"]);
+	});
+
+	it("输出 Jotl 时嵌套 $defs 提为顶层类型: 再编译后与升级结果的校验结论一致; 带 $id 的子 schema 引用它自己的定义", () => {
+		const input = {
+			$schema: "http://json-schema.org/draft-07/schema#",
+			type: "object",
+			definitions: { X: { type: "number" } },
+			properties: {
+				n: { $ref: "#/definitions/X" },
+				a: {
+					type: "object",
+					definitions: {
+						X: { type: "string", minLength: 2 },
+						Y: { type: "object", properties: { v: { type: "integer" } } },
+					},
+					properties: {
+						b: { $ref: "#/properties/a/definitions/X" },
+						c: { $ref: "#/properties/a/definitions/Y/properties/v" },
+					},
+				},
+				s: {
+					$id: "https://example.com/sub",
+					type: "object",
+					definitions: { X: { type: "boolean" } },
+					properties: { d: { $ref: "#/definitions/X" } },
+				},
+			},
+			required: ["a"],
+		};
+		const files = { "mem/nested.json": JSON.stringify(input) };
+		const upgraded = JSON.parse(
+			cli(["migrate-schema", "mem/nested.json", "--to", "schema"], { files }).stdout
+		);
+		const r = cli(["migrate-schema", "mem/nested.json"], { files });
+		expect(r.code).toBe(0);
+		expect(codesOf(r.stderr)).toEqual(["JOTL9055"]);
+		expect(r.stdout).toContain("    b?: X2\n");
+		const compiled = compile(r.stdout, "out.jotl");
+		expect(compiled.diagnostics).toEqual([]);
+		const samples = [
+			{ a: {} },
+			{ a: { b: "ok" }, n: 1 },
+			{ a: { b: "x" } },
+			{ a: { b: 1 } },
+			{ a: { c: 1 } },
+			{ a: { c: "1" } },
+			{ n: "1", a: {} },
+			{ a: {}, s: { d: true } },
+			{ a: {}, s: { d: "no" } },
+			{},
+		];
+		for (const data of samples) {
+			const expected = validate(upgraded, data);
+			expect(expected.diagnostics.filter(d => d.code === "JOTL4017")).toEqual([]);
+			expect(validate(compiled.value!.schema, data).value, JSON.stringify(data)).toEqual(
+				expected.value
+			);
+		}
 	});
 
 	it("--to schema 冲突默认报错: 退出码 1, 不输出结果", () => {

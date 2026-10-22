@@ -1,6 +1,6 @@
 // migrate: 删除字段, 类型变化, 枚举收窄各一例, 以及保留能保留的值与返回改动指针.
 import { describe, expect, it } from "vitest";
-import type { JsonSchema } from "@jotl/core";
+import type { JsonSchema, JsonSchemaObject } from "@jotl/core";
 import { migrate, validate } from "../src/index.js";
 
 const v2: JsonSchema = {
@@ -115,6 +115,38 @@ describe("migrate", () => {
 			data: { title: "t", count: 1, mode: "dark", theme: "#000", tags: ["a", "2"] },
 			changed: ["/tags/1", "/tags/2"],
 		});
+	});
+
+	it("uniqueItems: 迁移后深度相等的元素只保留第一个; 有 prefixItems 或 contains 时不去重", () => {
+		const unique: JsonSchema = { type: "array", items: { type: "string" }, uniqueItems: true };
+		expect(migrate(unique, ["a", 1, "1", "a"]).value).toEqual({
+			data: ["a", "1"],
+			changed: ["/1", "/2", "/3"],
+		});
+		const objects: JsonSchema = {
+			type: "array",
+			items: { type: "object", properties: { n: { type: "number" } } },
+			uniqueItems: true,
+		};
+		expect(migrate(objects, [{ n: 1 }, { n: 1.0 }, { n: 2 }]).value).toEqual({
+			data: [{ n: 1 }, { n: 2 }],
+			changed: ["/1"],
+		});
+		// 去重后低于 minItems 不补, 交给 validate 报告.
+		const min: JsonSchema = { ...unique, minItems: 2 };
+		const migrated = (migrate(min, ["a", "a"]).value as { data: unknown }).data;
+		expect(migrated).toEqual(["a"]);
+		expect(validate(min, migrated).value).toEqual({ valid: false });
+		const extras: JsonSchemaObject[] = [
+			{ prefixItems: [{ type: "string" }] },
+			{ contains: { const: "a" } },
+		];
+		for (const extra of extras) {
+			expect(migrate({ ...unique, ...extra }, ["a", "a"]).value).toEqual({
+				data: ["a", "a"],
+				changed: [],
+			});
+		}
 	});
 
 	it("已经符合的数据不改动, 结果通过校验", () => {

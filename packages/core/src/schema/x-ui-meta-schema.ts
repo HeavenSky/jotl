@@ -1,5 +1,6 @@
 // x-ui 的 meta-schema(JSON Schema 2020-12), 供校验, 补全与 F3 判定.
 import { JSON_SCHEMA_DIALECT, type JsonSchemaObject } from "./json-schema.js";
+import { WIDGET_LEVELS } from "./x-ui.js";
 
 const stringArray: JsonSchemaObject = { type: "array", items: { type: "string" } };
 
@@ -51,6 +52,7 @@ export const xUiMetaSchema: JsonSchemaObject = {
 				base: { anyOf: [{ type: "string", minLength: 1 }, { type: "object" }] },
 				module: { type: "string", minLength: 1 },
 				export: { type: "string", minLength: 1 },
+				level: { enum: [...WIDGET_LEVELS] },
 			},
 			required: ["module"],
 			additionalProperties: false,

@@ -20,6 +20,7 @@ import {
 	orderKeywords,
 	xUiMetaSchema,
 } from "../schema/index.js";
+import { unparsableValueFormatToken } from "../schema/value-format.js";
 import type {
 	Body,
 	Entry,
@@ -944,6 +945,10 @@ class Compiler {
 			this.invalidValue("timeTimestamp", {}, m.get("value_format")!.value.span);
 			valueFormat = undefined;
 		}
+		const token =
+			valueFormat === undefined ? undefined : unparsableValueFormatToken(valueFormat);
+		if (token !== undefined)
+			this.error("JOTL1053", { token }, m.get("value_format")!.value.span);
 		const { schema, widget } = valueFormatSchema(
 			kind,
 			valueFormat ?? DEFAULT_VALUE_FORMATS[kind]

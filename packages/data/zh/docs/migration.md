@@ -47,4 +47,4 @@ migrate(schema, { title: 12, count: "3", old: true }).value;
 2. 否则，可选字段与数组元素删除。
 3. 否则，必填字段取零值；没有零值时删除。
 
-`migrate` 不修复 `maxItems`、`uniqueItems`、`maxLength` 等约束违规，迁移后请再调用 `validate`。
+`migrate` 不修复 `maxItems`、`maxLength` 等约束违规。`uniqueItems` 下会去掉完全相同的元素、保留第一个，带 `prefixItems` 或 `contains` 的数组除外。迁移后请再调用 `validate`。

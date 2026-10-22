@@ -30,7 +30,7 @@ validate(schema, {}).diagnostics; // JOTL4002 /name "Missing required field name
 ## Know what is checked
 
 - The validator uses the Ajv 2020 dialect with `allErrors` enabled. Field presence is decided by own properties only, so a missing field named like a prototype property, such as `constructor`, is still reported as required.
-- Formats: every format of `ajv-formats`, plus `color`: a CSS hexadecimal color `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, matched by `COLOR_PATTERN`.
+- Formats: every format of `ajv-formats`, with `time`, `date-time`, `duration`, `uuid`, `regex` and `hostname` tightened to RFC 3339, RFC 4122 and ECMA-262 (for example, a time zone offset needs minutes, as in `+08:00`, and a `urn:uuid:` prefix is rejected), plus `color`: a CSS hexadecimal color `#rgb`, `#rgba`, `#rrggbb` or `#rrggbbaa`, matched by `COLOR_PATTERN`.
 - Keywords: `x-ui`, `x-deprecatedReason` and `errorMessage` are known; other keywords starting with `x-` are registered as annotations. Unknown keywords that do not start with `x-` make the schema fail to compile.
 
 Jotl extension keywords are checked too:

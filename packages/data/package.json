@@ -1,6 +1,6 @@
 {
 	"name": "@jotl/data",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Generate defaults, validate, migrate and mock data from a JSON Schema 2020-12, with errors that name the field and say what is wrong.",
 	"license": "MIT",
 	"repository": {

@@ -320,6 +320,16 @@ describe("x-ui meta-schema", () => {
 		expect(check({ widgets: { P: { module: "m", extra: 1 } } })).toBeDefined();
 		expect(check({ variants: { view: { widgets: {} } } })).toBeDefined();
 	});
+
+	it("模块声明的 level 可选, 取值同组件登记级别", () => {
+		const check = (value: unknown) =>
+			checkDefaultValue(xUiMetaSchema, value, xUiMetaSchema.$defs as never, xUiMetaSchema);
+		for (const level of ["view", "layout", "composite", "field", "decorator"])
+			expect(check({ widgets: { P: { module: "m", level } } })).toBeUndefined();
+		expect(check({ widgets: { P: { module: "m", level: "row" } } })).toBeDefined();
+		expect(check({ widgets: { P: { module: "m", level: "" } } })).toBeDefined();
+		expect(check({ widgets: { P: { module: "m", level: 1 } } })).toBeDefined();
+	});
 });
 
 describe("schema 写入的 x-ui", () => {

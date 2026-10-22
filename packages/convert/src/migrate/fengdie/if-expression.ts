@@ -34,6 +34,7 @@ const OPERATORS = [
 	"[",
 	"]",
 	".",
+	",",
 	"-",
 ];
 const IDENT_RE = /^[\p{ID_Start}$_][\p{ID_Continue}$‌‍]*/u;
@@ -175,10 +176,10 @@ class Parser {
 		return group("all", items);
 	}
 
-	/** `!x` 与 `(x)` 之后不能再接比较运算符: JS 中 `!$.a === 1` 比较的是布尔值. */
+	/** `!x`, `(x)` 与 `[...].includes(x)` 之后不能再接比较运算符: JS 中 `!$.a === 1` 比较的是布尔值. */
 	private unary(): Condition {
 		let c: Condition;
-		if (this.isOp("!") || this.isOp("(")) c = this.negatable();
+		if (this.isOp("!") || this.isOp("(") || this.isOp("[")) c = this.negatable();
 		else c = this.comparison();
 		const next = this.peek();
 		if (next?.t === "op" && COMPARES.has(next.v)) fail();
@@ -196,9 +197,36 @@ class Parser {
 			this.expectOp(")");
 			return c;
 		}
+		if (this.isOp("[")) return this.includes();
 		const path = this.path();
 		if (path === undefined) fail();
 		return this.leaf(path, { truthy: true });
+	}
+
+	/**
+	 * `['a', 1].includes($.x)` → `in`: 元素只能是常量, 标量间 SameValueZero 与 JSON 相等一致,
+	 * 字段缺失或为对象数组时两边都为假. 不接受第二个参数(起始下标).
+	 */
+	private includes(): Condition {
+		this.expectOp("[");
+		const options: Literal[] = [];
+		while (!this.isOp("]")) {
+			const item = this.operand();
+			if (!("literal" in item)) fail();
+			options.push(item.literal);
+			if (!this.isOp(",")) break;
+			this.i += 1;
+		}
+		this.expectOp("]");
+		this.expectOp(".");
+		const name = this.peek();
+		if (name?.t !== "ident" || name.v !== "includes") fail();
+		this.i += 1;
+		this.expectOp("(");
+		const path = this.path();
+		if (path === undefined) fail();
+		this.expectOp(")");
+		return this.leaf(path, { in: options });
 	}
 
 	private comparison(): Condition {
@@ -340,6 +368,15 @@ function group(key: "all" | "any", items: Condition[]): Condition {
 
 function negate(c: Condition): Condition {
 	if ("truthy" in c) return { ...c, truthy: !c.truthy };
+	// in 与 notIn 恰好互补(字段缺失时 in 为假, notIn 为真).
+	if ("in" in c) {
+		const { in: options, ...rest } = c;
+		return { ...rest, notIn: options };
+	}
+	if ("notIn" in c) {
+		const { notIn: options, ...rest } = c;
+		return { ...rest, in: options };
+	}
 	if ("not" in c) return c.not;
 	return { not: c };
 }

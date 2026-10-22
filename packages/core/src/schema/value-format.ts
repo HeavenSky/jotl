@@ -52,9 +52,37 @@ export function isRfc3339DateTime(text: string): boolean {
 	return month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth(year, month);
 }
 
-// dayjs format 的记号; 只支持下表中的记号, 其余记号的格式串不校验.
+// dayjs format 的记号; 只支持下表中的记号, 其余记号的格式串不校验. `Do` 须排在 `D` 之前, 否则被拆成 `D` 与字面 `o`.
 const FORMAT_TOKENS =
-	/\[([^\]]*)\]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS|Do|Q|w{1,2}|W{1,2}|k{1,2}|X|x|z{1,2}|S{1,2}/g;
+	/\[([^\]]*)\]|Y{1,4}|M{1,4}|Do|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS|Q|w{1,2}|W{1,2}|k{1,2}|X|x|z{1,2}|S{1,2}|gggg|GGGG/g;
+
+// dayjs(customParseFormat + advancedFormat)无法按格式串往返的记号: 周数 `w` `W`, 周年 `gggg` `GGGG`, 时区名 `z`
+// 写出时抛异常(缺插件); `k` `kk` `S` `SS` 写得出但解析不回来; `X` `x` 只能单独作为时间戳格式, 与其他记号混排时解析不回来.
+const UNPARSABLE_TOKENS = new Set([
+	"w",
+	"ww",
+	"W",
+	"WW",
+	"k",
+	"kk",
+	"gggg",
+	"GGGG",
+	"z",
+	"zz",
+	"S",
+	"SS",
+	"X",
+	"x",
+]);
+
+/** 格式串中第一个无法往返的记号(见 UNPARSABLE_TOKENS); 时间戳 `x` `X` 本身, 别名与只含可往返记号的格式串返回 undefined. */
+export function unparsableValueFormatToken(format: string): string | undefined {
+	if (isTimestampValueFormat(format) || isValueFormatAlias(format)) return undefined;
+	for (const m of format.matchAll(FORMAT_TOKENS)) {
+		if (m[1] === undefined && UNPARSABLE_TOKENS.has(m[0])) return m[0];
+	}
+	return undefined;
+}
 
 // year2 为两位年份(YY), hour12 为 12 小时制的时(h hh); 与 year hour 的一致性在匹配后换算检查.
 type Field =

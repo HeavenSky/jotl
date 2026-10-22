@@ -17,14 +17,24 @@ function lengthLimit(limit: unknown): number | undefined {
 	return typeof limit === "number" && Number.isInteger(limit) && limit >= 0 ? limit : undefined;
 }
 
+/**
+ * 原生 maxLength: schema 的 maxLength 按码点计数, 原生按 UTF-16 码元计数, 上限补上当前值中代理对的个数, 已输入的补充平面字符(emoji 等)按一个字符计.
+ * 只剩 1 个码点时输入补充平面字符, 或粘贴含补充平面字符的文本时, 仍会比 schema 早拦截.
+ */
+export function nativeMaxLength(limit: unknown, value: string): number | undefined {
+	const max = lengthLimit(limit);
+	return max === undefined ? undefined : max + value.length - [...value].length;
+}
+
 function LineInput(props: HtmlFieldProps<string> & { type: "text" | "password"; kind: string }) {
+	const value = displayText(props.value);
 	return (
 		<input
 			{...controlAttributes(props)}
 			type={props.type}
 			className={className("jotl-input", props.kind, styles.input)}
-			value={displayText(props.value)}
-			maxLength={lengthLimit(props.schema.maxLength)}
+			value={value}
+			maxLength={nativeMaxLength(props.schema.maxLength, value)}
 			pattern={nativePattern(props.schema.pattern)}
 			onChange={(e: ChangeEvent<HTMLInputElement>) => props.onChange(e.target.value)}
 		/>
@@ -40,12 +50,13 @@ export function PasswordWidget(props: HtmlFieldProps<string>) {
 }
 
 export function TextareaWidget(props: HtmlFieldProps<string>) {
+	const value = displayText(props.value);
 	return (
 		<textarea
 			{...controlAttributes(props)}
 			className={cn("jotl-input jotl-textarea", styles.input, styles.textarea)}
-			value={displayText(props.value)}
-			maxLength={lengthLimit(props.schema.maxLength)}
+			value={value}
+			maxLength={nativeMaxLength(props.schema.maxLength, value)}
 			onChange={(e: ChangeEvent<HTMLTextAreaElement>) => props.onChange(e.target.value)}
 		/>
 	);

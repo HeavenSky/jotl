@@ -128,6 +128,32 @@ describe("日期组件的 value_format", () => {
 		expect(codes("date[x_value_format: 'x']")).toEqual(["JOTL1012"]);
 	});
 
+	it("value_format 含无法往返的记号报 JOTL1053; 时间戳 x X 单独使用, 转义与本地化记号不报", () => {
+		const codes = (text: string) => fieldCodes(`: ${text}`);
+		for (const format of [
+			"YYYY w",
+			"YYYY W",
+			"YYYY-MM-DD kk:mm",
+			"YYYY-MM-DD k:mm",
+			"X.SSS",
+			"YYYY-MM-DD x",
+		])
+			expect(codes(`datetime[value_format: '${format}']`), format).toEqual(["JOTL1053"]);
+		for (const format of [
+			"x",
+			"X",
+			"[w] YYYY",
+			"MMM D, YYYY",
+			"Do MMMM YYYY",
+			"YYYY Q",
+			"YYYY-MM-DD dddd",
+		])
+			expect(codes(`datetime[value_format: '${format}']`), format).toEqual([]);
+		const { diagnostics } = compile("A: {\n  x: date[value_format: 'YYYY-ww']\n}\n", "a.jotl");
+		expect(diagnostics.map(d => [d.code, d.severity])).toEqual([["JOTL1053", "error"]]);
+		expect(diagnostics[0]!.message).toContain("`ww`");
+	});
+
 	it("default 按 value_format 检查(JOTL1008)", () => {
 		const codes = (text: string) => fieldCodes(`: ${text}`);
 		expect(codes("date[value_format: 'YYYYMMDD', default: '20261013']")).toEqual([]);

@@ -128,6 +128,28 @@ describe("扩展组件模块", () => {
 		).toEqual({ A: { module: "m", export: "X" } });
 	});
 
+	it("schemaWidgetModules 读取 level 并传到登记结果; 不合法的 level 忽略, 按 field 登记", () => {
+		const modules = schemaWidgetModules({
+			"x-ui": {
+				widgets: {
+					L: { module: "l", level: "layout" },
+					C: { module: "c", export: "C", level: "composite" },
+					F: { module: "f" },
+					Bad: { module: "b", level: "row" },
+				},
+			},
+		} as unknown as JsonSchema);
+		expect(modules).toEqual({
+			L: { module: "l", level: "layout" },
+			C: { module: "c", export: "C", level: "composite" },
+			F: { module: "f" },
+			Bad: { module: "b" },
+		});
+		expect(
+			Object.fromEntries(moduleWidgetRegistrations(modules).map(r => [r.name, r.level]))
+		).toEqual({ L: "layout", C: "composite", F: "field", Bad: "field" });
+	});
+
 	const schema = {
 		type: "object",
 		"x-ui": { widgets: { Picker: { module: "https://cdn.example/picker.js" } } },

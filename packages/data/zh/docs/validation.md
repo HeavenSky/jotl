@@ -30,7 +30,7 @@ validate(schema, {}).diagnostics; // JOTL4002 /name "Missing required field name
 ## 检查范围
 
 - 校验器使用 Ajv 2020 方言并开启 `allErrors`。字段是否存在只看自有属性，所以字段名与原型属性同名（如 `constructor`）时，缺失仍报必填。
-- 格式：`ajv-formats` 的全部格式，加上 `color`：CSS 十六进制颜色 `#rgb`、`#rgba`、`#rrggbb` 或 `#rrggbbaa`，正则为 `COLOR_PATTERN`。
+- 格式：`ajv-formats` 的全部格式，其中 `time`、`date-time`、`duration`、`uuid`、`regex`、`hostname` 按 RFC 3339、RFC 4122 与 ECMA-262 收紧（例如时区偏移必须带分钟，写作 `+08:00`；带 `urn:uuid:` 前缀的 uuid 被拒），加上 `color`：CSS 十六进制颜色 `#rgb`、`#rgba`、`#rrggbb` 或 `#rrggbbaa`，正则为 `COLOR_PATTERN`。
 - 关键字：`x-ui`、`x-deprecatedReason`、`errorMessage` 是已知关键字；其他以 `x-` 开头的关键字登记为注解。不以 `x-` 开头的未知关键字会让 schema 无法编译。
 
 Jotl 的扩展关键字同样会检查：

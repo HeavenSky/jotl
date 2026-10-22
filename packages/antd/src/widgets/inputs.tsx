@@ -1,7 +1,7 @@
 // 字符串与数字输入: input, textarea, password, url, email 用 Input 系列, number 用 InputNumber, range 用 Slider.
 import { useCallback, useState } from "react";
 import { Input, InputNumber, Slider } from "antd";
-import { decimalsOf } from "@jotl/form";
+import { decimalsOf, nativeMaxLength } from "@jotl/form";
 import { formatThousands, stripThousands } from "@jotl/form/core";
 import { ariaAttributes, textAttributes, type AntdFieldProps } from "../shared.js";
 
@@ -10,42 +10,41 @@ function displayText(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);
 }
 
-function lengthLimit(limit: unknown): number | undefined {
-	return typeof limit === "number" && Number.isInteger(limit) && limit >= 0 ? limit : undefined;
-}
-
 export function AntdInputWidget(props: AntdFieldProps<string>) {
+	const value = displayText(props.value);
 	return (
 		<Input
 			{...textAttributes(props)}
 			className="jotl-input jotl-text"
-			value={displayText(props.value)}
-			maxLength={lengthLimit(props.schema.maxLength)}
+			value={value}
+			maxLength={nativeMaxLength(props.schema.maxLength, value)}
 			onChange={e => props.onChange(e.target.value)}
 		/>
 	);
 }
 
 export function AntdPasswordWidget(props: AntdFieldProps<string>) {
+	const value = displayText(props.value);
 	return (
 		<Input.Password
 			{...textAttributes(props)}
 			className="jotl-input jotl-password"
-			value={displayText(props.value)}
-			maxLength={lengthLimit(props.schema.maxLength)}
+			value={value}
+			maxLength={nativeMaxLength(props.schema.maxLength, value)}
 			onChange={e => props.onChange(e.target.value)}
 		/>
 	);
 }
 
 export function AntdTextareaWidget(props: AntdFieldProps<string>) {
+	const value = displayText(props.value);
 	return (
 		<Input.TextArea
 			{...textAttributes(props)}
 			className="jotl-input jotl-textarea"
 			autoSize={{ minRows: 3 }}
-			value={displayText(props.value)}
-			maxLength={lengthLimit(props.schema.maxLength)}
+			value={value}
+			maxLength={nativeMaxLength(props.schema.maxLength, value)}
 			onChange={e => props.onChange(e.target.value)}
 		/>
 	);

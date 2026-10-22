@@ -1,7 +1,7 @@
 // antd 组件共用: props 别名, 关联元素 id, 校验状态与控件的 aria 属性.
 import type { ReactNode } from "react";
 import type { Diagnostic } from "@jotl/core";
-import { describedBy, labelId } from "@jotl/form";
+import { describedBy, errorId, labelId } from "@jotl/form";
 import type { FieldProps } from "@jotl/form/core";
 
 export type AntdFieldProps<V = unknown> = FieldProps<V, ReactNode>;
@@ -47,4 +47,16 @@ export function textAttributes(props: AntdFieldProps) {
 /** 选择类控件没有只读, view 与 disabled 都禁用. */
 export function choiceDisabled(props: AntdFieldProps): boolean {
 	return props.mode !== "edit";
+}
+
+/** 复合组件的根元素: 一组控件, 组名取外壳标签, 本节点的错误由组件自己显示并经 aria-describedby 引用; 与 @jotl/form 的 groupAttributes 一致. */
+export function groupAttributes(id: string, errors: readonly Diagnostic[]) {
+	const invalid = errors.length > 0;
+	return {
+		id,
+		role: "group",
+		"aria-labelledby": nameId(id),
+		"aria-invalid": invalid ? true : undefined,
+		"aria-describedby": invalid ? errorId(id) : undefined,
+	} as const;
 }

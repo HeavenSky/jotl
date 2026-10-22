@@ -7,10 +7,11 @@ import type {
 	JsonSchemaObject,
 	Locale,
 	Result,
+	WidgetLevel,
 	XUiGroup,
 } from "@jotl/core";
 
-export type WidgetLevel = "view" | "layout" | "composite" | "field" | "decorator";
+export type { WidgetLevel };
 
 export type RenderMode = "edit" | "view" | "disabled";
 

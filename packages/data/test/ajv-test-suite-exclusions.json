@@ -177,23 +177,6 @@
 		}
 	},
 	"format": {
-		"optional/format/date-time.json": {
-			"validation of date-time strings": [
-				"a numeric offset without minutes is invalid",
-				"hour 24 is invalid even with a leap second",
-				"a second fraction of fifteen nines is valid",
-				"an invalid minute in date-time string, with a numeric offset"
-			]
-		},
-		"optional/format/duration.json": {
-			"validation of duration strings": [
-				"years and days cannot appear without months",
-				"hours and seconds cannot appear without minutes"
-			]
-		},
-		"optional/format/ecmascript-regex.json": {
-			"\\a is not an ECMA 262 control escape": ["when used as a pattern"]
-		},
 		"optional/format/email.json": {
 			"validation of e-mail addresses": [
 				"a quoted string with a space in the local part is valid",
@@ -212,7 +195,6 @@
 			]
 		},
 		"optional/format/hostname.json": {
-			"validation of host names": ["trailing dot"],
 			"validation of A-label (punycode) host names": [
 				"invalid Punycode",
 				"contains illegal char U+302E Hangul single dot tone mark",
@@ -336,15 +318,6 @@
 				"a trailing newline after a valid IRI is invalid"
 			]
 		},
-		"optional/format/time.json": {
-			"validation of time strings": [
-				"a numeric time-offset requires the colon separator",
-				"a numeric time-offset requires the minutes component",
-				"hour 24 is invalid with a numeric time-offset",
-				"minute 60 is invalid with a numeric time-offset",
-				"a valid time string with a 15 digit second fraction"
-			]
-		},
 		"optional/format/uri-reference.json": {
 			"validation of URI References": [
 				"a double quote in a path",
@@ -368,7 +341,6 @@
 				"leading zero in an embedded IPv4 address is invalid",
 				"square brackets are not allowed in a path segment"
 			]
-		},
-		"optional/format/uuid.json": { "uuid format": ["URN prefixed UUID is invalid"] }
+		}
 	}
 }

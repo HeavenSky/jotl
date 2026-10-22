@@ -31,8 +31,8 @@ Peer dependencies: `antd` 5 or 6, `react` 18 or 19.
 
 ## What you get
 
-- **Antd look without per-field wiring.** Seventeen built-in widget names (twenty with `dayjs`), from `form` and `field` to `select` and `color`, render with antd components; see [Which widgets use antd](docs/coverage.md).
-- **Nothing breaks for the rest.** Names without an antd version (`money`, `kv`, `union` and others) resolve to the native widgets of `@jotl/form` through the parent registry.
+- **Antd look without per-field wiring.** Twenty-one built-in widget names (twenty-four with `dayjs`), from `form` and `field` to `select` and `color`, render with antd components; see [Which widgets use antd](docs/coverage.md).
+- **Nothing breaks for the rest.** Names without an antd version (`money`, `kv`, `json` and others) resolve to the native widgets of `@jotl/form` through the parent registry.
 - **Dates in your dayjs.** Pass the `dayjs` antd already uses and `date`, `time` and `datetime` read and write in the schema's storage format; leave it out and they fall back to native date inputs.
 - **Mix and override.** `antdWidgets()` and `registerAntdWidgets()` add the antd widgets to any registry, and each component is exported for registration under other names.
 

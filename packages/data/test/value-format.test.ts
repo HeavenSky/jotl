@@ -176,6 +176,57 @@ describe("默认数据与 Mock", () => {
 	});
 });
 
+describe("无法往返的格式串(编译期 JOTL1053)不校验取值, 也不抛异常", () => {
+	const formats = [
+		"YYYY w",
+		"YYYY W",
+		"YYYY-MM-DD kk:mm",
+		"k",
+		"X.SSS",
+		"YYYY-MM-DD x",
+		"HH:mm z",
+	];
+
+	it.each(formats)("%s: 合法值与乱写的值都放行", fmt => {
+		expect(isValidValueFormatValue(fmt, "zzz")).toBe(true);
+		expect(codes({ type: "string", "x-valueFormat": fmt }, "zzz")).toEqual([]);
+	});
+
+	it("k kk 与混排的 X x 写得出, 写出的值通过校验", () => {
+		const d = dayjs("2024-03-07T00:05:09");
+		expect(formatValueFormat("YYYY-MM-DD kk:mm", d)).toBe("2024-03-07 24:05");
+		expect(isValidValueFormatValue("YYYY-MM-DD kk:mm", "2024-03-07 24:05")).toBe(true);
+		expect(isValidValueFormatValue("X.SSS", String(formatValueFormat("X.SSS", d)))).toBe(true);
+	});
+
+	it("缺插件写不出的记号退回 RFC 3339; 默认数据与 Mock 不抛异常且通过校验", () => {
+		expect(formatValueFormat("YYYY W", dayjs("2026-10-13T09:30:15"))).toBe(
+			"2026-10-13T09:30:15+08:00"
+		);
+		const schema: JsonSchema = {
+			type: "object",
+			properties: Object.fromEntries(
+				formats.map((fmt, i) => [`f${i}`, { type: "string", "x-valueFormat": fmt }])
+			),
+			required: formats.map((_, i) => `f${i}`),
+		};
+		const defaults = getDefaults(schema, { strategy: "required" }).value;
+		expect(validate(schema, defaults).value).toEqual({ valid: true });
+		for (const seed of [1, 2, 3]) {
+			const result = mock(schema, { seed });
+			expect(result.diagnostics).toEqual([]);
+			expect(validate(schema, result.value).value).toEqual({ valid: true });
+		}
+	});
+
+	it("Q 与本地化记号照常校验", () => {
+		expect(isValidValueFormatValue("YYYY-MM-DD dddd", "2024-03-07 Thursday")).toBe(true);
+		expect(isValidValueFormatValue("YYYY-MM-DD dddd", "2024-03-07 Friday")).toBe(false);
+		expect(isValidValueFormatValue("Do MMMM YYYY", "7th March 2024")).toBe(true);
+		expect(isValidValueFormatValue("Do MMMM YYYY", "7th Mars 2024")).toBe(false);
+	});
+});
+
 describe("本地 DST 跳过的时刻仍按格式串判定(America/New_York)", () => {
 	beforeAll(() => {
 		process.env.TZ = "America/New_York";

@@ -9,6 +9,7 @@ import {
 	matchesValueFormatText,
 	valueFormatComponent,
 } from "../../src/schema/index.js";
+import { unparsableValueFormatToken } from "../../src/schema/value-format.js";
 
 describe("别名, 时间戳与组件推断", () => {
 	it("别名与时间戳", () => {
@@ -95,6 +96,33 @@ describe("matchesValueFormatText", () => {
 		}
 		expect(matchesValueFormat("MMM D, YYYY", "anything")).toBe(true);
 	});
+
+	it("Do 不被拆成 D 与字面 o, 不严于运行期", () => {
+		expect(matchesValueFormatText("Do YYYY", "7th 2024")).toBeUndefined();
+	});
+});
+
+describe("unparsableValueFormatToken", () => {
+	it.each([
+		["YYYY w", "w"],
+		["YYYY-ww", "ww"],
+		["YYYY W", "W"],
+		["YYYY-MM-DD kk:mm", "kk"],
+		["k:mm", "k"],
+		["gggg", "gggg"],
+		["HH:mm z", "z"],
+		["HH:mm:ss.SS", "SS"],
+		["X.SSS", "X"],
+		["YYYY-MM-DD x", "x"],
+		["x", undefined],
+		["X", undefined],
+		["utc-x", undefined],
+		["[w k X] YYYY", undefined],
+		["MMM Do, YYYY dddd Q", undefined],
+		["YYYY-MM-DD HH:mm:ss.SSS", undefined],
+	] as const)("%s → %s", (format, token) =>
+		expect(unparsableValueFormatToken(format)).toBe(token)
+	);
 });
 
 describe("matchesValueFormat", () => {

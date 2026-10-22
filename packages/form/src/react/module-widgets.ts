@@ -1,5 +1,5 @@
 // 扩展组件模块: 按模块地址生成懒加载的组件登记项, 以及从 schema 根 x-ui.widgets 读取模块声明.
-import { isSchemaObject, l10n, type JsonSchema, type Locale } from "@jotl/core";
+import { isSchemaObject, l10n, WIDGET_LEVELS, type JsonSchema, type Locale } from "@jotl/core";
 import type { WidgetLevel, WidgetRegistration } from "../core/index.js";
 import type { ReactWidgetComponent } from "./types.js";
 
@@ -34,7 +34,7 @@ function isComponent(value: unknown): value is ReactWidgetComponent {
 	);
 }
 
-/** 按 { 组件名: { module, export? } } 生成带 load 的登记项; 加载失败或导出不是组件时按 F9 显示失败与重试. */
+/** 按 { 组件名: { module, export?, level? } } 生成带 load 的登记项; 加载失败或导出不是组件时按 F9 显示失败与重试. */
 export function moduleWidgetRegistrations(
 	modules: Readonly<Record<string, WidgetModule>>,
 	options: ModuleWidgetOptions = {}
@@ -68,7 +68,11 @@ export function moduleWidgetRegistrations(
 	});
 }
 
-/** schema 根 x-ui.widgets 中带 module 的声明; 没有或不合法的项跳过. */
+function isWidgetLevel(value: unknown): value is WidgetLevel {
+	return (WIDGET_LEVELS as readonly unknown[]).includes(value);
+}
+
+/** schema 根 x-ui.widgets 中带 module 的声明(含可选的 export 与 level); 没有或不合法的项跳过. */
 export function schemaWidgetModules(schema: JsonSchema): Record<string, WidgetModule> {
 	const out: Record<string, WidgetModule> = {};
 	if (!isSchemaObject(schema)) return out;
@@ -80,9 +84,13 @@ export function schemaWidgetModules(schema: JsonSchema): Record<string, WidgetMo
 	if (typeof widgets !== "object" || widgets === null) return out;
 	for (const [name, value] of Object.entries(widgets)) {
 		if (typeof value !== "object" || value === null) continue;
-		const { module, export: exportName } = value as Record<string, unknown>;
+		const { module, export: exportName, level } = value as Record<string, unknown>;
 		if (typeof module !== "string" || module === "") continue;
-		out[name] = typeof exportName === "string" ? { module, export: exportName } : { module };
+		const spec: WidgetModule = { module };
+		if (typeof exportName === "string") spec.export = exportName;
+		// 不合法的 level 忽略, 按缺省 field 登记; 由 x-ui 校验报告.
+		if (isWidgetLevel(level)) spec.level = level;
+		out[name] = spec;
 	}
 	return out;
 }

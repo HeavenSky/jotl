@@ -1,6 +1,6 @@
 {
 	"name": "@jotl/core",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"description": "Compile Jotl to JSON Schema 2020-12 and print schemas back, with diagnostics that point to the exact line and column.",
 	"license": "MIT",
 	"repository": {

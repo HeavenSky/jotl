@@ -1,13 +1,16 @@
 // JSON Schema → TS + JSDoc 的纯字符串生成; 不依赖 typescript 包, 浏览器中可用.
 import {
 	appendPointer,
+	embeddedResources,
 	fail,
+	hoistDefs,
 	l10n,
 	hasErrors,
 	isSchemaObject,
 	isTimestampValueFormat,
 	ok,
 	orderKeywords,
+	restorePointer,
 	tryParsePointer,
 	type Diagnostic,
 	type JsonPointer,
@@ -156,6 +159,8 @@ interface Context {
 	typia: boolean;
 	typiaIdent: string;
 	typiaUsed: boolean;
+	/** 内嵌资源(带 `$id` 的非根子 schema)的位置; 其中的 `#...` 引用相对该资源解析, 不指向根 `$defs`. */
+	resources: readonly JsonPointer[];
 }
 
 const atom = (text: string): TypeText => ({ text, kind: "atom" });
@@ -556,7 +561,10 @@ class Generator {
 	}
 
 	private renderRef(ref: string, pointer: JsonPointer): TypeText {
-		const key = defKeyOfRef(ref);
+		const inResource = this.ctx.resources.some(
+			r => pointer === r || pointer.startsWith(`${r}/`)
+		);
+		const key = inResource ? undefined : defKeyOfRef(ref);
 		const name = key === undefined ? undefined : this.ctx.names.get(key);
 		if (name === undefined) {
 			this.warn("JOTL2003", pointer, { ref });
@@ -1019,12 +1027,17 @@ function isInterfaceShape(schema: JsonSchema): schema is JsonSchemaObject {
 	);
 }
 
-/** 把 JSON Schema 2020-12 文档转为 TS 声明文件文本(docs/tag-protocol.md, fixtures README 的格式约定). */
-export function schemaToTs(schema: JsonSchema, options: SchemaToTsOptions = {}): Result<string> {
-	if (!isSchemaObject(schema))
+/**
+ * 把 JSON Schema 2020-12 文档转为 TS 声明文件文本(docs/tag-protocol.md, fixtures README 的格式约定).
+ * 根资源内的嵌套 `$defs` 先按 `hoistDefs` 提为顶层类型, 诊断位置换回输入中的原位置.
+ */
+export function schemaToTs(input: JsonSchema, options: SchemaToTsOptions = {}): Result<string> {
+	if (!isSchemaObject(input))
 		return fail([
 			tsDiagnostic("JOTL2001", undefined, { location: { kind: "pointer", pointer: "" } }),
 		]);
+	const hoisted = hoistDefs(input);
+	const schema = hoisted.schema as JsonSchemaObject;
 	const diagnostics: Diagnostic[] = [];
 	const defs = isSchemaObject(schema.$defs) ? (schema.$defs as Record<string, JsonSchema>) : {};
 	if (schema.$defs !== undefined && !isSchemaObject(schema.$defs)) {
@@ -1058,6 +1071,7 @@ export function schemaToTs(schema: JsonSchema, options: SchemaToTsOptions = {}):
 		typia: options.typiaTags === true,
 		typiaIdent,
 		typiaUsed: false,
+		resources: embeddedResources(schema),
 	};
 	const generator = new Generator(ctx);
 
@@ -1143,7 +1157,18 @@ export function schemaToTs(schema: JsonSchema, options: SchemaToTsOptions = {}):
 	if (defaultExport !== undefined) blocks.push(`export default ${defaultExport};`);
 	if (declarations.length === 0 && defaultExport === undefined) blocks.push("export {};");
 	const text = `${l10n(GENERATED_HEADER, GENERATED_HEADER_EN)}\n\n${blocks.join("\n\n")}\n`;
-	return hasErrors(diagnostics) ? fail(diagnostics) : ok(text, diagnostics);
+	const located = diagnostics.map(d =>
+		d.location?.kind === "pointer"
+			? {
+					...d,
+					location: {
+						...d.location,
+						pointer: restorePointer(hoisted.moved, d.location.pointer),
+					},
+				}
+			: d
+	);
+	return hasErrors(located) ? fail(located) : ok(text, located);
 }
 
 function renderDeclaration(

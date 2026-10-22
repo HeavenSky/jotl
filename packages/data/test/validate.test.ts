@@ -240,6 +240,30 @@ describe("format", () => {
 			{ code: "JOTL4009", pointer: "/birthday", message: "birthday 不是有效的 日期" },
 		]);
 	});
+
+	// 覆盖 ajv-formats 中与 RFC 3339 / RFC 4122 / ECMA-262 不符的实现, 比 ajv-formats 严.
+	it.each([
+		["time", "08:30:06+08:00", true],
+		["time", "08:30:06+08", false],
+		["time", "08:30:06+0800", false],
+		["time", "00:59:59.999999999999999Z", true],
+		["time", "15:59:60-08:00", true],
+		["time", "23:59:60+01:00", false],
+		["date-time", "2026-10-13 09:30:15+08:00", true],
+		["date-time", "2026-10-13T09:30:15+08", false],
+		["date-time", "2016-12-31T24:59:60+01:00", false],
+		["duration", "P1Y2M3DT4H5M6S", true],
+		["duration", "P1Y2D", false],
+		["duration", "PT1H2S", false],
+		["uuid", "2eb8aa08-aa98-11ea-b4aa-73b441d16380", true],
+		["uuid", "urn:uuid:2eb8aa08-aa98-11ea-b4aa-73b441d16380", false],
+		["regex", "^[a-z]+$", true],
+		["regex", "\\a", false],
+		["hostname", "example.com", true],
+		["hostname", "example.", false],
+	] as const)("%s %j → %s", (format, value, valid) =>
+		expect(validate({ type: "string", format }, value).value).toEqual({ valid })
+	);
 });
 
 describe("编译缓存与编译失败", () => {

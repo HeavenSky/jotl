@@ -4,6 +4,7 @@
 	"command.showPreview": "打开预览",
 	"config.registeredWidgets": "内置组件之外已注册的组件名; 语言服务据此补全组件名, 并不对这些名字报 \"组件未注册\"; 大驼峰名另作为扩展组件按 string 编译; 要指定底层类型请登记在 jotl.config.json 中, 同名时以它为准.",
 	"config.preview.loadWidgetModules": "在预览表单中加载扩展组件模块: jotl.config.json 与 Jotl 文件根元数据 widgets 中声明的模块(https 地址, 或相对声明所在文件的路径); 模块在预览中运行, 与预览共用 React. 关闭时这些组件按降级方式显示, 预览顶部给出提示.",
+	"config.preview.allowModuleStyles": "允许预览中加载的扩展组件模块带入自己的样式: 预览的内容安全策略(CSP)另放行来自 https 的样式表与内联样式(含 antd 等 CSS-in-JS 库插入的样式). 只在开启 jotl.preview.loadWidgetModules 且文件确实声明了组件模块时生效. 安全取舍: 开启后样式不再只限于扩展自带的文件, 模块与远程 CSS 可以改写整个预览的外观, 内联样式也不再经 nonce 校验. 关闭时模块的 https 样式表与运行时插入的内联样式被拦截.",
 	"capabilities.untrustedWorkspaces": "在不受信任的工作区中忽略 jotl.preview.loadWidgetModules 的工作区取值, 仓库不能自行开启扩展组件模块代码的加载.",
 	"jsonValidation.configSchema": "./dist/jotl.config.schema.zh-cn.json"
 }

@@ -72,8 +72,9 @@ function isMultipleOf(value: number, divisor: number): boolean {
 }
 
 const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+// 与 @jotl/data 的 format 覆盖(formats.ts)一致: 偏移只能是 Z 或 ±HH:mm, 秒为 60(闰秒)时换算到 UTC 须为 23:59.
 const TIME_RE =
-	/^([01]\d|2[0-3]):[0-5]\d:([0-5]\d|60)(\.\d+)?(z|[+-]([01]\d|2[0-3])(:?[0-5]\d)?)$/i;
+	/^([01]\d|2[0-3]):([0-5]\d):([0-5]\d|60)(?:\.\d+)?(?:z|([+-])([01]\d|2[0-3]):([0-5]\d))$/i;
 const DAYS = [0, 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 function isDate(text: string): boolean {
@@ -84,6 +85,15 @@ function isDate(text: string): boolean {
 	return (
 		month >= 1 && month <= 12 && day >= 1 && day <= (month === 2 && !leap ? 28 : DAYS[month]!)
 	);
+}
+
+function isTime(text: string): boolean {
+	const m = TIME_RE.exec(text);
+	if (!m) return false;
+	if (m[3] !== "60") return true;
+	const offset =
+		m[4] === undefined ? 0 : (m[4] === "-" ? -1 : 1) * (Number(m[5]) * 60 + Number(m[6]));
+	return (((Number(m[1]) * 60 + Number(m[2]) - offset) % 1440) + 1440) % 1440 === 23 * 60 + 59;
 }
 
 const IPV4_RE = /^(?:(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)$/;
@@ -103,7 +113,7 @@ function isIpv6(text: string): boolean {
 	return halves.length === 2 ? count <= 7 : count === 8;
 }
 
-/** 常用 format 的宽松检查, 不严于 ajv-formats, 免得编译期拒绝运行期接受的值; 未列出的 format 不检查. */
+/** 常用 format 的检查, 不严于 @jotl/data 运行期(ajv-formats 加 formats.ts 的覆盖), 免得编译期拒绝运行期接受的值; 未列出的 format 不检查. */
 const FORMAT_CHECKS: Readonly<Record<string, (text: string) => boolean>> = {
 	email: t =>
 		/^[a-z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i.test(
@@ -111,16 +121,17 @@ const FORMAT_CHECKS: Readonly<Record<string, (text: string) => boolean>> = {
 		),
 	uri: t => /^[a-z][a-z0-9+.-]*:[^\s]*$/i.test(t),
 	date: isDate,
-	time: t => TIME_RE.test(t),
+	time: isTime,
 	"date-time": t => {
 		const parts = t.split(/t|\s/i);
-		return parts.length === 2 && isDate(parts[0]!) && TIME_RE.test(parts[1]!);
+		return parts.length === 2 && isDate(parts[0]!) && isTime(parts[1]!);
 	},
-	uuid: t => /^(?:urn:uuid:)?[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(t),
+	uuid: t => /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(t),
 	color: t => /^#(?:[0-9a-fA-F]{3,4}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$/.test(t),
 	ipv4: t => IPV4_RE.test(t),
 	ipv6: isIpv6,
 	hostname: t =>
+		!t.endsWith(".") &&
 		/^(?=.{1,253}\.?$)[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[-0-9a-z]{0,61}[0-9a-z])?)*\.?$/i.test(
 			t
 		),

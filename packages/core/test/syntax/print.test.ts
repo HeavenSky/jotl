@@ -20,6 +20,16 @@ function roundTrip(schema: JsonSchemaObject): string {
 	return printed.value!;
 }
 
+/** 打印无诊断, 再编译无诊断且与 expected(输入经语义等价的改写)深度相等; 返回打印结果. */
+function roundTripTo(schema: JsonSchemaObject, expected: JsonSchemaObject): string {
+	const printed = print(schema);
+	expect(printed.diagnostics).toEqual([]);
+	const compiled = compile(printed.value!, FILE);
+	expect(compiled.diagnostics, printed.value).toEqual([]);
+	expect(compiled.value!.schema, printed.value).toEqual(orderKeywords(expected));
+	return printed.value!;
+}
+
 /** 根为类型 A 的文档. */
 function docOf(a: JsonSchema, defs: Record<string, JsonSchema> = {}): JsonSchemaObject {
 	return {
@@ -274,16 +284,22 @@ describe("常规 JSON Schema 选用语义相符的组件", () => {
 
 	it("anyOf 为常量加同类型的开放分支时等价于该类型, 常量记入 examples; oneOf 不改写", () => {
 		const { line } = convertField({
-			anyOf: [
-				{ const: "a" },
-				{ description: "其它", const: "b" },
-				{ description: "自定义", type: "string" },
-			],
+			anyOf: [{ const: "a" }, { const: "b" }, { type: "string" }],
 		});
 		expect(line).toBe("x: string[examples: ['a', 'b']]");
 		expect(convertField({ oneOf: [{ const: "a" }, { type: "string" }] }).line).toMatch(
 			/^x: any\[schema:/
 		);
+	});
+
+	it("常量或开放分支带 title description 时不改写为 examples, 整体经 schema 写出, 往返不丢", () => {
+		for (const anyOf of [
+			[{ const: "a", title: "甲" }, { const: "b" }, { type: "string" }],
+			[{ const: "a" }, { description: "其它", const: "b" }, { type: "string" }],
+			[{ const: "a" }, { description: "自定义", type: "string" }],
+		]) {
+			expect(fieldLine({ anyOf } as JsonSchemaObject)).toMatch(/^x: any\[schema: \{anyOf:/);
+		}
 	});
 
 	it("oneOf 各分支 JSON 类型互斥时打印为按 JSON 类型区分的联合", () => {
@@ -334,6 +350,80 @@ describe("常规 JSON Schema 选用语义相符的组件", () => {
 				fieldDoc({ allOf: [{ $ref: "#/$defs/C" }, { $ref: "#/$defs/C" }] }, defs as never)
 			).text
 		).toContain("x: any[schema:");
+	});
+
+	it("allOf 含只有字段, required 与注解的内联对象分支时一并合并; 注解上移, 内联字段的诊断指向原位置", () => {
+		const defs = {
+			B: { type: "object", properties: { b: { type: "boolean" } }, required: ["b"] },
+		} as const;
+		const mixed = convert(
+			fieldDoc(
+				{
+					allOf: [
+						{ $ref: "#/$defs/B" },
+						{
+							title: "合并",
+							description: "说明",
+							properties: { c: { type: "number" } },
+							required: ["c"],
+						},
+					],
+				},
+				defs as never
+			)
+		);
+		expect(mixed.text).toContain(
+			"x(合并): [description: '说明'] {\n    b: boolean\n    c: number\n  }"
+		);
+		expect((mixed.schema.$defs!.A as JsonSchemaObject).properties!.x).toEqual({
+			title: "合并",
+			description: "说明",
+			type: "object",
+			properties: { b: { type: "boolean" }, c: { type: "number" } },
+			required: ["b", "c"],
+		});
+		const inline = print(
+			fieldDoc({
+				allOf: [
+					{ type: "object", properties: { a: { type: "string" } } },
+					{ properties: { b: true } },
+				],
+			})
+		);
+		expect(inline.value).toContain("x: {\n    a\n    b?: any\n  }");
+		expect(inline.diagnostics.map(d => [d.code, d.location])).toEqual([
+			[
+				"JOTL1033",
+				{ kind: "pointer", pointer: "/$defs/A/properties/x/allOf/1/properties/b" },
+			],
+		]);
+	});
+
+	it("allOf 内联分支不能安全合并时回落为 schema 原样写出", () => {
+		const cases: JsonSchemaObject[] = [
+			// 没有任何一处声明 type: object, 合并会改变非对象值的校验.
+			{ allOf: [{ properties: { a: { type: "string" } } }] },
+			// 内联分支带约束关键字.
+			{
+				allOf: [
+					{ type: "object", properties: { a: { type: "string" } }, minProperties: 1 },
+				],
+			},
+			// 注解与节点冲突.
+			{ title: "外", allOf: [{ type: "object", title: "内" }] },
+			// 两个分支的注解冲突.
+			{ allOf: [{ type: "object", description: "甲" }, { description: "乙" }] },
+			// 字段重名.
+			{ allOf: [{ type: "object", properties: { a: {} } }, { properties: { a: {} } }] },
+		];
+		for (const x of cases) expect(fieldLine(x)).toMatch(/^x(\(外\))?: any\[schema: \{/);
+		// 类型串位置(数组元素)不能带标签, 上移的 title 写不出时整体回落.
+		expect(
+			fieldLine({
+				type: "array",
+				items: { allOf: [{ type: "object", title: "元素", properties: {} }] },
+			})
+		).toMatch(/^x: array\[array_item: 'any', item_meta: \{schema: \{allOf:/);
 	});
 
 	it("联合中的对象分支提升为顶层类型 <所在类型名>Object, 避免重名", () => {
@@ -467,10 +557,11 @@ describe("常规 JSON Schema 选用语义相符的组件", () => {
 		);
 		let data: unknown = 1;
 		for (let i = 0; i < 2000; i++) data = { a: data };
+		// 不是对象的 `$defs` 不提升, 打印时丢弃.
 		const ignored = print({
 			...docOf({
 				type: "object",
-				properties: { s: { type: "string", $defs: { X: data as JsonSchemaObject } } },
+				properties: { s: { type: "string", $defs: [data] as never } },
 			}),
 			"x-ui": { version: 1, foo: data },
 		} as never);
@@ -648,5 +739,161 @@ describe("根与类型名", () => {
 	it("子节点中的 $schema $defs 被忽略并报 JOTL1032", () => {
 		const printed = print(fieldDoc({ type: "boolean", $defs: {} }));
 		expect(codes(printed.diagnostics)).toEqual(["JOTL1032"]);
+	});
+});
+
+describe("嵌套 $defs", () => {
+	it("根资源内的嵌套 $defs 提为顶层类型, 指向它的引用改指; 再编译与提升后的文档深度相等", () => {
+		const text = roundTripTo(
+			docOf({
+				type: "object",
+				properties: {
+					a: {
+						type: "object",
+						properties: { b: { $ref: "#/$defs/A/properties/a/$defs/X" } },
+						$defs: { X: { type: "string", minLength: 2 } },
+					},
+				},
+			}),
+			docOf(
+				{
+					type: "object",
+					properties: { a: { type: "object", properties: { b: { $ref: "#/$defs/X" } } } },
+				},
+				{ X: { type: "string", minLength: 2 } }
+			)
+		);
+		expect(text).toBe("A: {\n  a?: {\n    b?: X\n  }\n}\n\nX: string[minLength: 2]\n");
+	});
+
+	it("与根 $defs 重名时改名为 <键>2; 指向根上同名条目的引用不变", () => {
+		const text = roundTripTo(
+			docOf(
+				{
+					type: "object",
+					properties: {
+						n: { $ref: "#/$defs/X" },
+						a: {
+							type: "object",
+							properties: { b: { $ref: "#/$defs/A/properties/a/$defs/X" } },
+							$defs: { X: { type: "string" } },
+						},
+					},
+				},
+				{ X: { type: "number" } }
+			),
+			docOf(
+				{
+					type: "object",
+					properties: {
+						n: { $ref: "#/$defs/X" },
+						a: { type: "object", properties: { b: { $ref: "#/$defs/X2" } } },
+					},
+				},
+				{ X: { type: "number" }, X2: { type: "string" } }
+			)
+		);
+		expect(text).toContain("  n?: X\n");
+		expect(text).toContain("    b?: X2\n");
+	});
+
+	it("指向嵌套条目内部的指针与嵌套中的嵌套一并改写", () => {
+		roundTripTo(
+			docOf({
+				type: "object",
+				properties: {
+					c: { not: { $ref: "#/$defs/A/$defs/X/properties/c" } },
+					y: { $ref: "#/$defs/A/$defs/X/$defs/Y" },
+				},
+				$defs: {
+					X: {
+						type: "object",
+						properties: { c: { type: "number" } },
+						$defs: { Y: { type: "boolean" } },
+					},
+				},
+			}),
+			docOf(
+				{
+					type: "object",
+					properties: {
+						c: { not: { $ref: "#/$defs/X/properties/c" } },
+						y: { $ref: "#/$defs/Y" },
+					},
+				},
+				{
+					X: { type: "object", properties: { c: { type: "number" } } },
+					Y: { type: "boolean" },
+				}
+			)
+		);
+	});
+
+	it("内联根中的嵌套 $defs 同样提升, 原先丢弃并留下悬空引用", () => {
+		const { text, schema } = convert({
+			type: "object",
+			properties: {
+				a: {
+					type: "object",
+					properties: { b: { $ref: "#/properties/a/$defs/X" } },
+					$defs: { X: { type: "string" } },
+				},
+			},
+		});
+		expect(text).toBe("Root: {\n  a?: {\n    b?: X\n  }\n}\n\nX: string\n");
+		expect(schema.$defs!.X).toEqual({ type: "string" });
+	});
+
+	it("带 $id 的子 schema 是内嵌资源: 其中的 #/$defs/X 指它自己的定义, 整体原样写出, 不改指根上的同名条目", () => {
+		const sub: JsonSchemaObject = {
+			$id: "https://example.com/sub",
+			type: "object",
+			properties: { b: { $ref: "#/$defs/X" } },
+			$defs: { X: { type: "string" } },
+		};
+		const { text, schema } = convert(
+			docOf(
+				{ type: "object", properties: { n: { $ref: "#/$defs/X" }, a: sub } },
+				{ X: { type: "number" } }
+			)
+		);
+		expect(text).toContain("  n?: X\n");
+		expect(text).toContain("  a?: any[schema: {allOf: [{$id: 'https://example.com/sub',");
+		expect((schema.$defs!.A as JsonSchemaObject).properties!.a).toEqual({ allOf: [sub] });
+		// 不带 $defs $schema 的内嵌资源深度相等地往返, title 写为标签.
+		const plain: JsonSchemaObject = {
+			$id: "https://example.com/p",
+			title: "子",
+			type: "object",
+			properties: { b: { $ref: "#/properties/c" }, c: { type: "string" } },
+		};
+		expect(fieldLine(plain)).toBe(
+			"x(子): any[schema: {$id: 'https://example.com/p', type: 'object', properties: {b: {$ref: '#/properties/c'}, c: {type: 'string'}}}]"
+		);
+	});
+
+	it("提升出的条目上的诊断指向输入中的原位置", () => {
+		const printed = print(
+			docOf({
+				type: "object",
+				properties: { a: { $ref: "#/$defs/A/$defs/X" } },
+				$defs: { X: { type: "object", properties: { f: true } } },
+			})
+		);
+		expect(printed.diagnostics.map(d => [d.code, d.location])).toEqual([
+			["JOTL1033", { kind: "pointer", pointer: "/$defs/A/$defs/X/properties/f" }],
+		]);
+	});
+
+	it("含 $dynamicRef 等动态引用时不提升, 嵌套 $defs 照旧忽略并报 JOTL1032", () => {
+		const printed = print(
+			docOf({
+				type: "object",
+				properties: { a: { $dynamicRef: "#/$defs/A/$defs/X" } },
+				$defs: { X: { type: "string" } },
+			})
+		);
+		expect(codes(printed.diagnostics)).toEqual(["JOTL1032"]);
+		expect(printed.value).not.toContain("\nX:");
 	});
 });

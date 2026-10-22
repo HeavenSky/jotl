@@ -6,7 +6,7 @@
 
 ## 文本输入遇到 emoji 会提前截止
 
-默认 `input`、`password`、`textarea` widget 把 `maxLength` 传给原生 `maxlength`，后者按 UTF-16 代码单元计数。含基本多文种平面以外字符（如多数 emoji）的文本，没到 schema 的 `maxLength`（按字符计数）就被拦下。校验仍按字符计数，所以输入框放行的文本不会被校验报错。想在输入时允许满额字符数，自己登记一个不设 `maxlength` 的文本 widget，见[替换与登记 widget](custom-widgets.md)。[`@jotl/antd`](../../../antd/zh/docs/coverage.md#与-schema-的已知差异) 的行为相同。
+默认 `input`、`password`、`textarea` widget 把 `maxLength` 传给原生 `maxlength`，后者按 UTF-16 代码单元计数，因此 widget 会加上值中已有代理对字符的个数，逐字输入时按字符计数。仍有两种情况会在到达 schema 的 `maxLength` 前拦下：只剩 1 个字符时输入基本多文种平面以外的字符（如多数 emoji），以及粘贴含这类字符的文本。校验仍按字符计数，所以输入框放行的文本不会被校验报错。想在这两种情况下也允许满额字符数，自己登记一个不设 `maxlength` 的文本 widget，见[替换与登记 widget](custom-widgets.md)。[`@jotl/antd`](../../../antd/zh/docs/coverage.md#与-schema-的已知差异) 的行为相同。
 
 ## 带 patternProperties 的对象按 JSON 编辑
 

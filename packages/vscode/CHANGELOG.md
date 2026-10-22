@@ -2,6 +2,16 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## v0.0.3 2026-10-22 Stricter formats
+
+- **Breaking:** form validation now follows RFC 3339 for `time`, `date-time` and `duration`: a time zone offset needs minutes (`+08:00`, not `+08`), and `:60` seconds is accepted only for a leap second at 23:59 UTC. `uuid` no longer accepts a `urn:uuid:` prefix, and `hostname` no longer accepts a trailing dot. Rewrite such values in your data and defaults; the editor reports `time`, `date-time`, `uuid` and `hostname` defaults that no longer pass with `JOTL1008`.
+- **Breaking:** a `value_format` with tokens that cannot be read back (`w` `W` `k` `kk` `gggg` `GGGG` `z` `S` `SS`, or `X` / `x` mixed with other tokens) now reports the error `JOTL1053`. Use tokens such as `YYYY` `MM` `DD` `HH` `mm` `ss`, or a timestamp; the preview form no longer fails on these formats.
+- A `widget` set in a `variants` scene is checked like one on the field: a built-in widget that does not fit reports `JOTL1045` and the scene keeps the field's widget, and a `jotl.config.json` widget whose underlying type does not accept the field reports `JOTL1052`.
+- Very long chains of type aliases no longer stop the language server, and a wrong `default` behind one is still reported.
+- The new setting `jotl.preview.allowModuleStyles`, off by default, lets widget modules in the preview load `https:` stylesheets and inject styles at run time, as antd does ([guide](https://github.com/HeavenSky/jotl/blob/HEAD/packages/vscode/docs/widget-modules.md)).
+- Module declarations in `x-ui.widgets` accept `level`, so a module widget can register as a layout or decorator; completion and validation in `*.schema.json` know the new key.
+- Text inputs in the preview form count `maxLength` by characters, so emoji no longer stop typing early, except when only one character is left or when pasting.
+
 ## v0.0.2 2026-10-21 Stricter diagnostics
 
 - New diagnostics: an empty discriminated union, string constraints on a timestamp `value_format` field, and a `node_if` path starting with `$.` (use `root_if` to read from the root).

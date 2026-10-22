@@ -4,6 +4,10 @@ import { BUILTIN_WIDGETS } from "@jotl/form/core";
 import { JsonWidget } from "@jotl/form";
 import {
 	AntdInputWidget,
+	AntdNullableWidget,
+	AntdOutputWidget,
+	AntdTreeWidget,
+	AntdUnionWidget,
 	antdWidgets,
 	createAntdRegistry,
 	registerAntdWidgets,
@@ -28,6 +32,10 @@ describe("登记", () => {
 	it("createAntdRegistry 覆盖已实现的名字, 其余回落到原生组件", () => {
 		const registry = createAntdRegistry();
 		expect(registry.get("input")?.component).toBe(AntdInputWidget);
+		expect(registry.get("output")?.component).toBe(AntdOutputWidget);
+		expect(registry.get("union")?.component).toBe(AntdUnionWidget);
+		expect(registry.get("nullable")?.component).toBe(AntdNullableWidget);
+		expect(registry.get("tree")?.component).toBe(AntdTreeWidget);
 		expect(registry.get("json")?.component).toBe(JsonWidget);
 	});
 

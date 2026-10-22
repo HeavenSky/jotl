@@ -2,6 +2,16 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
+## v0.0.3 2026-10-22 更严格的格式校验
+
+- **破坏性变更：** 表单校验的 `time`、`date-time`、`duration` 改按 RFC 3339：时区偏移必须带分钟（写 `+08:00`，不能写 `+08`），秒为 `:60` 只接受 UTC 23:59 的闰秒。`uuid` 不再接受 `urn:uuid:` 前缀，`hostname` 不再接受末尾的点。请改写数据与默认值中的这类取值；`time`、`date-time`、`uuid`、`hostname` 上不再合法的默认值会在编辑器中报 `JOTL1008`。
+- **破坏性变更：** `value_format` 含无法读回的记号（`w` `W` `k` `kk` `gggg` `GGGG` `z` `S` `SS`，或与其他记号混排的 `X` / `x`）时报错误 `JOTL1053`。请改用 `YYYY` `MM` `DD` `HH` `mm` `ss` 等记号或时间戳；预览表单遇到这类格式不再出错。
+- `variants` 场景中写的 `widget` 与字段上的一样检查：不适用的内置 widget 报 `JOTL1045`，该场景沿用字段的 widget；`jotl.config.json` 中 widget 声明的底层类型不接受字段类型时报 `JOTL1052`。
+- 很长的类型别名链不再让语言服务停止工作，经由别名链的错误 `default` 照样报出。
+- 新设置 `jotl.preview.allowModuleStyles`（默认关闭）允许预览中的 widget 模块加载 `https:` 样式表并在运行时插入样式，antd 就需要这样（[指南](https://github.com/HeavenSky/jotl/blob/HEAD/packages/vscode/zh/docs/widget-modules.md)）。
+- `x-ui.widgets` 中的模块声明可以写 `level`，模块 widget 可以登记为布局或装饰器；`*.schema.json` 中的补全与校验认识这个新键。
+- 预览表单的文本输入按字符计算 `maxLength`，emoji 不再提前拦截输入，只剩一个字符时输入或粘贴时除外。
+
 ## v0.0.2 2026-10-21 更严格的诊断
 
 - 新增诊断：空的可辨识联合，时间戳 `value_format` 字段上的字符串约束，以及以 `$.` 开头的 `node_if` 路径（要从根读取请用 `root_if`）。

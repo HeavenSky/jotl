@@ -1,5 +1,5 @@
 // x-ui 的轻量结构校验, 规则与 @jotl/core 的 xUiMetaSchema 一致, 用于 F3 判定(core/ 不依赖 Ajv).
-import { appendPointer, type JsonPointer } from "@jotl/core";
+import { appendPointer, WIDGET_LEVELS, type JsonPointer } from "@jotl/core";
 import type { XUiIssueKind } from "./diagnostics.js";
 
 export interface XUiIssue {
@@ -138,7 +138,12 @@ const checkWidgetModules: Check = (v, p) => {
 	for (const [name, decl] of Object.entries(v)) {
 		if (name === "") return issue(appendPointer(p, name), "empty");
 		const found = objectOf(
-			{ base: checkWidgetBase, module: nonEmptyString, export: nonEmptyString },
+			{
+				base: checkWidgetBase,
+				module: nonEmptyString,
+				export: nonEmptyString,
+				level: oneOfValues(WIDGET_LEVELS),
+			},
 			["module"]
 		)(decl, appendPointer(p, name));
 		if (found) return found;

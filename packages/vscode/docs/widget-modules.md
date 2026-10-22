@@ -55,10 +55,10 @@ After this page, the preview form renders your own React widget components inste
 The preview's content security policy lets modules load only from `https:` URLs and from local files, which rules out these cases:
 
 - **Modules from an `http:` dev server.** Serve the module over `https:`, or build it into a file in the workspace.
-- **A module's own stylesheet and its `fetch` requests.** Style the component through the `style` prop, or reuse `styles` and `cn` from `@jotl/form`, and pass data in through the schema instead of fetching it.
+- **A module's `fetch` requests, and by default its own stylesheet.** Pass data in through the schema instead of fetching it. Style the component through the `style` prop, or reuse `styles` and `cn` from `@jotl/form`; stylesheets next to a local module already load. To let modules bring `https:` stylesheets or inject styles at run time (CSS-in-JS libraries such as antd's), also turn on `jotl.preview.allowModuleStyles`. It takes effect only while modules are loaded and the file declares some; the trade-off is that module and remote CSS can restyle the whole preview, and inline styles are no longer checked by nonce.
 - **Local dependencies outside the workspace.** Bundle them into the module file.
 - **Relative paths in an untitled document.** Save the file first, so the path has a directory to resolve against.
 
 Windows drive paths and `file:` addresses are mapped to preview addresses, but this has not been tested on Windows.
 
-The same policy allows `'unsafe-eval'`, because the form's validator compiles validation functions from the schema at run time and the schema changes as you type. Scripts still run only from the preview's own tags, plus local files and `https:` while module loading is on.
+The same policy allows `'unsafe-eval'`, because the form's validator compiles validation functions from the schema at run time and the schema changes as you type. Scripts still run only from the preview's own tags, plus local files and `https:` while module loading is on. Styles come only from the preview's own tags and local files, unless `jotl.preview.allowModuleStyles` is on.

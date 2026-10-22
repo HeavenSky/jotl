@@ -214,6 +214,12 @@ export const SYNTAX_DIAGNOSTICS = {
 		message: "widget `{widget}` 声明的底层类型 `{base}` 与字段类型 `{type}` 不兼容",
 		en: "widget `{widget}` is declared with base type `{base}`, which is incompatible with field type `{type}`",
 	},
+	JOTL1053: {
+		severity: "error",
+		message:
+			"`value_format` 中的记号 `{token}` 无法按格式往返: dayjs 不能用它解析回取值, 运行期跳过该格式的校验",
+		en: "Token `{token}` in `value_format` cannot round-trip: dayjs cannot parse values back with it, and runtime validation skips this format",
+	},
 } as const;
 
 export type SyntaxDiagnosticCode = keyof typeof SYNTAX_DIAGNOSTICS;

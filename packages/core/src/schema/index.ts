@@ -58,10 +58,12 @@ export {
 export {
 	DEFAULT_GRID_COLUMNS,
 	DEFAULT_SCENE,
+	WIDGET_LEVELS,
 	type Condition,
 	type ConditionBase,
 	type UiRule,
 	type UiRuleMatch,
+	type WidgetLevel,
 	type XUi,
 	type XUiGroup,
 	type XUiLayout,

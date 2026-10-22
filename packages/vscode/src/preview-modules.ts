@@ -1,8 +1,14 @@
 // 预览中的扩展组件模块: 读取模块声明(jotl.config.json 的 widgets 与 schema 根 x-ui.widgets), 插件与 webview 之间传递的模块信息, 以及 webview 中 React 共享垫片的约定; 不接触 vscode API 与 Node 模块.
 
+/** 模块组件的登记级别; 本包不依赖 @jotl/core, 取值必须等于它的 WIDGET_LEVELS. */
+const WIDGET_LEVELS = ["view", "layout", "composite", "field", "decorator"] as const;
+export type WidgetLevel = (typeof WIDGET_LEVELS)[number];
+
 export interface WidgetModuleRef {
 	module: string;
 	export?: string;
+	/** 缺省为 field. */
+	level?: WidgetLevel;
 }
 
 /** 插件随预览内容发给 webview 的模块信息. */
@@ -36,18 +42,22 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-/** 名字 → 声明的对象中带非空 module 的项; 字符串与不带 module 的 schema 对象只声明底层类型, 跳过. */
+function isWidgetLevel(value: unknown): value is WidgetLevel {
+	return (WIDGET_LEVELS as readonly unknown[]).includes(value);
+}
+
+/** 名字 → 声明的对象中带非空 module 的项; 字符串与不带 module 的 schema 对象只声明底层类型, 跳过; 空 export 与不合法的 level 忽略. */
 export function widgetModuleRefs(widgets: unknown): Record<string, WidgetModuleRef> {
 	const out: Record<string, WidgetModuleRef> = {};
 	if (!isRecord(widgets)) return out;
 	for (const [name, value] of Object.entries(widgets)) {
 		if (!isRecord(value)) continue;
-		const { module, export: exportName } = value;
+		const { module, export: exportName, level } = value;
 		if (typeof module !== "string" || module === "") continue;
-		out[name] =
-			typeof exportName === "string" && exportName !== ""
-				? { module, export: exportName }
-				: { module };
+		const ref: WidgetModuleRef = { module };
+		if (typeof exportName === "string" && exportName !== "") ref.export = exportName;
+		if (isWidgetLevel(level)) ref.level = level;
+		out[name] = ref;
 	}
 	return out;
 }
@@ -77,6 +87,7 @@ export function isPreviewModules(value: unknown): value is PreviewModules {
 		ref =>
 			isRecord(ref) &&
 			typeof ref.module === "string" &&
-			(ref.export === undefined || typeof ref.export === "string")
+			(ref.export === undefined || typeof ref.export === "string") &&
+			(ref.level === undefined || isWidgetLevel(ref.level))
 	);
 }

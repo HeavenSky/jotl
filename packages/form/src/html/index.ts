@@ -45,6 +45,7 @@ export {
 	PasswordWidget,
 	TextareaWidget,
 	UrlWidget,
+	nativeMaxLength,
 } from "./widgets/string-inputs.js";
 export { DateTimeWidget, DateWidget, TimeWidget } from "./widgets/time-inputs.js";
 export { TreeWidget } from "./widgets/tree.js";

@@ -2,3 +2,9 @@
 export * from "./schema/index.js";
 export * from "./syntax/index.js";
 export { type JsonSyntaxError, jsonPointerOffsets, locateJsonError } from "./syntax/json-locate.js";
+export {
+	type HoistedDefs,
+	embeddedResources,
+	hoistDefs,
+	restorePointer,
+} from "./schema/hoist-defs.js";

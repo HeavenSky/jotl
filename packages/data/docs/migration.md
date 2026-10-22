@@ -47,4 +47,4 @@ A value cannot be kept when conversion fails, when it is not among the enum valu
 2. Otherwise optional fields and array items are removed.
 3. Otherwise required fields take the zero value, or are removed when there is none.
 
-`migrate` does not repair constraint violations such as `maxItems`, `uniqueItems` or `maxLength`. Call `validate` after migrating.
+`migrate` does not repair constraint violations such as `maxItems` or `maxLength`. Under `uniqueItems` it removes exact duplicates and keeps the first, except in arrays with `prefixItems` or `contains`. Call `validate` after migrating.
