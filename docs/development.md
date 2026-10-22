@@ -73,9 +73,13 @@ Other directories:
 
 ## Release
 
-Each package is released on its own by pushing a tag: `<directory>@<version>` releases `packages/<directory>` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published (on npm, or on each marketplace for the extension), so rerunning a failed run is safe. CI warns when the sources bundled into the extension changed since the last `vscode-v*` tag. The extension bundles the workspace sources of `@jotl/language-server`, `@jotl/form` and their dependencies at build time and never loads them from npm, so publishing an npm package never requires a new extension release; release the extension when you want its users to get changes in those bundled packages.
+**Bump versions and push to `main`; the rest is automatic.** When a push to `main` changes a `packages/*/package.json`, `.github/workflows/npm-release.yml` publishes every package whose version is not on npm yet, in dependency order within one run, pushes a `<directory>@<version>` tag for each, and then dispatches `.github/workflows/vscode-release.yml` when `vscode-v<extension version>` does not exist yet. Running npm-release by hand on `main` with `packages` set to `all` does the same; check `dry_run` to only build and smoke-test.
 
-1. Bump `version` in the package's `package.json`, commit and push to `main`.
+A single package can still be released on its own by pushing a tag: `<directory>@<version>` releases `packages/<directory>` through `.github/workflows/npm-release.yml`, and `vscode-v<version>` releases the extension through `.github/workflows/vscode-release.yml`. Both wait for CI on the tagged commit and skip versions that are already published (on npm, or on each marketplace for the extension), so rerunning a failed run is safe. CI warns when the sources bundled into the extension changed since the last `vscode-v*` tag. The extension bundles the workspace sources of `@jotl/language-server`, `@jotl/form` and their dependencies at build time and never loads them from npm, so publishing an npm package never requires a new extension release; release the extension when you want its users to get changes in those bundled packages.
+
+To release one package by tag:
+
+1. Bump `version` in the package's `package.json`, commit and push to `main`; this already publishes it, so the tag is only needed when the automatic run was skipped or failed.
 2. Push the tag, for example for `packages/core`:
 
     ```sh

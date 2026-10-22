@@ -61,11 +61,11 @@ pnpm run package     # 生产构建 + 打 vsix 到 artifacts/ + 内容断言
 
 ## 发布
 
-发布由仓库根的 `.github/workflows/vscode-release.yml` 完成, 推送 `vscode-v<版本>` 标签触发, 也可手动触发并填版本号:
+发布由仓库根的 `.github/workflows/vscode-release.yml` 完成; 版本号变更推送到 `main` 后由 `npm-release.yml` 在 npm 包发完后自动调度(远端已有 `vscode-v<版本>` 标签时跳过), 也可推送 `vscode-v<版本>` 标签或手动触发并填版本号:
 
 1. 更新 `package.json` 的 `version` 与 `CHANGELOG.md`(标题格式 `## v<版本> <日期> [标题]`, 日期取 `date '+%Y-%m-%d'`).
 2. 本地跑通上面四步.
-3. `git tag vscode-v<版本> && git push origin vscode-v<版本>`; 标签版本必须等于 `package.json` 的 `version`.
+3. 提交并推送 `main`, 由 npm-release 自动调度; 不走自动调度时 `git tag vscode-v<版本> && git push origin vscode-v<版本>`, 标签版本必须等于 `package.json` 的 `version`.
 
 工作流先在仓库根 `pnpm install --frozen-lockfile` 与 `pnpm build`, 再在本目录跑 check, typecheck, test, package, 创建 GitHub Release 并附 vsix; 仓库 Secrets 有 `VSCE_PAT` 时发布到 VS Code Marketplace, 有 `OVSX_PAT` 时发布到 Open VSX, 都用同一个 vsix(`--packagePath`), 不重新打包; 两个发布 job 都先查询市场上是否已有该版本, 已有就跳过, 因此重跑安全; 查询 Open VSX 失败(非 404)时 job 失败, 不误跳过; ovsx 钉死在固定版本, 升级时改 workflow 中那一处.
 

@@ -1,16 +1,22 @@
-# 发布 npm 包, 两种触发方式:
+# 发布 npm 包, 三种触发方式:
+# - 推送到 main 且改动了 packages/*/package.json 时, 等同手动运行 packages=all: npm 上还没有的版本全部发布, 已有的跳过;
+#   改版本号并推送 main 即发布, 不需要推 tag
 # - 推送 <包目录名>@<版本> 形式的 tag 时发布 packages/<包目录名>, 例: core@0.0.2, cli@0.0.2; 依赖的 @jotl/* 须已在 npm 上
 # - 手动运行(workflow_dispatch, 只限 main): packages 填 all 或包目录名列表(空格或逗号分隔), 按包间依赖自动排序,
 #   一次运行内构建, 冒烟安装(待发布的上游包用本次打出的 tarball)并依次发布, 发布成功的包补推 <包目录名>@<版本> tag
+# 推送 main 与手动运行在 npm 包处理完后, 若远端还没有 vscode-v<packages/vscode 版本> tag, 经 workflow_dispatch 调度 vscode-release.yml 发布插件;
+# GITHUB_TOKEN 推的 tag 不会触发 workflow, workflow_dispatch 是例外, 所以用调度而不是推 tag
 # npm 登录走 Trusted Publishing(OIDC), 不需要 NPM_TOKEN; 各包需先登记本仓库与本文件, 批量登记见 docs/development.md
 # build 执行依赖代码但只有只读权限, publish 只拿 OIDC 且不执行依赖代码, tag 只有写仓库权限且不执行依赖代码
 # npm 上已有的版本会跳过, 因此补推已手动发布版本的 tag 或重跑失败的运行都安全
 name: Release npm package
-run-name: Release ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', inputs.packages, inputs.dry_run && ' (dry run)' || '') || github.ref_name }}
+run-name: Release ${{ github.event_name == 'workflow_dispatch' && format('{0}{1}', inputs.packages, inputs.dry_run && ' (dry run)' || '') || github.ref_type == 'branch' && 'all (main)' || github.ref_name }}
 
 on:
     push:
+        branches: [main]
         tags: ["*@*"]
+        paths: ["packages/*/package.json"]
     workflow_dispatch:
         inputs:
             packages:
@@ -54,7 +60,9 @@ jobs:
                   REF: ${{ github.ref }}
                   INPUT: ${{ inputs.packages }}
               run: |
-                  if [ "$EVENT" = workflow_dispatch ]; then
+                  if [ "$EVENT" = push ] && [ "$REF" = refs/heads/main ]; then
+                    selection=all
+                  elif [ "$EVENT" = workflow_dispatch ]; then
                     if [ "$REF" != refs/heads/main ]; then
                       echo "::error::手动发布只能在 main 上运行"
                       exit 1
@@ -254,11 +262,11 @@ jobs:
                     echo "::endgroup::"
                   done < pack/release.tsv
 
-    # 手动发布时, 为选中且该版本已在 npm 上的包补推 <包目录名>@<版本> tag; 远端已有该 tag 时跳过.
+    # 推送 main 与手动发布时, 为选中且该版本已在 npm 上的包补推 <包目录名>@<版本> tag; 远端已有该 tag 时跳过.
     # 部分包发布失败时也运行, 重跑时之前已发布(因而被跳过)的包同样会补上 tag; GITHUB_TOKEN 推的 tag 不会再触发本 workflow
     tag:
         needs: [build, publish]
-        if: always() && github.event_name == 'workflow_dispatch' && !inputs.dry_run && needs.build.result == 'success'
+        if: always() && github.ref_type == 'branch' && !inputs.dry_run && needs.build.result == 'success'
         runs-on: ubuntu-latest
         timeout-minutes: 10
         permissions:
@@ -284,3 +292,33 @@ jobs:
                     git tag "$tag" "$GITHUB_SHA"
                     git push origin "refs/tags/$tag"
                   done < "$RUNNER_TEMP/plan/candidates.tsv"
+
+    # 推送 main 与手动发布时, npm 包全部发布成功(或无需发布)后调度插件发布; 远端已有 vscode-v<版本> tag 即已发布过, 跳过.
+    # 插件在构建时打包 workspace 源码, 不从 npm 加载, 放在 npm 包之后只为让一次发布的各产物同步上线
+    vscode:
+        needs: [build, publish]
+        if: always() && github.ref_type == 'branch' && !inputs.dry_run && needs.build.result == 'success' && (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            actions: write # 调度 vscode-release.yml
+            contents: read
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+                  sparse-checkout: packages/vscode/package.json
+                  sparse-checkout-cone-mode: false
+            - name: Dispatch extension release
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REF_NAME: ${{ github.ref_name }}
+              run: |
+                  version="$(node -p "require('./packages/vscode/package.json').version")"
+                  tag="vscode-v$version"
+                  if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" >/dev/null 2>&1; then
+                    echo "tag $tag 已存在, 插件已发布过, 跳过"
+                    exit 0
+                  fi
+                  gh workflow run vscode-release.yml --repo "$GITHUB_REPOSITORY" --ref "$REF_NAME" -f version="$version"
+                  echo "已调度 vscode-release.yml 发布插件 $version"

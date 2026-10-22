@@ -73,9 +73,13 @@
 
 ## 发布
 
-每个包推送各自的标签单独发布：`<包目录名>@<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/<包目录名>`，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过已发布的版本（npm 包查 npm，插件查各个市场），所以失败后重跑是安全的。自上一个 `vscode-v*` 标签以来，打包进插件的源码有改动时，CI 会给出警告。插件在构建时把 `@jotl/language-server`、`@jotl/form` 及其依赖的工作区源码打进包里，运行时不从 npm 加载，所以发布 npm 包从不要求重发插件；想让插件用户拿到这些包的改动时再发插件。
+**改版本号并推送到 `main`，其余自动完成。** 推送到 `main` 且改动了 `packages/*/package.json` 时，`.github/workflows/npm-release.yml` 在一次运行内按依赖顺序发布 npm 上还没有的版本，为每个包推送 `<包目录名>@<版本>` 标签，远端还没有 `vscode-v<插件版本>` 标签时再调度 `.github/workflows/vscode-release.yml` 发布插件。在 `main` 上手动运行 npm-release 并把 `packages` 填为 `all` 效果相同；勾选 `dry_run` 时只构建并做冒烟测试。
 
-1. 改该包 `package.json` 的 `version`，提交并推送到 `main`。
+单个包仍可推送各自的标签单独发布：`<包目录名>@<版本>` 经 `.github/workflows/npm-release.yml` 发布 `packages/<包目录名>`，`vscode-v<版本>` 经 `.github/workflows/vscode-release.yml` 发布插件。两者都会等标签所在提交的 CI 通过，并跳过已发布的版本（npm 包查 npm，插件查各个市场），所以失败后重跑是安全的。自上一个 `vscode-v*` 标签以来，打包进插件的源码有改动时，CI 会给出警告。插件在构建时把 `@jotl/language-server`、`@jotl/form` 及其依赖的工作区源码打进包里，运行时不从 npm 加载，所以发布 npm 包从不要求重发插件；想让插件用户拿到这些包的改动时再发插件。
+
+按标签发布单个包：
+
+1. 改该包 `package.json` 的 `version`，提交并推送到 `main`；这一步已经会发布它，只有自动运行被跳过或失败时才需要推标签。
 2. 推送标签，以 `packages/core` 为例：
 
     ```sh
