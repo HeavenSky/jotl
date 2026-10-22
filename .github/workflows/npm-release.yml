@@ -1,6 +1,6 @@
 # 发布 npm 包, 三种触发方式:
-# - 推送到 main 且改动了 packages/*/package.json 时, 等同手动运行 packages=all: npm 上还没有的版本全部发布, 已有的跳过;
-#   改版本号并推送 main 即发布, 不需要推 tag
+# - 推送到 main 且改动了 packages/*/package.json 或本文件时, 等同手动运行 packages=all: npm 上还没有的版本全部发布, 已有的跳过,
+#   缺的 tag 补推; 改版本号并推送 main 即发布, 不需要推 tag
 # - 推送 <包目录名>@<版本> 形式的 tag 时发布 packages/<包目录名>, 例: core@0.0.2, cli@0.0.2; 依赖的 @jotl/* 须已在 npm 上
 # - 手动运行(workflow_dispatch, 只限 main): packages 填 all 或包目录名列表(空格或逗号分隔), 按包间依赖自动排序,
 #   一次运行内构建, 冒烟安装(待发布的上游包用本次打出的 tarball)并依次发布, 发布成功的包补推 <包目录名>@<版本> tag
@@ -16,7 +16,7 @@ on:
     push:
         branches: [main]
         tags: ["*@*"]
-        paths: ["packages/*/package.json"]
+        paths: ["packages/*/package.json", ".github/workflows/npm-release.yml"]
     workflow_dispatch:
         inputs:
             packages:
@@ -210,11 +210,13 @@ jobs:
                     done
                   done < "$RUNNER_TEMP/release.tsv"
 
-            # 选中的全部包(含已在 npm 上而跳过的), 供 tag job 补推 tag
+            # 选中的全部包(含已在 npm 上而跳过的)与本次要发布的包, 供 tag job 补推 tag
             - uses: actions/upload-artifact@v7
               with:
                   name: plan
-                  path: ${{ runner.temp }}/candidates.tsv
+                  path: |
+                      ${{ runner.temp }}/candidates.tsv
+                      ${{ runner.temp }}/release.tsv
                   if-no-files-found: error
                   retention-days: 7
 
@@ -264,11 +266,12 @@ jobs:
 
     # 推送 main 与手动发布时, 为选中且该版本已在 npm 上的包补推 <包目录名>@<版本> tag; 远端已有该 tag 时跳过.
     # 部分包发布失败时也运行, 重跑时之前已发布(因而被跳过)的包同样会补上 tag; GITHUB_TOKEN 推的 tag 不会再触发本 workflow
+    # npm registry 在发布后要一段时间才能查到新版本: 本次发布的包轮询等待, 其余包只查一次
     tag:
         needs: [build, publish]
         if: always() && github.ref_type == 'branch' && !inputs.dry_run && needs.build.result == 'success'
         runs-on: ubuntu-latest
-        timeout-minutes: 10
+        timeout-minutes: 30
         permissions:
             contents: write
         steps:
@@ -278,10 +281,21 @@ jobs:
                   name: plan
                   path: ${{ runner.temp }}/plan
             - name: Push tags
+              env:
+                  PUBLISHED: ${{ needs.publish.result }}
               run: |
+                  : > "$RUNNER_TEMP/released"
+                  if [ "$PUBLISHED" = success ]; then cut -f2 "$RUNNER_TEMP/plan/release.tsv" > "$RUNNER_TEMP/released"; fi
                   while IFS=$'\t' read -r dir name version; do
                     tag="$dir@$version"
-                    if [ "$(npm view "$name@$version" version 2>/dev/null)" != "$version" ]; then
+                    tries=1
+                    if grep -qxF "$name" "$RUNNER_TEMP/released"; then tries=20; fi
+                    found=
+                    for i in $(seq "$tries"); do
+                      if [ "$(npm view "$name@$version" version --prefer-online 2>/dev/null)" = "$version" ]; then found=1; break; fi
+                      if [ "$i" -lt "$tries" ]; then sleep 15; fi
+                    done
+                    if [ -z "$found" ]; then
                       echo "$name@$version 不在 npm 上, 不打 tag"
                       continue
                     fi
