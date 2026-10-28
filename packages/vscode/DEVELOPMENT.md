@@ -8,7 +8,7 @@
 - `.vscode/launch.json`: 产物是 `dist/*.cjs` 而不是 `out/*.js`, `outFiles` 改为 `dist/**/*.cjs`, 否则断点绑不到源码.
 - `build.mjs`: 要产出 `extension.cjs`, `server.cjs`, `preview.js`(浏览器 iife) 三份 bundle, 并复制 `preview-form.css`, 生成 `x-ui.schema.json` 与 `jotl.config.schema.json`.
 - `scripts/lib/shoot-ext.mjs`: 暂不做功能截图, 不引入 playwright-core 与 sharp.
-- `scripts/package.mjs`: 允许清单另外放行 `server.cjs`, `preview.js`, `preview-form.css` 与 `jsonValidation` 引用的 `x-ui.schema.json`; 透传 `--pre-release`; vsce 推导基址时忽略 `repository.directory`, 需成对传入指向 `packages/vscode` 的 `baseContentUrl`/`baseImagesUrl`.
+- `scripts/package.mjs`: 允许清单另外放行 `server.cjs`, `preview.js`, `preview-form.css` 与 `jsonValidation` 引用的 `x-ui.schema.json`; `--pre-release` 透传与按 `repository.directory` 成对传基址已并入骨架, 不再是偏离.
 - `tsconfig.json`: 是根 `tsc -b` 的项目引用(composite, 引用 `../language-server`, 产出 `dist` 声明), 不能换成 noEmit 的独立配置.
 - `vitest.config.mts`: 测试含 `.tsx`(预览 webview 组件, jsdom), 骨架只收 ts 与 mjs.
 

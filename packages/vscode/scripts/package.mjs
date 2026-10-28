@@ -12,8 +12,7 @@
  * 加了贡献点却忘记加进 `files`, 或 `files` 里留着已经删掉的条目, 都会在下面的断言里暴露。
  *
  * Jotl 偏离骨架处: 允许清单另外放行 `RUNTIME_FILES`
- * 与 `contributes.jsonValidation` 引用的本地文件; 命令行带 `--pre-release` 时透传给 vsce;
- * `repository.directory` 存在时成对传入指向该子目录的 `--baseContentUrl` 与 `--baseImagesUrl`。
+ * 与 `contributes.jsonValidation` 引用的本地文件。
  */
 import { execFileSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, readdirSync, statSync } from "node:fs";
@@ -67,9 +66,9 @@ const PRE_RELEASE = process.argv.includes("--pre-release");
 const pkg = JSON.parse(readFileSync(join(ROOT, "package.json"), "utf8"));
 const target = join(OUT_DIR, `${pkg.name}-${pkg.version}.vsix`);
 
-// NEVER 显式传 --baseContentUrl / --baseImagesUrl: vsce 会从 package.json 的 repository
-// 自动推导出正确的一对基址 (链接 `/blob/HEAD`, 图片 `/raw/HEAD`), 而显式传参会抹掉这个区分 ——
-// 只传 baseContentUrl 时 baseImagesUrl 也会回退到它, 结果文档链接指向 raw 纯文本。
+// vsce 从 repository.url 推导链接 `/blob/HEAD` 与图片 `/raw/HEAD` 两个基址, 但不认 repository.directory:
+// 扩展在 monorepo 子目录里时, 不补目录 README 的相对链接与图片会指到仓库根而失效, 此时成对显式传两个基址;
+// 只传 baseContentUrl 时 baseImagesUrl 也会回退到它, 图片会指向 blob 页面而不是原图。
 // 这里仍校验 repository, 让地址不合规时立刻失败, 而不是等 vsce 遇到相对链接才报错。
 const repoUrl = (pkg.repository?.url ?? pkg.repository ?? "")
 	.replace(/^git\+/, "")
@@ -79,7 +78,6 @@ if (!/^https:\/\/github\.com\/[^/]+\/[^/]+$/.test(repoUrl)) {
 	process.exit(1);
 }
 
-// monorepo 子目录: vsce 推导基址时忽略 repository.directory, 相对链接会落到仓库根; 此时成对显式传两个基址。
 const repoDirectory =
 	typeof pkg.repository?.directory === "string"
 		? pkg.repository.directory.replace(/^\/+|\/+$/g, "")
