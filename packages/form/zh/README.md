@@ -42,7 +42,7 @@ export default function App() {
 ## 能得到什么
 
 - **一份 schema 驱动整个表单。** widget 名、分组、`tabs` 或 `grid` 布局、`visibleIf` 条件和入口摘要都写在 `x-ui` 里，紧挨着它描述的数据；默认值与校验经 `@jotl/data` 取自同一份 schema。见[控制表单数据与校验](docs/form-state.md)。
-- **深层数据也能找得到。** 对象、数组和字典各自打开为一页，带面包屑和逐层错误数；也可以改成单页展开加折叠面板。见[浏览嵌套数据](docs/drill-down.md)。
+- **深层数据也能找得到。** 对象、数组和字典各自打开为一页，带面包屑和逐层错误数；也可以改成单页展开加折叠面板。见[浏览嵌套数据](docs/nested.md)。
 - **只换一个 widget，其余照旧。** 把自己的组件登记到 `switch` 这类内置名下，用 [`@jotl/antd`](../../antd/zh/README.md) 换成 Ant Design，或加载 schema 声明的模块 widget。见[替换与登记 widget](docs/custom-widgets.md)。
 - **不会白屏。** 渲染报错的 widget 依次换成下一个候选，最后落到 JSON 编辑框，每次降级都经 `onDegrade` 上报。见[排查 widget 降级](docs/fallbacks.md)。
 - **容易接入现有应用。** 样式可选，并放在 cascade layer 中，宿主 CSS 可直接覆盖；Tailwind v4 宿主可以用自己的主题编译；不依赖 UI 框架的规划器 `@jotl/form/core` 可用来为其他框架写渲染器。见[表单样式](docs/styling.md)和[用 `@jotl/form/core` 实现渲染器](docs/core.md)。

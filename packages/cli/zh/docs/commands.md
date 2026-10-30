@@ -11,7 +11,7 @@
 | [`check`](#check)                   | 只报告诊断，不输出结果                                  |
 | [`validate`](#validate)             | 按 schema 校验 JSON 数据文件                            |
 | [`defaults`](#defaults)             | 以 JSON 输出 schema 的默认数据                          |
-| [`migrate-schema`](#migrate-schema) | 把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl 或 2020-12 |
+| [`migrate-schema`](#migrate-schema) | 把 fengdie DSL schema 或旧版 JSON Schema 迁移为 Jotl 或 2020-12 |
 | [`format`](#format)                 | 格式化 Jotl 源码，保留注释                              |
 
 全局选项对所有命令有效：`-h, --help` 显示帮助（写在命令后显示该命令的帮助，`jotl help <command>` 效果相同），`-v, --version` 显示版本号，`--lang <zh|en>` 选择输出语言（见[在脚本与 CI 中使用 jotl](scripting.md#选择输出语言)）。
@@ -134,12 +134,12 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
                     [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 ```
 
-把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl（`--to jotl`，默认）或 JSON Schema 2020-12（`--to schema`）。输入类型自动判定，判定结果与依据以 `JOTL9055` 提示写到 stderr：
+把 fengdie DSL schema 或旧版 JSON Schema 迁移为 Jotl（`--to jotl`，默认）或 JSON Schema 2020-12（`--to schema`）。输入类型自动判定，判定结果与依据以 `JOTL9055` 提示写到 stderr：
 
 | 判定为                       | 条件                                                                                                                                                              | 处理                                                                                        |
 | ---------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
-| 凤蝶源码                     | 不以 `{` 或 `[` 开头（不是 JSON 文本）                                                                                                                            | 按 umo-edit-sdk 文法解析，规则见 [`@jotl/convert` 的 README](../../../convert/zh/README.md) |
-| 凤蝶 toJson JSON（umo JSON） | 是 JSON，且任一字段带与属性名相同的 `key`、类型为凤蝶类型（如 `image`、`text`、`richtext`、`url`、`color`、`date`、`enum`、`box`），或枚举成员为 `{label, value}` | 同上，跳过解析                                                                              |
+| fengdie DSL schema                     | 不以 `{` 或 `[` 开头（不是 JSON 文本）                                                                                                                            | 按凤蝶编辑器文法解析，规则见 [`@jotl/convert` 的 README](../../../convert/zh/README.md) |
+| 凤蝶 toJson JSON（fengdie JSON schema） | 是 JSON，且任一字段带与属性名相同的 `key`、类型为凤蝶类型（如 `image`、`text`、`richtext`、`url`、`color`、`date`、`enum`、`box`），或枚举成员为 `{label, value}` | 同上，跳过解析                                                                              |
 | 常规 JSON Schema             | 其余 JSON；以 `{` 开头但不是合法 JSON 时报 `JOTL9052`                                                                                                             | draft-04 至 2019-09、OpenAPI 3.0 / 3.1 / Swagger 2.0 的 Schema Object 先升级到 2020-12      |
 
 常规 JSON Schema 输入可用的选项：
@@ -156,8 +156,8 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
 - `migrate-schema` 不读 `jotl.config.json`。
 
 ```sh
-jotl migrate-schema home.fengdie --out home.jotl
-jotl migrate-schema home.umo.json --to schema
+jotl migrate-schema home.schema --out home.jotl
+jotl migrate-schema home.fengdie.json --to schema
 jotl migrate-schema legacy.json --to schema --out legacy.2020-12.json
 jotl migrate-schema pet.json --to schema --schema-version openapi-3.0 --on-conflict preferLatest
 ```

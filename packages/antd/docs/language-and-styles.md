@@ -27,4 +27,4 @@ dayjs.locale("en");
 ## Include styles
 
 - antd styles need no import (CSS-in-JS).
-- The native fallback widgets and the drill-down entry rows and breadcrumb of `@jotl/form` look best with `@jotl/form/style.css`; it is optional. See [Style the form](../../form/docs/styling.md).
+- The native fallback widgets and the nested entry rows and breadcrumb of `@jotl/form` look best with `@jotl/form/style.css`; it is optional. See [Style the form](../../form/docs/styling.md).

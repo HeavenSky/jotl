@@ -31,7 +31,7 @@ const ADAPTERS: ReactAdapters = {
 	richText: richTextEditor,
 };
 
-type Layout = "drill" | "panels";
+type Layout = "nested" | "flat";
 type InitialData = "defaults" | "mock";
 
 /** schema 变化时由调用方换 key 重新挂载, 表单数据随之回到默认值; 切换初始数据来源时同样重新挂载. */
@@ -43,7 +43,7 @@ export function FormPreview({ schema, locale, registry, onDegrade }: FormPreview
 	const form = useRef<JotlFormHandle>(null);
 	const [data, setData] = useState<unknown>(undefined);
 	const [submitted, setSubmitted] = useState<{ value: unknown } | undefined>(undefined);
-	const [layout, setLayout] = useState<Layout>("drill");
+	const [layout, setLayout] = useState<Layout>("nested");
 	const [initialData, setInitialData] = useState<InitialData>("defaults");
 
 	useEffect(() => {
@@ -68,8 +68,8 @@ export function FormPreview({ schema, locale, registry, onDegrade }: FormPreview
 				<label className="pg-form-option">
 					{COPY.preview.layout}
 					<select value={layout} onChange={e => setLayout(e.target.value as Layout)}>
-						<option value="drill">{COPY.preview.drill}</option>
-						<option value="panels">{COPY.preview.panels}</option>
+						<option value="nested">{COPY.preview.nested}</option>
+						<option value="flat">{COPY.preview.flat}</option>
 					</select>
 				</label>
 				<label className="pg-form-option">
@@ -92,8 +92,8 @@ export function FormPreview({ schema, locale, registry, onDegrade }: FormPreview
 					{...(registry === undefined ? {} : { registry })}
 					schemaModules={schemaModules}
 					adapters={ADAPTERS}
-					drill={layout === "drill"}
-					collapsible={layout === "panels"}
+					nested={layout === "nested"}
+					collapsible={layout === "flat"}
 					initialData={initialData}
 					onChange={setData}
 					onDegrade={onDegrade}

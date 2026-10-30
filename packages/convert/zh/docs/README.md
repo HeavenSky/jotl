@@ -10,7 +10,7 @@
 | 手写或校对生成的 `.d.ts` 里的 JSDoc 标签                                                   | [标签协议](./tag-protocol.md)                        |
 | 让 TSDoc 或 eslint-plugin-jsdoc 不再把自定义标签报为未知                                   | [配置 TSDoc 与 ESLint](./lint-presets.md)            |
 | 在代码里把 draft-04 到 2019-09 的 schema 或 OpenAPI / Swagger Schema Object 升级为 2020-12 | [升级旧版 JSON Schema](./upgrade.md)                 |
-| 把凤蝶 schema 转成 Jotl                                                                    | [迁移凤蝶 schema](./fengdie-migration.md)            |
+| 把 fengdie DSL schema 转成 Jotl                                                                    | [迁移 fengdie DSL schema](./fengdie-migration.md)            |
 
 命令行里用 `jotl migrate-schema`（自动判定输入类型）与 `jotl convert`，见 [`jotl` CLI](../../../cli/zh/README.md)。
 
@@ -23,7 +23,7 @@
 | `JOTL20xx` | `schemaToTs`（schema → TS） | [JSON Schema 与 TypeScript 互转](./ts-conversion.md)                                |
 | `JOTL21xx` | `tsToSchema`（TS → schema） | [JSON Schema 与 TypeScript 互转](./ts-conversion.md)、[标签协议](./tag-protocol.md) |
 | `JOTL3xxx` | 旧版升级                    | [升级旧版 JSON Schema](./upgrade.md)                                                |
-| `JOTL8xxx` | 凤蝶迁移                    | [迁移凤蝶 schema](./fengdie-migration.md)                                           |
+| `JOTL8xxx` | 凤蝶迁移                    | [迁移 fengdie DSL schema](./fengdie-migration.md)                                           |
 
 ## 把消息切换为中文
 

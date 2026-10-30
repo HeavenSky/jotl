@@ -1,0 +1,21 @@
+Object(活动配置) {
+  title(活动标题): String[default: "限时活动", maxLength: 40]
+  cover(封面图): Image[width: 750, height: 360]
+  start(上线时间): Date
+  level(参与门槛): Enum{
+    free(免费),
+    member(会员专享)
+  }
+  prizes(奖品列表): Array[showKey: "name"]{
+    name(奖品名称): String[default: ""]
+    count(数量): Number[default: 1]
+  }
+  advance(高级配置): Object{
+    note(备注): String[default: ""]
+    threshold(获奖阈值): Number[if: "$.note", default: 0]
+    limit(发货限制): Enum[if: "$.note"]{
+      none(不限制),
+      daily(每日限购)
+    }
+  }
+}

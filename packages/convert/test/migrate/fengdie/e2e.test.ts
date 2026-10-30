@@ -1,8 +1,8 @@
-// 端到端: 凤蝶源码 → Jotl → `@jotl/core` 编译无 error 且 schema 一致; 含 umo-edit-sdk `tips.md` 的全部示例.
+// 端到端: fengdie DSL schema → Jotl → `@jotl/core` 编译无 error 且 schema 一致; 含凤蝶编辑器文档 `tips.md` 的全部示例.
 import { describe, expect, it } from "vitest";
 import { codes, roundTrip } from "./helpers.js";
 
-/** umo-edit-sdk 0.0.8 `tips.md` 中的全部 schema 示例(含"特性"一节 js 代码里的两段), 原样抄录. */
+/** 凤蝶编辑器 0.0.8 `tips.md` 中的全部 schema 示例(含"特性"一节 js 代码里的两段), 原样抄录. */
 const TIPS: readonly [name: string, source: string, expectedCodes: string[]][] = [
 	[
 		"String",
@@ -95,7 +95,7 @@ Object(运营页) {
 			"Root(运营页): [groups: [{title: '常规', fields: ['title', 'showBanner', 'banners']}, {title: '运营', fields: ['start']}, {title: '开发者', fields: ['coupon']}]] {"
 		);
 		expect(result.jotl).toContain("  title(标题): string[");
-		expect(result.jotl).toContain("root_if: 'showBanner'");
+		expect(result.jotl).toContain("node_if: 'showBanner'");
 		expect(codes(result.diagnostics)).toEqual([]);
 	});
 

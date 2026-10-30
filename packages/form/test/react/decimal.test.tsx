@@ -37,7 +37,7 @@ describe("数值与选择组件经渲染器", () => {
 				price: { type: "money", value: "1234.50", currency: "CNY" },
 				count: 1000,
 			},
-			drill: true,
+			nested: true,
 		});
 		expect((byPath("/price") as HTMLInputElement).value).toBe("1,234.50");
 		expect((byPath("/count") as HTMLInputElement).value).toBe("1,000");
@@ -49,7 +49,7 @@ describe("数值与选择组件经渲染器", () => {
 	});
 
 	it("boolean 默认 switch; 非法 widget 降级后枚举数组为多选下拉, 引用的选项可读到", () => {
-		renderForm({ schema: SCHEMA, defaultValue: {}, drill: true });
+		renderForm({ schema: SCHEMA, defaultValue: {}, nested: true });
 		expect(screen.getByRole("switch")).not.toBeNull();
 		const picks = byPath("/picks") as HTMLSelectElement;
 		expect(picks.multiple).toBe(true);

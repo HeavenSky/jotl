@@ -1,4 +1,4 @@
-// 词法: 逐条覆盖 umo-edit-sdk `parse/schema.l` 的规则, 以及规则顺序带来的切分结果与词法错误.
+// 词法: 逐条覆盖凤蝶编辑器文法(`parse/schema.l`)的规则, 以及规则顺序带来的切分结果与词法错误.
 import type { Diagnostic } from "@jotl/core";
 import { describe, expect, it } from "vitest";
 import { Lexer, type Token } from "../../../src/migrate/fengdie/lexer.js";

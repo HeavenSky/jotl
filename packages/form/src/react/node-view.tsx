@@ -23,7 +23,7 @@ import { effectiveNode, resolveChild, type NodeTarget } from "./child-resolver.j
 import { useFormContext, useStoreValue, type FormContextValue } from "./context.js";
 import { copyOf, localizedDiagnostic } from "./diagnostics.js";
 import { useLocale } from "../locale-context.js";
-import { contentCount, hostKindOf, isDrillKind, itemLabel, summaryText } from "./drill.js";
+import { contentCount, hostKindOf, isDrillKind, itemLabel, summaryText } from "./nested.js";
 import { HOSTS, canSplit, type HostKind } from "./hosts.js";
 import { MinimalJson } from "./minimal-json.js";
 import { acceptsType, widgetSchema } from "./schema-access.js";
@@ -207,16 +207,16 @@ function NodeViewImpl(props: NodeTarget) {
 			LoadingPlaceholder;
 	else component = (choice.registration?.component as ReactWidgetComponent | undefined) ?? null;
 
-	// 钻取: 不在当前页根上的组合字段显示为入口行(标签 + 摘要 + 其下错误数), 其下的错误都归入口行计数.
+	// 层级: 不在当前页根上的组合字段显示为入口行(标签 + 摘要 + 其下错误数), 其下的错误都归入口行计数.
 	const asEntry =
-		ctx.drill &&
+		ctx.nested &&
 		!isView &&
 		!target.page &&
 		!splitting &&
 		!mismatched &&
 		isDrillKind(ctx, kind, choice.name, node);
 	// 当前页的根由面包屑表明位置, 不再包外壳; 数据根本来就没有外壳.
-	const pageRoot = ctx.drill && target.page && path !== "" && path === ctx.path;
+	const pageRoot = ctx.nested && target.page && path !== "" && path === ctx.path;
 	// 折叠面板: 不钻取时组合字段包在面板中, 标签移到面板标题行; 同路径的内容节点(id 以 "+" 结尾)不再套一层, 树自带展开收起.
 	const asPanel =
 		ctx.collapsible &&

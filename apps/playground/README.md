@@ -57,9 +57,10 @@ The terminal prints the local address. `pnpm build` comes first because the Play
 
 - **Find mistakes at the exact line.** Errors appear in the diagnostics list and turn the line number red; clicking one selects the offending word. While the source has errors, the output keeps the last successful build and is marked "Stale".
 - **Compare all outputs side by side.** The "JSON Schema", "TS output", "Form preview" and "Degrade debug" tabs show the schema, the TS declarations, the rendered form and, for each node, the widget used and any fallback.
-- **Try the form the way users will.** Switch the layout between drill-down pages and collapsible panels, fill the form with defaults or Mock data, and watch "Current form data" update live. Image uploads stay in the browser as `blob:` URLs and send no network request.
+- **Try the form the way users will.** Switch the layout between Nest and Flat, fill the form with defaults or Mock data, and watch "Current form data" update live. Image uploads stay in the browser as `blob:` URLs and send no network request.
 - **Plug in your own widgets.** Register an ESM React component in the `jotl.config.json` tab, for example `{ "base": "integer", "module": "./widgets/rating.js", "export": "default" }`, then use it in the source as `score: Stars`. Details are in [Load your own widget modules](#load-your-own-widget-modules).
-- **Start from working examples.** The example dropdown opens with `v1-showcase` (`src/examples/showcase.jotl`), followed by `widget-module` and every `fixtures/*/source.jotl`. Your source is saved in the browser and restored after a reload, and the UI switches between 中文 and English.
+- **Start from working examples.** The example dropdown opens with `v1-showcase` (`src/examples/showcase.jotl`), followed by `widget-module`, `fengdie-demo` and every `fixtures/*/source.jotl`. Your source is saved in the browser and restored after a reload, and the UI switches between 中文 and English.
+- **Paste a fengdie DSL schema directly.** Fengdie editor syntax (`.schema`, and its `toJson` output, fengdie JSON schema, `.json`) is migrated to Jotl before compiling; see [Paste a fengdie DSL schema](#paste-a-fengdie-dsl-schema).
 
 ## Load your own widget modules
 
@@ -69,6 +70,14 @@ A widget module is an ESM React component that follows the field-level widget co
 - In the root entry metadata of the source, for example `Form: [widgets: {Rating: {base: 'integer', module: './widgets/rating.js'}}] {...}` (see the `widget-module` example). The preview then lists the module URLs it will load and run.
 
 Relative URLs resolve against the page directory. The module's `import "react"` and `react/jsx-runtime` resolve, through the page's import map (`index.html`, with shims in `public/shims/`), to the Playground's own React. When a module fails to load, the field shows the error and a Retry button.
+
+## Paste a fengdie DSL schema
+
+You do not have to convert first: paste a fengdie DSL schema (the Fengdie editor syntax, or the JSON its `toJson` produces) into the source editor and the Playground migrates it to Jotl before compiling. The JSON Schema, TS output and form preview are all built from the migrated schema, so the form you see is the one your fengdie DSL schema produces.
+
+- Migration warnings (`JOTL81xx`, for example a duplicate field) are listed with the "Migrate" stage and point at the exact line of the pasted source; click one to reveal it.
+- Constructs Fengdie allows but Jotl cannot express are kept in `x-fengdie` and ignored by the form; the type and metadata mapping is documented in [the migration guide](../../packages/convert/docs/fengdie-migration.md).
+- Regular Jotl source keeps compiling as before. An input is migrated only when it starts with a Fengdie type keyword (like `Object(标题)`), or is JSON with fengdieJson features; the `fengdie-demo` example shows a working sample.
 
 ## Build, preview and test
 

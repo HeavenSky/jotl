@@ -1,4 +1,5 @@
-// 凤蝶 `if` 表达式(JS 表达式, `$` 为数据根) → `x-ui.visibleIf`; 只转换与 JS 求值结果逐值一致的写法, 其余返回 undefined.
+// 凤蝶 `if` 表达式(JS 表达式, 编辑器以字段所在对象的数据求值, `$.` 可省略) → `x-ui.visibleIf`;
+// 只转换与 JS 求值结果逐值一致的写法, 其余返回 undefined.
 import { type Condition, formatPointer } from "@jotl/core";
 
 /**
@@ -391,4 +392,19 @@ export function parseIfExpression(source: string, resolve: IfPathResolver): Cond
 		if (error instanceof Fail) return undefined;
 		throw error;
 	}
+}
+
+/**
+ * 凤蝶 `$.` 相对字段所在对象求值(simple-evaluate 的 context 是该对象的数据, 无前缀等价),
+ * 对应 visibleIf 叶子的 `base: "node"`; 递归应用到组合条件的每个叶子.
+ */
+export function withNodeBase(condition: Condition): Condition {
+	const c: unknown = condition;
+	if (Array.isArray((c as { all?: Condition[] }).all))
+		return { all: (c as { all: Condition[] }).all.map(withNodeBase) } as Condition;
+	if (Array.isArray((c as { any?: Condition[] }).any))
+		return { any: (c as { any: Condition[] }).any.map(withNodeBase) } as Condition;
+	if (Object.hasOwn(c as object, "not"))
+		return { not: withNodeBase((c as { not: Condition }).not) } as Condition;
+	return { ...condition, base: "node" };
 }

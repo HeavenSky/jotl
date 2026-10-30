@@ -83,10 +83,10 @@ export interface JotlFormProps {
 	 */
 	path?: JsonPointer;
 	/** 钻取渲染(每层一页, 默认 true); false 时各层在同一页展开, 不显示入口行与面包屑, 忽略 path. */
-	drill?: boolean;
+	nested?: boolean;
 	/**
-	 * drill 为 false 时, 对象(inline 除外), 数组, 字典与含对象分支的联合渲染为可折叠面板: 标题行显示标题(数组元素为序号), 摘要与其下错误数;
-	 * 第一层默认展开, 更深的默认收起. 默认 false; drill 为 true 时忽略.
+	 * nested 为 false 时, 对象(inline 除外), 数组, 字典与含对象分支的联合渲染为可折叠面板: 标题行显示标题(数组元素为序号), 摘要与其下错误数;
+	 * 第一层默认展开, 更深的默认收起. 默认 false; nested 为 true 时忽略.
 	 */
 	collapsible?: boolean;
 	/** 未传 value 与 defaultValue 时初始数据的来源: "defaults"(默认)按 schema 默认值补全; "mock" 用 @jotl/data 的 mock() 生成. 新增数据仍按默认值. */

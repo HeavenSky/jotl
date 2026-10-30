@@ -67,7 +67,7 @@ The first command installs the CLI, the second writes the JSON Schema shown abov
 ## What you get from one source
 
 - **Schema, types and form stay in sync**: compile to JSON Schema 2020-12 or TS declarations, and render the schema as a React form with `@jotl/form`, optionally with Ant Design widgets.
-- **Existing schemas come along**: print 2020-12 JSON Schema back to Jotl, convert between JSON Schema and TS declarations, and upgrade legacy JSON Schema, OpenAPI 3.0 / Swagger 2.0 Schema Objects and Fengdie schemas.
+- **Existing schemas come along**: print 2020-12 JSON Schema back to Jotl, convert between JSON Schema and TS declarations, and upgrade legacy JSON Schema, OpenAPI 3.0 / Swagger 2.0 Schema Objects and fengdie DSL schemas.
 - **Data tools work on any 2020-12 schema**: default data, validation, migration of old data and Mock data, from code or from `jotl validate` and `jotl defaults`.
 - **Editor support while you type**: the VS Code extension adds diagnostics with quick fixes, completion, hover, go to definition and a live preview of the schema, TS and form.
 - **Errors you can act on**: every diagnostic carries a stable `JOTL` code and points to a line and column or a JSON Pointer, with messages in English or Chinese.
@@ -79,7 +79,7 @@ Rendering a form in the browser needs only `@jotl/core`, `@jotl/data` and `@jotl
 | Package                                                       | What it does                                                                                                         |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | [`@jotl/core`](packages/core/README.md)                       | Parse, compile, format and print Jotl; shared schema types, diagnostics and JSON Pointer utilities                   |
-| [`@jotl/convert`](packages/convert/README.md)                 | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate Fengdie schemas             |
+| [`@jotl/convert`](packages/convert/README.md)                 | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate fengdie DSL schemas             |
 | [`@jotl/data`](packages/data/README.md)                       | Default data, validation, migration and Mock for JSON Schema 2020-12                                                 |
 | [`@jotl/form`](packages/form/README.md)                       | React form renderer (React 16.8 to 19) with native HTML widgets; framework-independent planning in `@jotl/form/core` |
 | [`@jotl/antd`](packages/antd/README.md)                       | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+)                                                         |

@@ -76,9 +76,6 @@
   .jt\:min-h-\[32px\] {
     min-height: 32px;
   }
-  .jt\:min-h-\[40px\] {
-    min-height: 40px;
-  }
   .jt\:min-h-\[48px\] {
     min-height: 48px;
   }
@@ -747,15 +744,17 @@
   :where(.jotl-panel-header)::-webkit-details-marker {
     display: none;
   }
-  :where(.jotl-panel-header)::before {
+  :where(.jotl-panel-header)::after {
     content: "›" / "";
     flex: none;
-    width: 1em;
+    width: 1.25rem;
+    font-size: 1.25rem;
+    line-height: 1;
     color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
     text-align: center;
     transition: rotate 0.2s;
   }
-  :where(.jotl-panel[open] > .jotl-panel-header)::before {
+  :where(.jotl-panel[open] > .jotl-panel-header)::after {
     rotate: 90deg;
   }
   :where(	.jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-object > .jotl-object-title	) {

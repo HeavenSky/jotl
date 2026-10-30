@@ -1,9 +1,9 @@
-// migrate-schema 命令: 自动判定输入是凤蝶源码, 凤蝶 toJson JSON 还是常规 JSON Schema, 迁移为 Jotl(默认)或 2020-12 JSON.
+// migrate-schema 命令: 自动判定输入是 fengdie DSL schema, 凤蝶 toJson JSON 还是常规 JSON Schema, 迁移为 Jotl(默认)或 2020-12 JSON.
 import {
 	type ConflictPolicy,
 	type MigrateInputKind,
 	type SchemaVersion,
-	type UmoJson,
+	type FengdieJson,
 	detectMigrateInput,
 	migrateFengdie,
 } from "@jotl/convert";
@@ -58,7 +58,7 @@ export const migrateSchemaCommand: Command = {
 
 		if (detection.kind !== "json-schema") {
 			const result = migrateFengdie(
-				detection.kind === "fengdie" ? text : (detection.json as UmoJson),
+				detection.kind === "fengdie" ? text : (detection.json as FengdieJson),
 				file
 			);
 			ctx.reporter.report(result.diagnostics, { file });

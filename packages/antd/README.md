@@ -43,7 +43,7 @@ Use the default widgets of `@jotl/form` if your app is not on Ant Design or runs
 ## Read more
 
 - [Guide index](docs/README.md): coverage table, language and styles.
-- [`@jotl/form`](../form/README.md): the form component, drill-down, fallbacks and the widget contract.
+- [`@jotl/form`](../form/README.md): the form component, nested, fallbacks and the widget contract.
 
 ## License
 

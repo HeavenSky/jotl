@@ -38,7 +38,7 @@ The default widgets implement every built-in widget name of `@jotl/form/core` wi
 | `page` / `inline` with `layout: "tabs"` | One tab per group, ungrouped fields on the first tab                                                  | Switching tabs does not change data; arrow keys, `Home` and `End` move between tabs; without groups it lays out as `stack`; tabs cannot be switched in `disabled` mode; each tab shows the error count of its fields                                                                                                                                       |
 | `page` / `inline` with `layout: "grid"` | Fields in `columns` columns, 2 by default                                                             | Each group forms its own grid; the column count is set through an inline `--jotl-columns` and takes effect only with `style.css` included                                                                                                                                                                                                                  |
 
-`page` and `inline` are the same object widget: it lays out the current level only, and drill-down (pages, entry rows, breadcrumb) is done by the renderer, see [Navigate nested data](drill-down.md).
+`page` and `inline` are the same object widget: it lays out the current level only, and nested (pages, entry rows, breadcrumb) is done by the renderer, see [Navigate nested data](nested.md).
 
 ## Shape checks
 

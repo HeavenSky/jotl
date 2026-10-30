@@ -57,9 +57,10 @@ pnpm --filter @jotl/playground dev
 
 - **错误定位到具体行。** 错误出现在诊断列表中，对应行号变红；点击诊断会选中出错的词。源码有错时，输出保留上一次成功编译的结果，并标注「已过期」。
 - **并排对照全部产物。** 「JSON Schema」「TS 输出」「表单预览」「降级调试」四个页签分别显示 schema、TS 声明、渲染出的表单，以及每个节点实际使用的 widget 和降级记录。
-- **按用户视角试用表单。** 呈现方式可在钻取子页与折叠面板之间切换，初始数据可选默认值或 Mock，「当前表单数据」实时更新。上传的图片只在浏览器内生成 `blob:` 地址，不发网络请求。
+- **按用户视角试用表单。** 呈现方式可在层级与平铺之间切换，初始数据可选默认值或 Mock，「当前表单数据」实时更新。上传的图片只在浏览器内生成 `blob:` 地址，不发网络请求。
 - **接入自己的 widget。** 在 `jotl.config.json` 页签登记一个 ESM 的 React 组件，例如 `{ "base": "integer", "module": "./widgets/rating.js", "export": "default" }`，源码中写 `score: Stars` 即可使用。细节见[加载自己的 widget 模块](#加载自己的-widget-模块)。
-- **从可运行的示例起步。** 示例下拉的第一项是 `v1-showcase`（`src/examples/showcase.jotl`），其后是 `widget-module` 和全部 `fixtures/*/source.jotl`。源码保存在浏览器中，刷新后恢复；界面可在中文与 English 之间切换。
+- **从可运行的示例起步。** 示例下拉的第一项是 `v1-showcase`（`src/examples/showcase.jotl`），其后是 `widget-module`、`fengdie-demo` 和全部 `fixtures/*/source.jotl`。源码保存在浏览器中，刷新后恢复；界面可在中文与 English 之间切换。
+- **直接粘贴 fengdie DSL schema。** 凤蝶编辑器语法（`.schema`，及其 `toJson` 产物 fengdie JSON schema，`.json`）会在编译前迁移为 Jotl，见[粘贴 fengdie DSL schema](#粘贴-fengdie-dsl-schema)。
 
 ## 加载自己的 widget 模块
 
@@ -69,6 +70,14 @@ widget 模块是满足字段级 widget 契约（`value`、`onChange`、`onBlur`�
 - 源码的根条目元数据中，例如 `Form: [widgets: {Rating: {base: 'integer', module: './widgets/rating.js'}}] {...}`（见示例 `widget-module`）。预览上方会列出将要加载并执行的模块地址。
 
 相对地址按页面所在目录解析。模块中的 `import "react"` 与 `react/jsx-runtime` 经页面的 import map（`index.html`，垫片在 `public/shims/`）取得 Playground 自身的 React。模块加载失败时，字段显示错误和重试按钮。
+
+## 粘贴 fengdie DSL schema
+
+不用先手动转换：把 fengdie DSL schema（凤蝶编辑器语法，或其 `toJson` 产出的 fengdie JSON schema）直接粘进源码编辑器，Playground 会先迁移为 Jotl 再编译。JSON Schema、TS 输出和表单预览都来自迁移产物，看到的就是这份 fengdie DSL schema 会产出的表单。
+
+- 迁移警告（`JOTL81xx`，例如字段重复）以「迁移」阶段列出，定位到粘贴源码的具体行列，点击即可在编辑器中选中。
+- 凤蝶允许但 Jotl 无法表达的信息保留在 `x-fengdie` 中，表单与校验不使用它们；类型与元数据的映射规则见[迁移指南](../../packages/convert/zh/docs/fengdie-migration.md)。
+- 普通 Jotl 源码的编译行为不变。只有顶层以凤蝶类型关键字开头（如 `Object(标题)`），或 JSON 带 fengdie JSON 特征时才走迁移；示例 `fengdie-demo` 是一个可运行的样例。
 
 ## 构建、预览与测试
 

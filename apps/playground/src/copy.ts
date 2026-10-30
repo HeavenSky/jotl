@@ -13,7 +13,7 @@ const ZH = {
 		cursor: (line: number, column: number) => `行 ${line}, 列 ${column}`,
 		pending: "等待编译…",
 	},
-	sources: { label: "编辑内容", source: "Jotl 源码", config: "jotl.config.json" },
+	sources: { label: "编辑内容", source: "Jotl 源码", fengdie: "fengdie DSL schema", config: "jotl.config.json" },
 	config: {
 		label: "jotl.config.json",
 		parseError: (detail: string) => `jotl.config.json 不是合法的 JSON: ${detail}`,
@@ -27,7 +27,7 @@ const ZH = {
 		count: (errors: number, warnings: number) => `${errors} 个错误, ${warnings} 个警告`,
 		noLocation: "无源码位置",
 		location: (line: number, column: number) => `${line}:${column}`,
-		stage: { compile: "编译", ts: "TS", config: "配置" },
+		stage: { compile: "编译", ts: "TS", config: "配置", migrate: "迁移" },
 		severity: { error: "错误", warning: "警告", info: "提示" } satisfies Record<
 			Severity,
 			string
@@ -52,8 +52,8 @@ const ZH = {
 	},
 	preview: {
 		layout: "呈现",
-		drill: "钻取",
-		panels: "折叠面板",
+		nested: "层级",
+		flat: "平铺",
 		initialData: "初始数据",
 		defaults: "默认值",
 		mock: "Mock",
@@ -74,7 +74,7 @@ const EN: Copy = {
 		cursor: (line, column) => `Ln ${line}, Col ${column}`,
 		pending: "Waiting to compile…",
 	},
-	sources: { label: "Editing", source: "Jotl source", config: "jotl.config.json" },
+	sources: { label: "Editing", source: "Jotl source", fengdie: "fengdie DSL schema", config: "jotl.config.json" },
 	config: {
 		label: "jotl.config.json",
 		parseError: detail => `jotl.config.json is not valid JSON: ${detail}`,
@@ -87,7 +87,7 @@ const EN: Copy = {
 		count: (errors, warnings) => `${errors} error(s), ${warnings} warning(s)`,
 		noLocation: "No source location",
 		location: (line, column) => `${line}:${column}`,
-		stage: { compile: "Compile", ts: "TS", config: "Config" },
+		stage: { compile: "Compile", ts: "TS", config: "Config", migrate: "Migrate" },
 		severity: { error: "Error", warning: "Warning", info: "Info" },
 		internalError: detail => `Internal compiler error: ${detail}`,
 		tsInternalError: detail => `Internal TS generator error: ${detail}`,
@@ -110,8 +110,8 @@ const EN: Copy = {
 	},
 	preview: {
 		layout: "Layout",
-		drill: "Drill-down",
-		panels: "Collapsible panels",
+		nested: "Nest",
+		flat: "Flat",
 		initialData: "Initial data",
 		defaults: "Defaults",
 		mock: "Mock",

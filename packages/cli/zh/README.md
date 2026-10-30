@@ -62,7 +62,7 @@ home.json: 未通过
 
 - **Jotl、JSON Schema 2020-12 与 TS 声明之间任意互转。** `compile` 与 `convert` 输出到 stdout 或 `--out`；`--typia-tags` 让 TS 输出带 typia 类型标签。
 - 在 CI 里拦下坏数据和坏 schema：`validate` 把每个错误定位到数据文件里，`check` 只报告 schema 的问题、不输出结果，`defaults` 打印 schema 隐含的默认数据。
-- 把旧 schema 升上来：`migrate-schema` 把 draft-04 至 2019-09、OpenAPI 3.0 / 3.1 与 Swagger 2.0 的 Schema Object 升级到 2020-12，并把凤蝶 schema 转成 Jotl。
+- 把旧 schema 升上来：`migrate-schema` 把 draft-04 至 2019-09、OpenAPI 3.0 / 3.1 与 Swagger 2.0 的 Schema Object 升级到 2020-12，并把 fengdie DSL schema 转成 Jotl。
 - 输出便于脚本解析：一条诊断一行，退出码固定，`-` 从 stdin 读入，用 `--lang` 或 `JOTL_LANG` 选择中文或英文输出。
 - 用上项目自己的组件：编译 Jotl 的命令会读取最近的 `jotl.config.json`，与编辑器读的是同一个文件。
 

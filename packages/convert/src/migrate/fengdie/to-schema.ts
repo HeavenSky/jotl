@@ -1,4 +1,4 @@
-// umo JSON → JSON Schema 2020-12(映射见 docs/fengdie-migration.md 与方案 20261012_232718); 没有对应写法的信息写入 `x-fengdie` 并报警告.
+// fengdie JSON schema → JSON Schema 2020-12(映射见 docs/fengdie-migration.md 与方案 20261012_232718); 没有对应写法的信息写入 `x-fengdie` 并报警告.
 import {
 	type Diagnostic,
 	type DiagnosticLocation,
@@ -11,19 +11,19 @@ import {
 	l10n,
 } from "@jotl/core";
 import { isTypeName } from "@jotl/core";
-import { type IfPathType, parseIfExpression } from "./if-expression.js";
+import { type IfPathType, parseIfExpression, withNodeBase } from "./if-expression.js";
 import { metaReason, type MigrateDiagnosticCode, migrateDiagnostic } from "./diagnostics.js";
-import type { UmoOrigins } from "./umo-json.js";
+import type { FengdieJsonOrigins } from "./fengdie-json.js";
 import {
-	UMO_CUSTOM_META_RE,
-	umoGroupTitle,
-	UMO_SUPPORTED_TYPES,
-	type UmoEnumItem,
-	type UmoJson,
-	type UmoMetaValue,
-	type UmoNode,
-	umoMetaKeys,
-} from "./umo-types.js";
+	FENGDIE_JSON_CUSTOM_META_RE,
+	fengdieJsonGroupTitle,
+	FENGDIE_JSON_TYPES,
+	type FengdieJsonEnumItem,
+	type FengdieJson,
+	type FengdieJsonMetaValue,
+	type FengdieJsonNode,
+	fengdieJsonMetaKeys,
+} from "./fengdie-json-types.js";
 
 const ROOT_TYPE_NAME = "Root";
 
@@ -56,7 +56,7 @@ const LEAF_SCHEMAS: Readonly<Record<string, JsonSchemaObject>> = {
 const STR: JsonSchemaObject = { type: "string" };
 const NUM: JsonSchemaObject = { type: "number" };
 
-/** 按 umo-edit-sdk `build/mock` 的数据形态生成的对象; 不封闭, 旧数据可带更多字段. */
+/** 按凤蝶编辑器 mock 数据(`build/mock`)的形态生成的对象; 不封闭, 旧数据可带更多字段. */
 const FIXED_SHAPES: Readonly<Record<string, Record<string, JsonSchemaObject>>> = {
 	box: { left: NUM, top: NUM, width: NUM, height: NUM },
 	resource: { bizId: STR, data: {} },
@@ -130,7 +130,7 @@ type Kind =
 	| { kind: "array" }
 	| { kind: "fixed"; type: string };
 
-/** 按 umo 类型名分类; 未知类型返回 undefined. */
+/** 按 fengdieJson 类型名分类; 未知类型返回 undefined. */
 function classify(type: string): Kind | undefined {
 	const t = type.toLowerCase();
 	if (Object.hasOwn(LEAF_SCHEMAS, t)) return { kind: "leaf", type: t };
@@ -158,8 +158,8 @@ const PROTOTYPE_NAMES: ReadonlySet<string> = new Set([
  * 凤蝶 `if` 中 `$` 后路径的数据类型; root 为数据根(多类型文档时为 undefined, 一律按未知).
  * 未声明的对象成员按未知继续, 但原型成员名在未知或未声明时拒绝; 经过标量或数组的非下标成员时为 invalid.
  */
-function ifPathType(root: UmoNode | undefined, tokens: readonly string[]): IfPathType {
-	type Cursor = { node: UmoNode; item: boolean } | { scalar: IfPathType } | undefined;
+function ifPathType(root: FengdieJsonNode | undefined, tokens: readonly string[]): IfPathType {
+	type Cursor = { node: FengdieJsonNode; item: boolean } | { scalar: IfPathType } | undefined;
 	let cursor: Cursor = root === undefined ? undefined : { node: root, item: false };
 	for (const token of tokens) {
 		if (cursor === undefined) {
@@ -192,7 +192,7 @@ function ifPathType(root: UmoNode | undefined, tokens: readonly string[]): IfPat
 			const child: unknown =
 				isRecord(props) && Object.hasOwn(props, token) ? props[token] : undefined;
 			if (isRecord(child) && typeof child.type === "string")
-				cursor = { node: child as unknown as UmoNode, item: false };
+				cursor = { node: child as unknown as FengdieJsonNode, item: false };
 			else if (PROTOTYPE_NAMES.has(token)) return "invalid";
 			else cursor = undefined;
 			continue;
@@ -232,7 +232,7 @@ function ifPathType(root: UmoNode | undefined, tokens: readonly string[]): IfPat
 
 const NUMERIC_RE = /^-?\d+(?:\.\d+)?$/;
 
-function toNumber(value: UmoMetaValue): number | undefined {
+function toNumber(value: FengdieJsonMetaValue): number | undefined {
 	if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
 	if (typeof value === "string" && NUMERIC_RE.test(value)) return Number(value);
 	return undefined;
@@ -523,7 +523,7 @@ function setUi(node: JsonSchemaObject, key: string, value: unknown): void {
 	node["x-ui"] = { ...node["x-ui"], [key]: value };
 }
 
-function setUiProp(node: JsonSchemaObject, key: string, value: UmoMetaValue): void {
+function setUiProp(node: JsonSchemaObject, key: string, value: FengdieJsonMetaValue): void {
 	const ui = node["x-ui"] ?? {};
 	node["x-ui"] = { ...ui, props: { ...ui.props, [key]: value } };
 }
@@ -537,7 +537,7 @@ interface Field {
 
 /** 单个节点转换期间的累积状态. */
 interface NodeState {
-	node: UmoNode;
+	node: FengdieJsonNode;
 	pointer: string;
 	schema: JsonSchemaObject;
 	trace: Record<string, unknown>;
@@ -545,11 +545,13 @@ interface NodeState {
 	group?: string;
 	firstLevel: boolean;
 	defaultKey?: string;
+	/** 包含当前字段的对象(凤蝶 `if` 中 `$.` 的求值基准); 根对象时为其自身. */
+	parent: FengdieJsonNode | undefined;
 }
 
-export interface UmoToSchemaOptions {
-	/** 源码位置表(由 `fengdieToUmoJson` 给出); 缺省时诊断位置为 umo JSON 中的指针. */
-	origins?: UmoOrigins;
+export interface FengdieJsonToSchemaOptions {
+	/** 源码位置表(由 `parseFengdieJson` 给出); 缺省时诊断位置为 fengdie JSON schema 中的指针. */
+	origins?: FengdieJsonOrigins;
 	/** 指针诊断所属的文档名. */
 	file?: string;
 }
@@ -557,16 +559,13 @@ export interface UmoToSchemaOptions {
 class Converter {
 	readonly diagnostics: Diagnostic[] = [];
 	private failed = false;
-	/** 凤蝶 `if` 中 `$` 指向的数据根; 只有单一根类型的文档才确定. */
-	private dataRoot: UmoNode | undefined;
 
-	constructor(private readonly options: UmoToSchemaOptions) {}
+	constructor(private readonly options: FengdieJsonToSchemaOptions) {}
 
-	document(umo: unknown): JsonSchemaObject | undefined {
-		if (!isRecord(umo)) return this.invalid("", metaReason("notObject"));
-		if (typeof umo.type === "string") {
-			this.dataRoot = umo as unknown as UmoNode;
-			const root = this.root(umo as unknown as UmoNode, "");
+	document(fengdieJson: unknown): JsonSchemaObject | undefined {
+		if (!isRecord(fengdieJson)) return this.invalid("", metaReason("notObject"));
+		if (typeof fengdieJson.type === "string") {
+			const root = this.root(fengdieJson as unknown as FengdieJsonNode, "");
 			if (this.failed) return undefined;
 			return {
 				$schema: JSON_SCHEMA_DIALECT,
@@ -575,12 +574,12 @@ class Converter {
 				$defs: { [ROOT_TYPE_NAME]: root },
 			};
 		}
-		const names = Object.keys(umo);
+		const names = Object.keys(fengdieJson);
 		const used = new Set(names.filter(isTypeName));
 		const defs: [string, JsonSchema][] = [];
 		for (const name of names) {
 			const pointer = appendPointer("", name);
-			const value = umo[name];
+			const value = fengdieJson[name];
 			if (!isRecord(value) || typeof value.type !== "string")
 				return this.invalid(pointer, metaReason("noType"));
 			let printed = name;
@@ -589,7 +588,7 @@ class Converter {
 				used.add(printed);
 				this.warn("JOTL8117", { name, newName: printed }, this.locate(value, pointer));
 			}
-			defs.push([printed, this.root(value as unknown as UmoNode, pointer)]);
+			defs.push([printed, this.root(value as unknown as FengdieJsonNode, pointer)]);
 		}
 		if (this.failed) return undefined;
 		// Jotl 文件总有根, 凤蝶的多个导出并列无主次: 取第一个为根, 其余留作命名类型.
@@ -604,7 +603,7 @@ class Converter {
 						.map(([name]) => `\`${name}\``)
 						.join(", "),
 				},
-				this.locate(umo[first] as object, appendPointer("", first))
+				this.locate(fengdieJson[first] as object, appendPointer("", first))
 			);
 		}
 		const head: JsonSchemaObject =
@@ -612,16 +611,22 @@ class Converter {
 		return { $schema: JSON_SCHEMA_DIALECT, ...head, $defs: Object.fromEntries(defs) };
 	}
 
-	private root(node: UmoNode, pointer: string): JsonSchemaObject {
-		const state = this.state(node, pointer, false);
+	private root(node: FengdieJsonNode, pointer: string): JsonSchemaObject {
+		// 根对象自身 if 的 `$.` 从根数据取值, 基准取其自身, 与字段所在对象一致.
+		const state = this.state(node, pointer, false, node);
 		// 无损保留在 `x-fengdie` 的信息不报警告; 警告只用于真正丢失的信息.
 		if (node.lottery === true) state.trace.lottery = true;
 		if (node.public === true) state.trace.public = true;
 		return this.convert(state, true).schema;
 	}
 
-	private state(node: UmoNode, pointer: string, firstLevel: boolean): NodeState {
-		return { node, pointer, schema: {}, trace: {}, required: false, firstLevel };
+	private state(
+		node: FengdieJsonNode,
+		pointer: string,
+		firstLevel: boolean,
+		parent: FengdieJsonNode | undefined
+	): NodeState {
+		return { node, pointer, schema: {}, trace: {}, required: false, firstLevel, parent };
 	}
 
 	/** isRoot 时 node 为根: 其子字段是第一层字段, 可分组. */
@@ -676,7 +681,7 @@ class Converter {
 	}
 
 	/** properties → `{type: object, properties, required?, x-ui.groups?}`. */
-	private object(node: UmoNode, pointer: string, isRoot: boolean): JsonSchemaObject {
+	private object(node: FengdieJsonNode, pointer: string, isRoot: boolean): JsonSchemaObject {
 		const props = node.properties;
 		const out: JsonSchemaObject = { type: "object", properties: {} };
 		if (props === undefined) {
@@ -696,13 +701,13 @@ class Converter {
 				continue;
 			}
 			const field = this.convert(
-				this.state(child as unknown as UmoNode, childPointer, isRoot),
+				this.state(child as unknown as FengdieJsonNode, childPointer, isRoot, node),
 				false
 			);
 			out.properties![key] = field.schema;
 			if (field.required) required.push(key);
 			if (field.group !== undefined) {
-				const title = umoGroupTitle(field.group);
+				const title = fengdieJsonGroupTitle(field.group);
 				const group = groups.find(g => g.title === title);
 				if (group === undefined) groups.push({ title, fields: [key] });
 				else group.fields.push(key);
@@ -723,7 +728,7 @@ class Converter {
 	} {
 		const items = Array.isArray(state.node.items) ? state.node.items : [];
 		const members: { value: string; title?: string }[] = [];
-		items.forEach((item: UmoEnumItem, i) => {
+		items.forEach((item: FengdieJsonEnumItem, i) => {
 			const value = String(item.value);
 			if (members.some(m => m.value === value)) {
 				this.warn(
@@ -782,14 +787,14 @@ class Converter {
 			this.invalid(appendPointer(state.pointer, "meta"), metaReason("notObject"));
 			return;
 		}
-		const allowed = umoMetaKeys(state.node.type);
+		const allowed = fengdieJsonMetaKeys(state.node.type);
 		const schema = state.schema;
 		const isArray = schema.type === "array" && kind.kind !== "enum";
 		const isString = kind.kind === "leaf" && STRING_LEAVES.has(kind.type);
 		let defaultKey: string | undefined;
-		for (const [key, value] of Object.entries(meta) as [string, UmoMetaValue][]) {
+		for (const [key, value] of Object.entries(meta) as [string, FengdieJsonMetaValue][]) {
 			const at = this.locate(state.node, state.pointer, key);
-			if (!(allowed?.includes(key) || UMO_CUSTOM_META_RE.test(key))) {
+			if (!(allowed?.includes(key) || FENGDIE_JSON_CUSTOM_META_RE.test(key))) {
 				if (allowed === undefined)
 					this.warn("JOTL8118", { type: state.node.type, key }, at);
 				else this.warn("JOTL8105", { key, type: state.node.type }, at);
@@ -811,13 +816,15 @@ class Converter {
 					else this.invalidMeta(key, metaReason("boolean"), at);
 					continue;
 				case "if": {
-					const root = this.dataRoot;
+					// 凤蝶编辑器以字段所在对象的数据求值 if(simple-evaluate 的 context), `$.` 与无前缀等价;
+					// 对应 visibleIf 叶子的 base: "node", 类型解析也基于该对象的字段.
+					const parent = state.parent;
 					const condition =
 						typeof value === "string"
-							? parseIfExpression(value, tokens => ifPathType(root, tokens))
+							? parseIfExpression(value, tokens => ifPathType(parent, tokens))
 							: undefined;
 					if (condition !== undefined) {
-						setUi(schema, "visibleIf", condition);
+						setUi(schema, "visibleIf", withNodeBase(condition));
 						continue;
 					}
 					break;
@@ -924,7 +931,7 @@ class Converter {
 	private applyLength(
 		schema: JsonSchemaObject,
 		key: string,
-		value: UmoMetaValue,
+		value: FengdieJsonMetaValue,
 		keyword: "minLength" | "maxLength" | "minItems" | "maxItems",
 		at: DiagnosticLocation | undefined
 	): void {
@@ -939,7 +946,7 @@ class Converter {
 
 	private applyPattern(
 		state: NodeState,
-		value: UmoMetaValue,
+		value: FengdieJsonMetaValue,
 		at: DiagnosticLocation | undefined
 	): void {
 		if (typeof value !== "string" || value === "")
@@ -966,7 +973,7 @@ class Converter {
 	private applyString(
 		schema: JsonSchemaObject,
 		key: string,
-		value: UmoMetaValue,
+		value: FengdieJsonMetaValue,
 		keyword: "description" | "errorMessage",
 		at: DiagnosticLocation | undefined
 	): void {
@@ -978,7 +985,7 @@ class Converter {
 	private applyDefault(
 		schema: JsonSchemaObject,
 		kind: Kind,
-		value: UmoMetaValue,
+		value: FengdieJsonMetaValue,
 		at: DiagnosticLocation | undefined
 	): void {
 		const typeName = kind.kind === "leaf" ? kind.type : String(schema.type);
@@ -1018,7 +1025,7 @@ class Converter {
 
 	private applyEnumDefault(
 		schema: JsonSchemaObject,
-		value: UmoMetaValue,
+		value: FengdieJsonMetaValue,
 		members: readonly { value: string }[],
 		multiple: boolean,
 		at: DiagnosticLocation | undefined
@@ -1083,7 +1090,7 @@ class Converter {
 			: { kind: "pointer", pointer, document: this.options.file };
 	}
 
-	/** 有源码位置表时取源码位置, 否则取 umo JSON 中的指针. */
+	/** 有源码位置表时取源码位置, 否则取 fengdie JSON schema 中的指针. */
 	private locate(
 		node: object,
 		pointer: string,
@@ -1113,17 +1120,17 @@ class Converter {
 	}
 }
 
-/** 把 umo JSON 转为 JSON Schema 2020-12 文档; 关键字尚未按规范化顺序排列. 结构不合法(JOTL8007)时 value 为 undefined. */
-export function umoJsonToSchema(
-	umo: UmoJson | unknown,
-	options: UmoToSchemaOptions = {}
+/** 把 fengdie JSON schema 转为 JSON Schema 2020-12 文档; 关键字尚未按规范化顺序排列. 结构不合法(JOTL8007)时 value 为 undefined. */
+export function fengdieJsonToSchema(
+	fengdieJson: FengdieJson | unknown,
+	options: FengdieJsonToSchemaOptions = {}
 ): Result<JsonSchemaObject> {
 	const converter = new Converter(options);
-	const schema = converter.document(umo);
+	const schema = converter.document(fengdieJson);
 	return { value: schema, diagnostics: converter.diagnostics };
 }
 
-/** umo 类型名是否被识别(含 `命名空间.组件` 写法); 供输入类型判定使用. */
-export function isKnownUmoType(type: string): boolean {
-	return classify(type) !== undefined || UMO_SUPPORTED_TYPES.has(type.toLowerCase());
+/** fengdieJson 类型名是否被识别(含 `命名空间.组件` 写法); 供输入类型判定使用. */
+export function isKnownFengdieJsonType(type: string): boolean {
+	return classify(type) !== undefined || FENGDIE_JSON_TYPES.has(type.toLowerCase());
 }

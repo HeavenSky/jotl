@@ -8,7 +8,7 @@ import {
 	detectMigrateInput,
 	migrateFengdie,
 	schemaToTs,
-	umoJsonToSchema,
+	fengdieJsonToSchema,
 	upgradeSchema,
 } from "../src/index.js";
 import { tsToSchema } from "../src/from-ts.js";
@@ -65,14 +65,14 @@ describe("英文输出", () => {
 		expect(related).toEqual(["Handled per the declared version draft-07"]);
 	});
 
-	it("凤蝶迁移: 语法错误的期望记号与 umo JSON 结构错误的原因", () => {
+	it("凤蝶迁移: 语法错误的期望记号与 fengdie JSON schema 结构错误的原因", () => {
 		setLocale("en");
 		const syntax = migrateFengdie("Object(a) {\n  b: \n}");
 		expect(syntax.diagnostics.find(d => d.code === "JOTL8002")?.message).toMatch(
-			/^Fengdie schema syntax error: expected .+ here, got /
+			/^fengdie DSL schema syntax error: expected .+ here, got /
 		);
-		expect(umoJsonToSchema(1).diagnostics.find(d => d.code === "JOTL8007")?.message).toBe(
-			"Invalid umo JSON structure: root: should be an object"
+		expect(fengdieJsonToSchema(1).diagnostics.find(d => d.code === "JOTL8007")?.message).toBe(
+			"Invalid fengdie JSON schema structure: root: should be an object"
 		);
 	});
 

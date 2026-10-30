@@ -1,4 +1,4 @@
-// 凤蝶 schema 语法分析: 按 umo-edit-sdk 0.0.8 `parse/schema.yy` 的产生式递归下降, 与 jison 一样在第一个错误处停止.
+// fengdie DSL schema 语法分析: 按凤蝶编辑器文法(`parse/schema.yy`)的产生式递归下降, 与 jison 一样在第一个错误处停止.
 import { type Diagnostic, type Result, type SourceRange, formatMessage, l10n } from "@jotl/core";
 import type {
 	EnumProp,
@@ -359,7 +359,7 @@ class Parser {
 	}
 }
 
-/** 解析凤蝶 schema 源码; 有错误时 value 为 undefined, 诊断只含第一个错误. */
+/** 解析 fengdie DSL schema; 有错误时 value 为 undefined, 诊断只含第一个错误. */
 export function parseFengdie(text: string, file: string): Result<FengdieDocument> {
 	try {
 		return { value: new Parser(text, file).document(), diagnostics: [] };

@@ -2,7 +2,7 @@
 
 **English** · [简体中文](../zh/docs/styling.md)
 
-This page shows the two ways to include the form's styles and how to reskin them. Styles are optional: without them widgets still work, they only lose basic layout (including the drill-down breadcrumb and entry rows).
+This page shows the two ways to include the form's styles and how to reskin them. Styles are optional: without them widgets still work, they only lose basic layout (including the nested breadcrumb and entry rows).
 
 ## Include the precompiled stylesheet
 

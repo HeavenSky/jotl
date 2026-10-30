@@ -228,27 +228,27 @@ describe("schema 变化与引用稳定", () => {
 
 	it("非受控: schema 变化时按新 schema 重新取默认值, 清掉触碰与错误, 经 onChange 通知", () => {
 		const onChange = vi.fn();
-		const view = render(<JotlForm id="f" drill={false} schema={V1} onChange={onChange} />);
+		const view = render(<JotlForm id="f" nested={false} schema={V1} onChange={onChange} />);
 		fireEvent.change(byPath("/title")!, { target: { value: "x" } });
 		fireEvent.blur(byPath("/title")!);
 		expect(document.getElementById("f:/title-errors")).not.toBeNull();
-		view.rerender(<JotlForm id="f" drill={false} schema={V2} onChange={onChange} />);
+		view.rerender(<JotlForm id="f" nested={false} schema={V2} onChange={onChange} />);
 		expect((byPath("/name") as HTMLInputElement).value).toBe("新");
 		expect(byPath("/title")).toBeNull();
 		expect(document.querySelector(".jotl-error")).toBeNull();
 		expect(onChange).toHaveBeenLastCalledWith({ name: "新", n: 2 });
 		// 回到旧 schema: 不保留之前的输入与错误.
-		view.rerender(<JotlForm id="f" drill={false} schema={V1} onChange={onChange} />);
+		view.rerender(<JotlForm id="f" nested={false} schema={V1} onChange={onChange} />);
 		expect((byPath("/title") as HTMLInputElement).value).toBe("旧");
 		expect(document.querySelector(".jotl-error")).toBeNull();
 	});
 
 	it("非受控: 有 defaultValue 时按它与新 schema 的默认值重新初始化; initialData 为 mock 时重新 mock", () => {
 		const view = render(
-			<JotlForm id="f" drill={false} schema={V1} defaultValue={{ name: "保留" }} />
+			<JotlForm id="f" nested={false} schema={V1} defaultValue={{ name: "保留" }} />
 		);
 		view.rerender(
-			<JotlForm id="f" drill={false} schema={V2} defaultValue={{ name: "保留" }} />
+			<JotlForm id="f" nested={false} schema={V2} defaultValue={{ name: "保留" }} />
 		);
 		expect((byPath("/name") as HTMLInputElement).value).toBe("保留");
 		expect((byPath("/n") as HTMLInputElement).value).toBe("2");
@@ -260,18 +260,18 @@ describe("schema 变化与引用稳定", () => {
 		};
 		const ref = createRef<JotlFormHandle>();
 		const mocked = render(
-			<JotlForm id="f" ref={ref} drill={false} schema={V1} initialData="mock" mockSeed={1} />
+			<JotlForm id="f" ref={ref} nested={false} schema={V1} initialData="mock" mockSeed={1} />
 		);
 		mocked.rerender(
-			<JotlForm id="f" ref={ref} drill={false} schema={M2} initialData="mock" mockSeed={1} />
+			<JotlForm id="f" ref={ref} nested={false} schema={M2} initialData="mock" mockSeed={1} />
 		);
 		expect(Number.isInteger((ref.current!.getValues() as { age: unknown }).age)).toBe(true);
 	});
 
 	it("内容相同的新 schema 对象不重新初始化", () => {
-		const view = render(<JotlForm id="f" drill={false} schema={structuredClone(V1)} />);
+		const view = render(<JotlForm id="f" nested={false} schema={structuredClone(V1)} />);
 		fireEvent.change(byPath("/title")!, { target: { value: "改过" } });
-		view.rerender(<JotlForm id="f" drill={false} schema={structuredClone(V1)} />);
+		view.rerender(<JotlForm id="f" nested={false} schema={structuredClone(V1)} />);
 		expect((byPath("/title") as HTMLInputElement).value).toBe("改过");
 	});
 
@@ -280,7 +280,7 @@ describe("schema 变化与引用稳定", () => {
 		const view = render(
 			<JotlForm
 				id="f"
-				drill={false}
+				nested={false}
 				schema={V1}
 				value={{ title: "受控" }}
 				onChange={onChange}
@@ -289,7 +289,7 @@ describe("schema 变化与引用稳定", () => {
 		view.rerender(
 			<JotlForm
 				id="f"
-				drill={false}
+				nested={false}
 				schema={V2}
 				value={{ title: "受控", name: "n", n: 1 }}
 				onChange={onChange}
@@ -311,7 +311,7 @@ describe("schema 变化与引用稳定", () => {
 		const view = render(
 			<JotlForm
 				id="f"
-				drill={false}
+				nested={false}
 				schema={PERSON}
 				registry={make()}
 				adapters={{ upload }}
@@ -321,7 +321,7 @@ describe("schema 变化与引用稳定", () => {
 		view.rerender(
 			<JotlForm
 				id="f"
-				drill={false}
+				nested={false}
 				schema={PERSON}
 				registry={make()}
 				adapters={{ upload }}
@@ -332,7 +332,7 @@ describe("schema 变化与引用稳定", () => {
 		view.rerender(
 			<JotlForm
 				id="f"
-				drill={false}
+				nested={false}
 				schema={PERSON}
 				registry={make()}
 				adapters={{ upload: async () => "v" }}

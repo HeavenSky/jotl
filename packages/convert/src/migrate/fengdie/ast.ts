@@ -1,4 +1,4 @@
-// 凤蝶 schema 语法树: 与 umo-edit-sdk `parse/schema.yy` 各产生式的产出一一对应, 另带源码位置.
+// fengdie DSL schema 语法树: 与凤蝶编辑器文法(`parse/schema.yy`)各产生式的产出一一对应, 另带源码位置.
 import type { SourceRange } from "@jotl/core";
 
 export interface Name {

@@ -1,4 +1,6 @@
-// 纯函数: Jotl 源码编译为 JSON Schema 文本, schema 生成 TS 文本, 两者的诊断统一换算成源码行列.
+// 纯函数: Jotl 源码编译为 JSON Schema 文本, schema 生成 TS 文本, 两者的诊断统一换算成源码行列;
+// fengdie DSL schema 先经 `migrateFengdie` 迁移为 Jotl 再编译, 迁移诊断直接定位在其源码上.
+import { migrateFengdie, fengdieJsonFeature } from "@jotl/convert";
 import { compile, getLocale, type CompileOptions } from "@jotl/core";
 import {
 	parentPointer,
@@ -41,10 +43,14 @@ export interface CompiledSchema {
 	sourceMap: SourceMap;
 	/** 默认导出的类型名, 生成 TS 时传入. */
 	defaultExport?: string;
+	/** schema 来自凤蝶迁移产物, sourceMap 对应迁移生成的 Jotl 而非编辑器内容. */
+	fengdie?: boolean;
 }
 
 export interface CompileReport {
 	source: string;
+	/** 输入被识别为 fengdie DSL schema, source 仍是凤蝶原文, 编译用的是迁移产物. */
+	fengdie?: boolean;
 	/** 有 error 级诊断时缺省. */
 	output?: CompiledSchema;
 	diagnostics: PlaygroundDiagnostic[];
@@ -63,6 +69,25 @@ export interface TsReport {
 
 function errorDetail(error: unknown): string {
 	return error instanceof Error ? error.message : String(error);
+}
+
+/**
+ * fengdie DSL schema 的顶层特征: 注释与空白之后是凤蝶类型关键字, `export` 文档或 `public`, 或 namespace 类型.
+ * Jotl 顶层是 `名字:` 起头的源码不会命中, 普通源码不为此多跑一次迁移解析.
+ */
+const FENGDIE_HEAD_RE =
+	/^(?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(?:(?:export\s+\w+|public)\s+)?(?:Object|Array|String|Text|RichText|URL|Color|File|Image|Number|Boolean|Date|Enum|Component|Box|Resource|Plugin|Animation|Video|Action|OpenAction|Spm|Module|ModuleArray|Lottery|[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*)\b/;
+
+/** 输入是否按 fengdie DSL schema 迁移: 顶层像凤蝶的源码, 或带 fengdie JSON 特征的 JSON(凤蝶 toJson 产物). */
+function isFengdieInput(source: string): boolean {
+	if (/^\s*\{/.test(source)) {
+		try {
+			return fengdieJsonFeature(JSON.parse(source) as unknown) !== undefined;
+		} catch {
+			return false;
+		}
+	}
+	return FENGDIE_HEAD_RE.test(source);
 }
 
 function rangeOf(range: SourceRange): Pick<PlaygroundDiagnostic, "start" | "end"> {
@@ -114,6 +139,45 @@ export function formatSchema(schema: JsonSchema): string {
 
 /** 编译器自身抛出的异常也转为一条诊断, 不向外抛. */
 export function compileSource(source: string, options: CompileOptions = {}): CompileReport {
+	// 凤蝶输入: 迁移诊断直接定位在 fengdie DSL schema; 迁移产物再编译的诊断对应迁移生成的 Jotl,
+	// 行列与编辑器内容对不上, 不带位置只保留消息.
+	let migrated: ReturnType<typeof migrateFengdie> | undefined;
+	if (isFengdieInput(source)) {
+		migrated = migrateFengdie(source, PLAYGROUND_FILE);
+		const migrateDiagnostics = migrated.diagnostics.map(d => toPlayground(d, "migrate", undefined));
+		if (migrated.jotl === undefined) return { source, fengdie: true, diagnostics: migrateDiagnostics };
+		let result: ReturnType<typeof compile>;
+		try {
+			result = compile(migrated.jotl, PLAYGROUND_FILE, options);
+		} catch (error) {
+			return {
+				source,
+				fengdie: true,
+				diagnostics: [
+					...migrateDiagnostics,
+					{
+						stage: "compile",
+						severity: "error",
+						message: copyOf(getLocale()).diagnostics.internalError(errorDetail(error)),
+					},
+				],
+			};
+		}
+		const diagnostics = [
+			...migrateDiagnostics,
+			...result.diagnostics.map(d => toPlayground(d, "compile", undefined)),
+		];
+		if (result.value === undefined) return { source, fengdie: true, diagnostics };
+		const { schema, defaultExport } = result.value;
+		const output: CompiledSchema = {
+			schema,
+			schemaText: formatSchema(schema),
+			sourceMap: result.value.sourceMap,
+			fengdie: true,
+		};
+		if (defaultExport !== undefined) output.defaultExport = defaultExport;
+		return { source, fengdie: true, output, diagnostics };
+	}
 	let result: ReturnType<typeof compile>;
 	try {
 		result = compile(source, PLAYGROUND_FILE, options);
@@ -142,7 +206,7 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
 	return { source, output, diagnostics };
 }
 
-/** 生成器的指针诊断经编译结果的源码映射换算到源码行列. */
+/** 生成器的指针诊断经编译结果的源码映射换算到源码行列; 凤蝶迁移产物的映射对不上编辑器内容, 不换算. */
 export function generateTs(compiled: CompiledSchema, schemaToTs: SchemaToTs): TsReport {
 	let result: Result<string>;
 	try {
@@ -161,7 +225,8 @@ export function generateTs(compiled: CompiledSchema, schemaToTs: SchemaToTs): Ts
 			],
 		};
 	}
-	const diagnostics = result.diagnostics.map(d => toPlayground(d, "ts", compiled.sourceMap));
+	const sourceMap = compiled.fengdie === true ? undefined : compiled.sourceMap;
+	const diagnostics = result.diagnostics.map(d => toPlayground(d, "ts", sourceMap));
 	return result.value === undefined ? { diagnostics } : { text: result.value, diagnostics };
 }
 

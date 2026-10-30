@@ -149,6 +149,9 @@ export function App() {
 	const markers = useMemo(() => lineMarkers(diagnostics, "source"), [diagnostics]);
 	const configMarkers = useMemo(() => lineMarkers(diagnostics, "config"), [diagnostics]);
 	const stale = state.current.report.output === undefined && state.lastGood !== undefined;
+	// 当前输入按 fengdie DSL schema 迁移时, 源码页签改标凤蝶.
+	const fengdie = state.current.report.fengdie === true;
+	const sourceLabel = fengdie ? COPY.sources.fengdie : COPY.sources.source;
 
 	return (
 		<CopyContext.Provider value={COPY}>
@@ -196,7 +199,7 @@ export function App() {
 									aria-selected={tab === sourceTab}
 									onClick={() => setSourceTab(tab)}
 								>
-									{COPY.sources[tab]}
+									{tab === "source" ? sourceLabel : COPY.sources[tab]}
 								</button>
 							))}
 						</div>

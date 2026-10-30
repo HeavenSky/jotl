@@ -2,7 +2,7 @@
 
 **English** · [简体中文](./zh/README.md)
 
-Turn JSON Schema into TypeScript declarations and back without losing constraints, and bring legacy JSON Schema, OpenAPI and Fengdie schemas up to JSON Schema 2020-12 and Jotl.
+Turn JSON Schema into TypeScript declarations and back without losing constraints, and bring legacy JSON Schema, OpenAPI and fengdie DSL schemas up to JSON Schema 2020-12 and Jotl.
 
 This package is for teams that keep form or API contracts in JSON Schema and also need TS types, or that still hold schemas in older dialects. A type alone cannot say `maxLength: 20` or "this enum value is labeled Admin", so one-way generators drop those keywords. Here every keyword a type cannot express becomes a JSDoc tag, and `tsToSchema` reads the file back to a deeply equal schema. Legacy upgrades report every rewrite as a diagnostic, so you get a change list instead of a silent rewrite.
 
@@ -88,7 +88,7 @@ Passing this text to `tsToSchema` from `@jotl/convert/from-ts` returns a schema 
 - Lint-clean tags: a TSDoc preset and an eslint-plugin-jsdoc tag list stop linters from flagging the custom tags; see [Configure TSDoc and ESLint](docs/lint-presets.md).
 - Optional typia output: `typiaTags: true` writes constraints as typia type tags such as `tags.MaxLength<20>`.
 - Legacy upgrade with a change list: draft-04 to 2019-09 schemas and OpenAPI 3.0 / Swagger 2.0 Schema Objects become 2020-12, across files if needed, with one info diagnostic per rewrite; see [Upgrade legacy JSON Schema](docs/upgrade.md).
-- Fengdie to Jotl: Fengdie schema source or umo JSON becomes Jotl, and information Jotl has no syntax for is kept in `x-fengdie`; see [Migrate Fengdie schemas](docs/fengdie-migration.md).
+- Fengdie to Jotl: fengdie DSL schema source or fengdie JSON schema becomes Jotl, and information Jotl has no syntax for is kept in `x-fengdie`; see [Migrate fengdie DSL schemas](docs/fengdie-migration.md).
 
 ## Where it does not fit
 

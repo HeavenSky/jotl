@@ -45,7 +45,7 @@ peer 依赖：`antd` 5 或 6，`react` 18 或 19。
 ## 延伸阅读
 
 - [guide 索引](docs/README.md)：覆盖表、语言与样式。
-- [`@jotl/form`](../../form/zh/README.md)：表单组件、钻取、降级与 widget 契约。
+- [`@jotl/form`](../../form/zh/README.md)：表单组件、层级、降级与 widget 契约。
 
 ## 许可证
 

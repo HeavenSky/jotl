@@ -287,7 +287,7 @@ describe("StrictMode", () => {
 					ref={ref}
 					schema={schema}
 					defaultValue={{ list: ["x"] }}
-					drill={false}
+					nested={false}
 				/>
 			</StrictMode>
 		);

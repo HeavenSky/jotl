@@ -1,8 +1,8 @@
 # Navigate nested data
 
-**English** · [简体中文](../zh/docs/drill-down.md)
+**English** · [简体中文](../zh/docs/nested.md)
 
-This page explains how `JotlForm` shows objects, arrays and dictionaries, and how to sync the current level with your router or turn drill-down off.
+This page explains how `JotlForm` shows objects, arrays and dictionaries, and how to sync the current level with your router or turn nested off.
 
 ## One level per page
 
@@ -31,13 +31,13 @@ Both moves below are reported through `onPathChange`:
 
 ## Find errors on other pages
 
-Errors not on the current page appear in the form-level list at the top, and each upper level in the breadcrumb shows how many errors lie beneath it (and not in the next level); after you click that level, entry rows point to the location. Clicking an error in the form-level list switches to its page, then scrolls to and focuses the field. Without drill-down the field is focused directly, and a hidden field focuses its nearest visible ancestor.
+Errors not on the current page appear in the form-level list at the top, and each upper level in the breadcrumb shows how many errors lie beneath it (and not in the next level); after you click that level, entry rows point to the location. Clicking an error in the form-level list switches to its page, then scrolls to and focuses the field. Without nested the field is focused directly, and a hidden field focuses its nearest visible ancestor.
 
 ## Show everything on one page
 
 ```tsx
-<JotlForm schema={schema} drill={false} collapsible />
+<JotlForm schema={schema} nested={false} collapsible />
 ```
 
-- `drill={false}` expands all levels on one page with no entry rows or breadcrumb, and ignores `path`.
-- Adding `collapsible` wraps objects (except `inline`), arrays, dictionaries and unions with object branches in collapsible panels. Each panel header shows the title (`Item n` for array elements), the summary and the error count; the first level starts expanded and deeper levels start collapsed. `collapsible` is ignored while `drill` is `true`.
+- `nested={false}` expands all levels on one page with no entry rows or breadcrumb, and ignores `path`.
+- Adding `collapsible` wraps objects (except `inline`), arrays, dictionaries and unions with object branches in collapsible panels. Each panel header shows the title (`Item n` for array elements), the summary and the error count; the first level starts expanded and deeper levels start collapsed. `collapsible` is ignored while `nested` is `true`.

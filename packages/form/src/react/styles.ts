@@ -17,14 +17,16 @@ export const styles = {
 		`jt:flex jt:items-center jt:gap-2 jt:w-full jt:min-h-[48px] jt:px-[16px] jt:py-0 jt:border jt:border-divider jt:rounded-base jt:bg-surface jt:text-inherit ${inheritFont} jt:text-left jt:cursor-pointer ` +
 		"jt:hover:border-focus jt:aria-invalid:border-error " +
 		"jt:in-[.jotl-array-item-content]:min-h-0 jt:in-[.jotl-array-item-content]:p-0 jt:in-[.jotl-array-item-content]:border-0 jt:in-[.jotl-array-item-content]:bg-transparent",
-	entrySummary: "jt:flex-1 jt:min-w-0 jt:overflow-hidden jt:text-ellipsis jt:whitespace-nowrap",
+	entrySummary:
+		"jt:flex-1 jt:min-w-0 jt:overflow-hidden jt:text-ellipsis jt:whitespace-nowrap jt:font-medium",
 	entryErrors:
 		"jt:flex-none jt:px-2 jt:rounded-[999px] jt:bg-error jt:text-on-accent jt:text-[0.75rem] jt:leading-[1.5]",
 	entryArrow: "jt:flex-none jt:text-muted jt:text-[1.25rem] jt:leading-none",
-	/** 折叠面板(drill 为 false 且 collapsible 时). */
+	/** 折叠面板(nested 为 false 且 collapsible 时). */
 	panel: "jt:min-w-0 jt:border jt:border-divider jt:rounded-base jt:bg-surface",
+	// 高度对齐入口行; marker 与展开箭头由 tailwind.css 的语义类规则处理.
 	panelHeader:
-		"jt:flex jt:items-center jt:gap-2 jt:min-h-[40px] jt:px-[16px] jt:py-[8px] jt:rounded-base jt:bg-[var(--jotl-panel-header,#fafafa)] jt:cursor-pointer jt:select-none jt:hover:bg-[var(--jotl-panel-header-hover,#f0f0f0)]",
+		"jt:flex jt:items-center jt:gap-2 jt:min-h-[48px] jt:px-[16px] jt:py-[8px] jt:rounded-base jt:bg-[var(--jotl-panel-header,#fafafa)] jt:cursor-pointer jt:select-none jt:hover:bg-[var(--jotl-panel-header-hover,#f0f0f0)]",
 	panelTitle: "jt:flex-none jt:font-medium",
 	panelSummary:
 		"jt:flex-1 jt:min-w-0 jt:overflow-hidden jt:text-ellipsis jt:whitespace-nowrap jt:text-muted",

@@ -35,7 +35,7 @@ evaluateCondition(extra.visibleIf!, { kind: "b" }, extra.dataPath); // true
 ```
 
 - The render plan is a template tree (`RenderPlanNode`) that does not depend on data: array indexes are written as `*`, and your renderer decides the number of array elements and the active branch of a union from the data.
-- `summary` (objects, arrays, maps) and `thousands` (`number` `money` `bigint`; `true` by default for `money`) on nodes come from the merged `x-ui`, for drill-down entry rows and numeric widgets.
+- `summary` (objects, arrays, maps) and `thousands` (`number` `money` `bigint`; `true` by default for `money`) on nodes come from the merged `x-ui`, for nested entry rows and numeric widgets.
 - Values, validation and defaults are not part of `core`; this package's React renderer uses `@jotl/data` for them.
 - A widget package should provide an implementation for every name in `BUILTIN_WIDGETS`; the props each level receives are described in [Write a widget](widget-contract.md).
 

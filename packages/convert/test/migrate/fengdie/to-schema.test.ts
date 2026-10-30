@@ -1,7 +1,7 @@
-// umo JSON → JSON Schema 2020-12: 映射表每一行与元数据表每一类至少一例, 每例都核对 Jotl 往返一致.
+// fengdie JSON schema → JSON Schema 2020-12: 映射表每一行与元数据表每一类至少一例, 每例都核对 Jotl 往返一致.
 import type { JsonSchemaObject } from "@jotl/core";
 import { describe, expect, it } from "vitest";
-import { migrateFengdie, umoJsonToSchema } from "../../../src/migrate/index.js";
+import { migrateFengdie, fengdieJsonToSchema } from "../../../src/migrate/index.js";
 import { FILE, codes, field, located, roundTrip } from "./helpers.js";
 
 const STR: JsonSchemaObject = { type: "string" };
@@ -85,8 +85,8 @@ describe("映射表: 叶子类型", () => {
 		});
 	});
 
-	it("未知类型名(umo JSON 输入)退回 string 并报 JOTL8111", () => {
-		const result = umoJsonToSchema({
+	it("未知类型名(fengdie JSON schema 输入)退回 string 并报 JOTL8111", () => {
+		const result = fengdieJsonToSchema({
 			type: "object",
 			description: "根",
 			properties: { x: { key: "x", type: "foo", description: "X" } },
@@ -624,7 +624,7 @@ describe("元数据表", () => {
 		expect(field(`: Boolean[if: "$.a.list[0]"]`).x).toStrictEqual({
 			title: "X",
 			type: "boolean",
-			"x-ui": { visibleIf: { field: "/a/list/0", truthy: true } },
+			"x-ui": { visibleIf: { field: "/a/list/0", base: "node", truthy: true } },
 		});
 		const other = field(`: Boolean[if: "showShare"]`);
 		expect(other.x).toMatchObject({ "x-fengdie": { if: "showShare" } });
@@ -655,27 +655,27 @@ describe("元数据表", () => {
 		};
 
 		it.each<[string, unknown]>([
-			["$.o.k", { field: "/o/k", truthy: true }],
-			["!$.s", { field: "/s", truthy: false }],
-			["!!$.s", { field: "/s", truthy: true }],
-			["$.list[0].v", { field: "/list/0/v", truthy: true }],
-			["$.o['k']", { field: "/o/k", truthy: true }],
-			["$.s === 'a'", { field: "/s", eq: "a" }],
-			["$.n === -1.5", { field: "/n", eq: -1.5 }],
-			["$.b === true", { field: "/b", eq: true }],
-			["$.s === null", { field: "/s", eq: null }],
-			["$.s !== 'a'", { field: "/s", ne: "a" }],
-			["'a' === $.s", { field: "/s", eq: "a" }],
-			["$.s == 'a'", { field: "/s", eq: "a" }],
-			["$.e != 'b'", { field: "/e", ne: "b" }],
-			["$.n == 2", { field: "/n", eq: 2 }],
-			["$.b != false", { field: "/b", ne: false }],
+			["$.o.k", { field: "/o/k", base: "node", truthy: true }],
+			["!$.s", { field: "/s", base: "node", truthy: false }],
+			["!!$.s", { field: "/s", base: "node", truthy: true }],
+			["$.list[0].v", { field: "/list/0/v", base: "node", truthy: true }],
+			["$.o['k']", { field: "/o/k", base: "node", truthy: true }],
+			["$.s === 'a'", { field: "/s", base: "node", eq: "a" }],
+			["$.n === -1.5", { field: "/n", base: "node", eq: -1.5 }],
+			["$.b === true", { field: "/b", base: "node", eq: true }],
+			["$.s === null", { field: "/s", base: "node", eq: null }],
+			["$.s !== 'a'", { field: "/s", base: "node", ne: "a" }],
+			["'a' === $.s", { field: "/s", base: "node", eq: "a" }],
+			["$.s == 'a'", { field: "/s", base: "node", eq: "a" }],
+			["$.e != 'b'", { field: "/e", base: "node", ne: "b" }],
+			["$.n == 2", { field: "/n", base: "node", eq: 2 }],
+			["$.b != false", { field: "/b", base: "node", ne: false }],
 			[
 				"$.s == null",
 				{
 					all: [
-						{ field: "/s", truthy: false },
-						{ field: "/s", notIn: [false, 0, ""] },
+						{ field: "/s", base: "node", truthy: false },
+						{ field: "/s", base: "node", notIn: [false, 0, ""] },
 					],
 				},
 			],
@@ -683,23 +683,23 @@ describe("元数据表", () => {
 				"$.s != null",
 				{
 					any: [
-						{ field: "/s", truthy: true },
-						{ field: "/s", in: [false, 0, ""] },
+						{ field: "/s", base: "node", truthy: true },
+						{ field: "/s", base: "node", in: [false, 0, ""] },
 					],
 				},
 			],
-			["$.n > 1", { field: "/n", gt: 1 }],
-			["$.n >= 1e3", { field: "/n", gte: 1000 }],
-			["$.d < 0", { field: "/d", lt: 0 }],
-			["$.nums[1] <= 2", { field: "/nums/1", lte: 2 }],
-			["3 < $.n", { field: "/n", gt: 3 }],
+			["$.n > 1", { field: "/n", base: "node", gt: 1 }],
+			["$.n >= 1e3", { field: "/n", base: "node", gte: 1000 }],
+			["$.d < 0", { field: "/d", base: "node", lt: 0 }],
+			["$.nums[1] <= 2", { field: "/nums/1", base: "node", lte: 2 }],
+			["3 < $.n", { field: "/n", base: "node", gt: 3 }],
 			[
 				"$.b && $.s === 'a' && !$.o.k",
 				{
 					all: [
-						{ field: "/b", truthy: true },
-						{ field: "/s", eq: "a" },
-						{ field: "/o/k", truthy: false },
+						{ field: "/b", base: "node", truthy: true },
+						{ field: "/s", base: "node", eq: "a" },
+						{ field: "/o/k", base: "node", truthy: false },
 					],
 				},
 			],
@@ -707,8 +707,8 @@ describe("元数据表", () => {
 				"$.b || $.n > 1",
 				{
 					any: [
-						{ field: "/b", truthy: true },
-						{ field: "/n", gt: 1 },
+						{ field: "/b", base: "node", truthy: true },
+						{ field: "/n", base: "node", gt: 1 },
 					],
 				},
 			],
@@ -716,11 +716,11 @@ describe("元数据表", () => {
 				"$.b && ($.s === 'a' || $.s === 'b')",
 				{
 					all: [
-						{ field: "/b", truthy: true },
+						{ field: "/b", base: "node", truthy: true },
 						{
 							any: [
-								{ field: "/s", eq: "a" },
-								{ field: "/s", eq: "b" },
+								{ field: "/s", base: "node", eq: "a" },
+								{ field: "/s", base: "node", eq: "b" },
 							],
 						},
 					],
@@ -730,11 +730,11 @@ describe("元数据表", () => {
 				"$.b || $.s && $.n",
 				{
 					any: [
-						{ field: "/b", truthy: true },
+						{ field: "/b", base: "node", truthy: true },
 						{
 							all: [
-								{ field: "/s", truthy: true },
-								{ field: "/n", truthy: true },
+								{ field: "/s", base: "node", truthy: true },
+								{ field: "/n", base: "node", truthy: true },
 							],
 						},
 					],
@@ -745,32 +745,32 @@ describe("元数据表", () => {
 				{
 					not: {
 						all: [
-							{ field: "/b", truthy: true },
-							{ field: "/s", truthy: true },
+							{ field: "/b", base: "node", truthy: true },
+							{ field: "/s", base: "node", truthy: true },
 						],
 					},
 				},
 			],
-			["!($.s === 'a')", { not: { field: "/s", eq: "a" } }],
-			["['a', 'b'].includes($.s)", { field: "/s", in: ["a", "b"] }],
+			["!($.s === 'a')", { not: { field: "/s", base: "node", eq: "a" } }],
+			["['a', 'b'].includes($.s)", { field: "/s", base: "node", in: ["a", "b"] }],
 			[
 				"[1, -2, true, null, 'x',].includes($.zz)",
-				{ field: "/zz", in: [1, -2, true, null, "x"] },
+				{ field: "/zz", base: "node", in: [1, -2, true, null, "x"] },
 			],
-			["[].includes($.n)", { field: "/n", in: [] }],
-			["!['a'].includes($.e)", { field: "/e", notIn: ["a"] }],
-			["!!['a'].includes($.e)", { field: "/e", in: ["a"] }],
-			["!(['a'].includes($.e))", { field: "/e", notIn: ["a"] }],
+			["[].includes($.n)", { field: "/n", base: "node", in: [] }],
+			["!['a'].includes($.e)", { field: "/e", base: "node", notIn: ["a"] }],
+			["!!['a'].includes($.e)", { field: "/e", base: "node", in: ["a"] }],
+			["!(['a'].includes($.e))", { field: "/e", base: "node", notIn: ["a"] }],
 			[
 				"$.b && [0].includes($.list[0].v)",
 				{
 					all: [
-						{ field: "/b", truthy: true },
-						{ field: "/list/0/v", in: [0] },
+						{ field: "/b", base: "node", truthy: true },
+						{ field: "/list/0/v", base: "node", in: [0] },
 					],
 				},
 			],
-			["$.zz.yy", { field: "/zz/yy", truthy: true }],
+			["$.zz.yy", { field: "/zz/yy", base: "node", truthy: true }],
 		])("%s", (expr, expected) => {
 			const { visibleIf, trace, codes: c } = cond(expr);
 			expect(visibleIf).toStrictEqual(expected);
@@ -814,8 +814,8 @@ describe("元数据表", () => {
 			expect(c).toEqual([]);
 		});
 
-		it("多类型文档中字段类型未知: 严格比较与真值照常转换, 依赖类型的比较不转换", () => {
-			const umo = (expr: string) => ({
+		it("类型解析基于字段所在对象: 兄弟字段的类型已知, 未知字段的数值比较不转换", () => {
+			const fengdieJson = (expr: string) => ({
 				A: {
 					type: "object",
 					properties: {
@@ -824,24 +824,30 @@ describe("元数据表", () => {
 					},
 				},
 			});
-			const ok = umoJsonToSchema(umo("$.n === 1 && !$.n"));
+			const ok = fengdieJsonToSchema(fengdieJson("$.n === 1 && !$.n"));
 			expect(ok.value!.$defs!.A).toMatchObject({
 				properties: {
 					x: {
 						"x-ui": {
 							visibleIf: {
 								all: [
-									{ field: "/n", eq: 1 },
-									{ field: "/n", truthy: false },
+									{ field: "/n", base: "node", eq: 1 },
+									{ field: "/n", base: "node", truthy: false },
 								],
 							},
 						},
 					},
 				},
 			});
-			const kept = umoJsonToSchema(umo("$.n > 1"));
+			const compared = fengdieJsonToSchema(fengdieJson("$.n > 1"));
+			expect(compared.value!.$defs!.A).toMatchObject({
+				properties: {
+					x: { "x-ui": { visibleIf: { field: "/n", base: "node", gt: 1 } } },
+				},
+			});
+			const kept = fengdieJsonToSchema(fengdieJson("$.missing > 1"));
 			expect(kept.value!.$defs!.A).toMatchObject({
-				properties: { x: { "x-fengdie": { if: "$.n > 1" } } },
+				properties: { x: { "x-fengdie": { if: "$.missing > 1" } } },
 			});
 		});
 	});
@@ -892,8 +898,8 @@ describe("元数据表", () => {
 	});
 });
 
-describe("umo JSON 输入", () => {
-	const umo = {
+describe("fengdie JSON schema 输入", () => {
+	const fengdieJson = {
 		type: "object",
 		description: "首页",
 		properties: {
@@ -929,9 +935,9 @@ describe("umo JSON 输入", () => {
   list(列表): Array[rule: "r", foo: 1] { a(图): Image }
 }`;
 
-	it("对象, JSON 文本与源码三种输入的结果相同; 诊断位置为 umo JSON 指针", () => {
-		const fromObject = roundTrip(umo);
-		expect(migrateFengdie(JSON.stringify(umo), FILE).jotl).toBe(fromObject.jotl);
+	it("对象, JSON 文本与源码三种输入的结果相同; 诊断位置为 fengdie JSON schema 指针", () => {
+		const fromObject = roundTrip(fengdieJson);
+		expect(migrateFengdie(JSON.stringify(fengdieJson), FILE).jotl).toBe(fromObject.jotl);
 		expect(migrateFengdie(source, FILE).jotl).toBe(fromObject.jotl);
 		expect(fromObject.diagnostics).toEqual([
 			expect.objectContaining({

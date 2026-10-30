@@ -1,4 +1,4 @@
-// 凤蝶 schema 词法器: 按 umo-edit-sdk 0.0.8 `parse/schema.l` 的规则顺序逐个产出记号, 先匹配的规则优先(jison 默认, 不取最长).
+// fengdie DSL schema 词法器: 按凤蝶编辑器文法(`parse/schema.l`)的规则顺序逐个产出记号, 先匹配的规则优先(jison 默认, 不取最长).
 import type { Diagnostic, SourceRange } from "@jotl/core";
 import { migrateDiagnostic } from "./diagnostics.js";
 import type { LineMap } from "./line-map.js";
@@ -68,7 +68,7 @@ const RULES: readonly [RegExp, TokenKind | "SKIP" | "NUMBER_OR_VAR", ((raw: stri
 		[/[$\w][$\w-]*/y, "VAR"],
 		[/\.(?=[$\w])/y, "DOT"],
 		[/"(?:\\"|[^"])*"/y, "METAVALUE_STRING", raw => raw.slice(1, -1).replace(/\\"/g, '"')],
-		// 说明中的 `\)` 不还原, 与 umo-edit-sdk 一致.
+		// 说明中的 `\)` 不还原, 与凤蝶编辑器一致.
 		[/\((?:\\\)|[^)])*\)/y, "STRING", raw => raw.slice(1, -1)],
 		[/\s+/y, "SKIP"],
 		[/\/\*[\s\S]+?\*\//y, "SKIP"],

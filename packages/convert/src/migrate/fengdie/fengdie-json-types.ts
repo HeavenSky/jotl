@@ -1,30 +1,30 @@
-// umo JSON 的类型与 umo-edit-sdk 0.0.8 的数据表: 支持的类型(`lib/types.js` supported), 各类型的元数据白名单, 自定义元数据规则.
+// fengdie JSON schema 的类型与凤蝶编辑器 0.0.8 的数据表: 支持的类型(`lib/types.js` supported), 各类型的元数据白名单, 自定义元数据规则.
 import { getLocale } from "@jotl/core";
 
-export type UmoMetaValue = string | number | boolean;
+export type FengdieJsonMetaValue = string | number | boolean;
 
-export interface UmoEnumItem {
+export interface FengdieJsonEnumItem {
 	label: string;
 	value: string;
 }
 
 /** toJson 产出的节点; 根节点没有 key, 可带 lottery / public; 枚举带 items, 对象与数组带 properties. */
-export interface UmoNode {
+export interface FengdieJsonNode {
 	key?: string;
 	type: string;
 	description: string;
-	properties?: Record<string, UmoNode>;
-	items?: UmoEnumItem[];
-	meta?: Record<string, UmoMetaValue>;
+	properties?: Record<string, FengdieJsonNode>;
+	items?: FengdieJsonEnumItem[];
+	meta?: Record<string, FengdieJsonMetaValue>;
 	lottery?: boolean;
 	public?: boolean;
 }
 
 /** 单个 schema, 或 `export` 多文档时的 `{名字: schema}`. */
-export type UmoJson = UmoNode | Record<string, UmoNode>;
+export type FengdieJson = FengdieJsonNode | Record<string, FengdieJsonNode>;
 
 /** 小写比较; 不在表中的叶子类型按 `string` 处理. */
-export const UMO_SUPPORTED_TYPES: ReadonlySet<string> = new Set([
+export const FENGDIE_JSON_TYPES: ReadonlySet<string> = new Set([
 	"string",
 	"image",
 	"number",
@@ -48,10 +48,10 @@ export const UMO_SUPPORTED_TYPES: ReadonlySet<string> = new Set([
 	"video",
 ]);
 
-export const UMO_DEFAULT_TYPE = "string";
+export const FENGDIE_JSON_DEFAULT_TYPE = "string";
 
 /** 各类型允许的元数据; 键按类型原文(区分大小写)查找, 查不到时 toJson 抛错. */
-export const UMO_META_KEYS: Readonly<Record<string, readonly string[]>> = {
+export const FENGDIE_JSON_META_KEYS: Readonly<Record<string, readonly string[]>> = {
 	array: [
 		"minLength",
 		"maxLength",
@@ -199,24 +199,24 @@ export const UMO_META_KEYS: Readonly<Record<string, readonly string[]>> = {
 };
 
 /** 白名单外仍保留的自定义元数据. */
-export const UMO_CUSTOM_META_RE = /^custom[A-Z](\S*)$/;
+export const FENGDIE_JSON_CUSTOM_META_RE = /^custom[A-Z](\S*)$/;
 
 /** toJson 给带元数据的 module / modulearray 补上的 `dist`. */
-export const UMO_MODULE_DIST = "https://alipay.com";
+export const FENGDIE_JSON_MODULE_DIST = "https://alipay.com";
 
-export function umoMetaKeys(type: string): readonly string[] | undefined {
-	return Object.hasOwn(UMO_META_KEYS, type) ? UMO_META_KEYS[type] : undefined;
+export function fengdieJsonMetaKeys(type: string): readonly string[] | undefined {
+	return Object.hasOwn(FENGDIE_JSON_META_KEYS, type) ? FENGDIE_JSON_META_KEYS[type] : undefined;
 }
 
 /** 第一层字段 `group` 的取值与分组标题. */
-export const UMO_GROUP_TITLES: Readonly<Record<string, string>> = {
+export const FENGDIE_JSON_GROUP_TITLES: Readonly<Record<string, string>> = {
 	normal: "常规",
 	advance: "高级",
 	developer: "开发者",
 	operator: "运营",
 };
 
-const UMO_GROUP_TITLES_EN: Readonly<Record<string, string>> = {
+const FENGDIE_JSON_GROUP_TITLES_EN: Readonly<Record<string, string>> = {
 	normal: "General",
 	advance: "Advanced",
 	developer: "Developer",
@@ -224,7 +224,7 @@ const UMO_GROUP_TITLES_EN: Readonly<Record<string, string>> = {
 };
 
 /** 分组标题按当前语言取; 未知分组原样返回. */
-export function umoGroupTitle(group: string): string {
-	const titles = getLocale() === "en" ? UMO_GROUP_TITLES_EN : UMO_GROUP_TITLES;
+export function fengdieJsonGroupTitle(group: string): string {
+	const titles = getLocale() === "en" ? FENGDIE_JSON_GROUP_TITLES_EN : FENGDIE_JSON_GROUP_TITLES;
 	return Object.hasOwn(titles, group) ? titles[group]! : group;
 }

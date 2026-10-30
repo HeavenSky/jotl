@@ -29,7 +29,7 @@ import {
 } from "./child-resolver.js";
 import { useFormContext, useStoreValue, type FormContextValue } from "./context.js";
 import { copyOf } from "./diagnostics.js";
-import { crumbLabel, crumbTargets, dataRootTarget } from "./drill.js";
+import { crumbLabel, crumbTargets, dataRootTarget } from "./nested.js";
 import { pointerOf, type OwnerInfo } from "./form-store.js";
 import { containerKind, literalOf, refName } from "./schema-access.js";
 import type { ReactWidgetComponent } from "./types.js";
@@ -639,7 +639,7 @@ export function ViewHost({ component: C, target, base, renderTarget }: HostProps
 		[crumbs, root]
 	);
 	// 钻取时根页也显示只有一层的面包屑, 各层页头的样式与间距一致; 页根对象自身的标题由样式隐藏.
-	const header = ctx.drill && root !== undefined ? (crumbs.length > 0 ? crumbs : [root]) : [];
+	const header = ctx.nested && root !== undefined ? (crumbs.length > 0 ? crumbs : [root]) : [];
 	return (
 		<C
 			{...base}

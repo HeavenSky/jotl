@@ -40,7 +40,7 @@ This renders a text box labeled "Title" with a required mark, a radio group for 
 ## What you get
 
 - **One schema drives the whole form.** Widget names, groups, `tabs` or `grid` layouts, `visibleIf` conditions and entry summaries sit in `x-ui` next to the data they describe; defaults and validation come from the same schema through `@jotl/data`. See [Control form data and validation](docs/form-state.md).
-- **Deep data stays navigable.** Objects, arrays and dictionaries open as their own page with a breadcrumb and per-level error counts; switch to a single page with collapsible panels when you prefer. See [Navigate nested data](docs/drill-down.md).
+- **Deep data stays navigable.** Objects, arrays and dictionaries open as their own page with a breadcrumb and per-level error counts; switch to a single page with collapsible panels when you prefer. See [Navigate nested data](docs/nested.md).
 - **Replace one widget and keep the rest.** Register your component under a built-in name such as `switch`, use [`@jotl/antd`](../antd/README.md) for Ant Design, or load widgets from modules the schema declares. See [Replace and register widgets](docs/custom-widgets.md).
 - **No blank screens.** A widget that throws is replaced by the next candidate, ending at a JSON editor, and `onDegrade` reports every fallback. See [Debug widget fallbacks](docs/fallbacks.md).
 - **Fits an existing app.** Styles are optional and live in cascade layers your own CSS overrides, Tailwind v4 hosts can compile them with their theme, and the UI-free planner `@jotl/form/core` lets you build a renderer for another framework. See [Style the form](docs/styling.md) and [Build a renderer with `@jotl/form/core`](docs/core.md).

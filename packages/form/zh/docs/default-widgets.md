@@ -38,7 +38,7 @@
 | `page` / `inline` 加 `layout: "tabs"` | 每个分组一个标签页，未分组字段在第一页                                       | 切换标签页不改数据；方向键、`Home`、`End` 在标签间移动；没有分组时按 `stack` 排版；`disabled` 模式不可切换；每个标签显示该页字段的错误数                                                                                                                 |
 | `page` / `inline` 加 `layout: "grid"` | 字段按 `columns` 列排布，默认 2 列                                           | 每个分组各成一个栅格；列数经内联的 `--jotl-columns` 设定，引入 `style.css` 后才生效                                                                                                                                                                      |
 
-`page` 与 `inline` 是同一个对象 widget：它只排版当前层，钻取（分页、入口行、面包屑）由渲染器完成，见[浏览嵌套数据](drill-down.md)。
+`page` 与 `inline` 是同一个对象 widget：它只排版当前层，层级（分页、入口行、面包屑）由渲染器完成，见[浏览嵌套数据](nested.md)。
 
 ## 形态检查
 

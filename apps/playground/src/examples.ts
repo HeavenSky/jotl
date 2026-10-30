@@ -1,4 +1,5 @@
 // 示例源码: Playground 自带的综合示例与扩展组件模块示例在前, 其后是构建时打包进产物的仓库 fixtures 的 source.jotl; 运行时不读文件系统.
+import fengdie from "./examples/fengdie.schema?raw";
 import showcase from "./examples/showcase.jotl?raw";
 import widgetModule from "./examples/widget-module.jotl?raw";
 
@@ -13,6 +14,9 @@ export const SHOWCASE_EXAMPLE_ID = "v1-showcase";
 
 /** 在根元数据中声明扩展组件模块的示例, 预览加载 public/widgets/rating.js. */
 export const WIDGET_MODULE_EXAMPLE_ID = "widget-module";
+
+/** fengdie DSL schema 示例, 粘贴后的迁移与表单预览以它演示. */
+export const FENGDIE_EXAMPLE_ID = "fengdie-demo";
 
 const modules = import.meta.glob<string>("../../../fixtures/*/source.jotl", {
 	query: "?raw",
@@ -32,6 +36,7 @@ export const FIXTURE_EXAMPLES: readonly Example[] = Object.entries(modules)
 export const EXAMPLES: readonly Example[] = [
 	{ id: SHOWCASE_EXAMPLE_ID, source: showcase },
 	{ id: WIDGET_MODULE_EXAMPLE_ID, source: widgetModule },
+	{ id: FENGDIE_EXAMPLE_ID, source: fengdie },
 	...FIXTURE_EXAMPLES,
 ];
 

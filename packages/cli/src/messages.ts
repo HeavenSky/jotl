@@ -61,8 +61,8 @@ const TEXT: Readonly<Record<Locale, CliText>> = {
 		},
 		fsUnknownReason: "系统错误 {code}",
 		migrateInputKinds: {
-			fengdie: "凤蝶源码",
-			"fengdie-json": "凤蝶 toJson JSON(umo JSON)",
+			fengdie: "fengdie DSL schema",
+			"fengdie-json": "凤蝶 toJson JSON(fengdie JSON schema)",
 			"json-schema": "常规 JSON Schema",
 		},
 	},
@@ -87,8 +87,8 @@ const TEXT: Readonly<Record<Locale, CliText>> = {
 		},
 		fsUnknownReason: "system error {code}",
 		migrateInputKinds: {
-			fengdie: "Fengdie source",
-			"fengdie-json": "Fengdie toJson JSON (umo JSON)",
+			fengdie: "fengdie DSL schema",
+			"fengdie-json": "fengdie JSON schema",
 			"json-schema": "plain JSON Schema",
 		},
 	},
@@ -109,7 +109,7 @@ const GLOBAL_HELP: Readonly<Record<Locale, string>> = {
   check <file...>              只报告诊断, 不输出结果
   validate <schema> <data...>  按 schema 校验 JSON 数据文件
   defaults <schema>            按 schema 输出默认数据
-  migrate-schema <file>        凤蝶 schema 或旧版 JSON Schema / OpenAPI Schema 迁移为 Jotl 或 2020-12
+  migrate-schema <file>        fengdie DSL schema 或旧版 JSON Schema / OpenAPI Schema 迁移为 Jotl 或 2020-12
   format <file.jotl>           格式化 Jotl 源码
 
 全局选项:
@@ -136,7 +136,7 @@ Commands:
   check <file...>              Report diagnostics only, without output
   validate <schema> <data...>  Validate JSON data files against a schema
   defaults <schema>            Output default data for a schema
-  migrate-schema <file>        Migrate Fengdie schemas or legacy JSON Schema / OpenAPI Schema to Jotl or 2020-12
+  migrate-schema <file>        Migrate fengdie DSL schemas or legacy JSON Schema / OpenAPI Schema to Jotl or 2020-12
   format <file.jotl>           Format Jotl source
 
 Global options:
@@ -258,10 +258,10 @@ ${SCHEMA_INPUT_NOTE_ZH}
 	"migrate-schema": `用法: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <版本>]
                            [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 
-把凤蝶 schema 或旧版 JSON Schema 迁移为 Jotl(默认)或 JSON Schema 2020-12.
+把 fengdie DSL schema 或旧版 JSON Schema 迁移为 Jotl(默认)或 JSON Schema 2020-12.
 输入类型自动判定, 判定结果以提示输出到 stderr:
-  1. 不以左花括号或左方括号开头(不是 JSON 文本): 凤蝶源码(umo-edit-sdk 文法)
-  2. 是 JSON 且带 umo JSON 特征: 凤蝶 toJson 产出的 umo JSON; 特征为任一字段带与属性名相同的 \`key\`,
+  1. 不以左花括号或左方括号开头(不是 JSON 文本): fengdie DSL schema(凤蝶编辑器文法)
+  2. 是 JSON 且带 fengdie JSON schema 特征: fengdie JSON schema(toJson 产物); 特征为任一字段带与属性名相同的 \`key\`,
      类型为凤蝶类型(如 image text richtext url color date enum box), 或枚举成员为带 label 与 value 的对象
   3. 其余 JSON: 常规 JSON Schema(draft-04 / 06 / 07 / 2019-09, OpenAPI 3.0 / 3.1, Swagger 2.0), 先升级到 2020-12
 凤蝶迁移中不可转换的信息保留在 x-fengdie 中并报警告.
@@ -279,8 +279,8 @@ ${SCHEMA_INPUT_NOTE_ZH}
 --to schema 且输入为常规 JSON Schema 时, 变更清单(每处改写一条提示)也输出到 stderr.
 
 示例:
-  jotl migrate-schema home.fengdie --out home.jotl
-  jotl migrate-schema home.umo.json --to schema
+  jotl migrate-schema home.schema --out home.jotl
+  jotl migrate-schema home.fengdie.json --to schema
   jotl migrate-schema legacy.json --to schema --out legacy.2020-12.json
   jotl migrate-schema petstore-pet.json --schema-version openapi-3.0 --on-conflict preferLatest
 `,
@@ -390,10 +390,10 @@ Examples:
 	"migrate-schema": `Usage: jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <version>]
                                  [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 
-Migrate a Fengdie schema or a legacy JSON Schema to Jotl (default) or JSON Schema 2020-12.
+Migrate a fengdie DSL schema or a legacy JSON Schema to Jotl (default) or JSON Schema 2020-12.
 The input kind is detected automatically and reported to stderr as info:
-  1. Not starting with an opening brace or bracket (not JSON text): Fengdie source (umo-edit-sdk grammar)
-  2. JSON with umo JSON traits: umo JSON produced by Fengdie toJson; traits are any field with a \`key\` equal to its property name,
+  1. Not starting with an opening brace or bracket (not JSON text): fengdie DSL schema (Fengdie editor grammar)
+  2. JSON with fengdie JSON schema traits: fengdie JSON schema produced by Fengdie toJson; traits are any field with a \`key\` equal to its property name,
      a Fengdie type (such as image text richtext url color date enum box), or enum members that are objects with label and value
   3. Any other JSON: plain JSON Schema (draft-04 / 06 / 07 / 2019-09, OpenAPI 3.0 / 3.1, Swagger 2.0), upgraded to 2020-12 first
 Information that cannot be converted in a Fengdie migration is kept in x-fengdie with a warning.
@@ -413,8 +413,8 @@ Options:
 With --to schema and plain JSON Schema input, the change list (one info per rewrite) is also written to stderr.
 
 Examples:
-  jotl migrate-schema home.fengdie --out home.jotl
-  jotl migrate-schema home.umo.json --to schema
+  jotl migrate-schema home.schema --out home.jotl
+  jotl migrate-schema home.fengdie.json --to schema
   jotl migrate-schema legacy.json --to schema --out legacy.2020-12.json
   jotl migrate-schema petstore-pet.json --schema-version openapi-3.0 --on-conflict preferLatest
 `,

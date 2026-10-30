@@ -14,10 +14,10 @@ afterEach(cleanup);
 
 export const FORM_ID = "f";
 
-/** 默认 drill: false(各层同页展开), 让字段级用例不受钻取导航影响; 钻取用例显式传 drill. */
+/** 默认 nested: false(各层同页展开), 让字段级用例不受钻取导航影响; 钻取用例显式传 nested. */
 export function renderForm(props: Omit<JotlFormProps, "ref">) {
 	const ref = createRef<JotlFormHandle>();
-	const view = render(<JotlForm id={FORM_ID} drill={false} {...props} ref={ref} />);
+	const view = render(<JotlForm id={FORM_ID} nested={false} {...props} ref={ref} />);
 	return { ...view, handle: () => ref.current! };
 }
 

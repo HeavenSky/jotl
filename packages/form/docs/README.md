@@ -7,7 +7,7 @@ Pick the page for what you want to do; the [package README](../README.md) covers
 | You want to                                                                                                                     | Read                                                     |
 | ------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | Choose controlled or uncontrolled data, set validation timing, call `validate()` or `reset()`                                   | [Control form data and validation](form-state.md)        |
-| Show nested objects and arrays one level per page, sync the page with your router, or expand everything with collapsible panels | [Navigate nested data](drill-down.md)                    |
+| Show nested objects and arrays one level per page, sync the page with your router, or expand everything with collapsible panels | [Navigate nested data](nested.md)                    |
 | Replace a default widget with your own component, or pass upload and rich-text adapters                                         | [Replace and register widgets](custom-widgets.md)        |
 | Write a widget component and know which props each level receives                                                               | [Write a widget](widget-contract.md)                     |
 | Load widgets from modules declared in the schema                                                                                | [Load widgets declared in the schema](schema-modules.md) |

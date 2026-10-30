@@ -1,10 +1,10 @@
-// 文法与 toJson: umo-edit-sdk 文法的各种写法解析为与 toJson 同构的 umo JSON; 期望值取自 umo-edit-sdk 0.0.8 的实际输出.
+// 文法与 toJson: 凤蝶编辑器文法的各种写法解析为与 toJson 同构的 fengdie JSON schema; 期望值取自凤蝶编辑器 0.0.8 的实际输出.
 import { describe, expect, it } from "vitest";
-import { fengdieToUmoJson } from "../../../src/migrate/index.js";
+import { parseFengdieJson } from "../../../src/migrate/index.js";
 import { FILE, codes, located } from "./helpers.js";
 
-function umo(source: string): unknown {
-	const result = fengdieToUmoJson(source, FILE);
+function fengdieJson(source: string): unknown {
+	const result = parseFengdieJson(source, FILE);
 	expect(result.value, JSON.stringify(result.diagnostics)).toBeDefined();
 	return result.value;
 }
@@ -14,7 +14,7 @@ const str = (key: string, description: string) => ({ key, type: "string", descri
 describe("新增写法", () => {
 	it("Action, OpenAction(空体)与 Spm", () => {
 		expect(
-			umo(
+			fengdieJson(
 				`Object(根) { a(行为): Action[group: "advance"] { url(链接): URL } b(开放): OpenAction {} c(埋点): Spm }`
 			)
 		).toEqual({
@@ -45,7 +45,7 @@ describe("新增写法", () => {
 
 	it("Module 与 ModuleArray: 带元数据时补 dist, 不带时保留原写法", () => {
 		expect(
-			umo(
+			fengdieJson(
 				`Object(根) { m(模块): Module[namespace: "ns", version: "1"] { t(标题) } ma(模块数组): ModuleArray[namespace: "ns"] { t(标题) } n(无元数据): Module { t(T) } }`
 			)
 		).toEqual({
@@ -78,7 +78,7 @@ describe("新增写法", () => {
 
 	it("命名空间.组件, [Array] 与 [Object]", () => {
 		expect(
-			umo(
+			fengdieJson(
 				`Object(根) { c(自定义): ns.Comp { t(T) } ca(数组): ns.Comp[Array] { t(T) } co(对象): ns.Comp[Object] { t(T) } }`
 			)
 		).toEqual({
@@ -109,7 +109,7 @@ describe("新增写法", () => {
 
 	it("Array<string> 与 Array<number>(类型名不区分大小写)", () => {
 		expect(
-			umo(
+			fengdieJson(
 				`Object(根) { s(字符串): Array<string> n(数字): Array<number> x(大写): Array<Number> }`
 			)
 		).toEqual({
@@ -125,7 +125,7 @@ describe("新增写法", () => {
 
 	it("负数元数据与 $ 开头的名字", () => {
 		expect(
-			umo(`Object(根) { n(数): Number[min: -10, max: -0.5] $a(美元): String $b-c(横线) }`)
+			fengdieJson(`Object(根) { n(数): Number[min: -10, max: -0.5] $a(美元): String $b-c(横线) }`)
 		).toEqual({
 			type: "object",
 			description: "根",
@@ -139,7 +139,7 @@ describe("新增写法", () => {
 
 	it("Object[...] Array[...] Enum[...] 无体写法", () => {
 		expect(
-			umo(
+			fengdieJson(
 				`Object(根) { o(对象): Object[entityType: "user"] a(数组): Array[entityType: "user"] e(枚举): Enum[source: "api"] }`
 			)
 		).toEqual({
@@ -172,14 +172,14 @@ describe("新增写法", () => {
 	});
 
 	it("export 多文档", () => {
-		expect(umo(`export a Object(甲) { x(X) } export b Array(乙) { y(Y) }`)).toEqual({
+		expect(fengdieJson(`export a Object(甲) { x(X) } export b Array(乙) { y(Y) }`)).toEqual({
 			a: { type: "object", description: "甲", properties: { x: str("x", "X") } },
 			b: { type: "array", description: "乙", properties: { y: str("y", "Y") } },
 		});
 	});
 
 	it("public Lottery", () => {
-		expect(umo(`public Lottery(抽奖) { flag(F) }`)).toEqual({
+		expect(fengdieJson(`public Lottery(抽奖) { flag(F) }`)).toEqual({
 			type: "object",
 			description: "抽奖",
 			properties: { flag: str("flag", "F") },
@@ -189,29 +189,29 @@ describe("新增写法", () => {
 	});
 
 	it("根为 OpenAction, ModuleArray, 命名空间.组件[Array] 与空对象", () => {
-		expect(umo(`OpenAction(根) { u(U): URL }`)).toEqual({
+		expect(fengdieJson(`OpenAction(根) { u(U): URL }`)).toEqual({
 			type: "openaction",
 			description: "根",
 			properties: { u: { key: "u", type: "url", description: "U" } },
 		});
-		expect(umo(`ModuleArray(根)[namespace: "n"] { t(T) }`)).toEqual({
+		expect(fengdieJson(`ModuleArray(根)[namespace: "n"] { t(T) }`)).toEqual({
 			type: "modulearray",
 			description: "根",
 			properties: { t: str("t", "T") },
 			meta: { namespace: "n", dist: "https://alipay.com" },
 		});
-		expect(umo(`ns.Comp[Array](根) { t(T) }`)).toEqual({
+		expect(fengdieJson(`ns.Comp[Array](根) { t(T) }`)).toEqual({
 			type: "ns.Comp[Array]",
 			description: "根",
 			properties: { t: str("t", "T") },
 		});
-		expect(umo(`Object(空) {}`)).toEqual({ type: "object", description: "空", properties: {} });
+		expect(fengdieJson(`Object(空) {}`)).toEqual({ type: "object", description: "空", properties: {} });
 	});
 });
 
 describe("toJson 的取舍", () => {
 	it("类型取路径中第一段已知类型名, 都不认识时为 string 并报 JOTL8111", () => {
-		const result = fengdieToUmoJson(`Object(根) { a(A): cms.$x.image b(B): foo }`, FILE);
+		const result = parseFengdieJson(`Object(根) { a(A): cms.$x.image b(B): foo }`, FILE);
 		expect(result.value).toMatchObject({
 			properties: { a: { type: "image" }, b: { type: "string" } },
 		});
@@ -219,7 +219,7 @@ describe("toJson 的取舍", () => {
 	});
 
 	it("白名单外的元数据丢弃(JOTL8105), custom 开头的保留, 重复的后者覆盖(JOTL8110)", () => {
-		const result = fengdieToUmoJson(
+		const result = parseFengdieJson(
 			`Object(根) { a(A): String[foo: 1, customBar: "x", maxLength: 1, maxLength: 2] }`,
 			FILE
 		);
@@ -230,7 +230,7 @@ describe("toJson 的取舍", () => {
 	});
 
 	it("没有元数据表的类型: toJson 会抛错, 迁移丢弃并报 JOTL8118", () => {
-		const result = fengdieToUmoJson(
+		const result = parseFengdieJson(
 			`Object(根) { a(A): Array<string>[minLength: 1] b(B): Component[group: "x"] }`,
 			FILE
 		);
@@ -244,7 +244,7 @@ describe("toJson 的取舍", () => {
 	});
 
 	it("重复字段后者覆盖, 位置取第一次出现处", () => {
-		const result = fengdieToUmoJson(`Object(根) { a(一) b(B) a(二): Number }`, FILE);
+		const result = parseFengdieJson(`Object(根) { a(一) b(B) a(二): Number }`, FILE);
 		expect(Object.keys((result.value as { properties: object }).properties)).toEqual([
 			"a",
 			"b",
@@ -256,7 +256,7 @@ describe("toJson 的取舍", () => {
 	});
 
 	it("枚举成员只取说明与名字; 成员上的类型与元数据报 JOTL8112", () => {
-		const result = fengdieToUmoJson(
+		const result = parseFengdieJson(
 			`Object(根) { e(E): Enum { a(甲): Number[min: 1] b(乙) } }`,
 			FILE
 		);
@@ -282,16 +282,16 @@ describe("语法错误", () => {
 		["空元数据", `Object(根) { a(A): String[] }`],
 		["缺少说明", `Object(根) { a: String }`],
 	])("%s", (_name, source) => {
-		const result = fengdieToUmoJson(source, FILE);
+		const result = parseFengdieJson(source, FILE);
 		expect(result.value).toBeUndefined();
 		expect(codes(result.diagnostics)).toEqual(["JOTL8002"]);
 	});
 
 	it("位置与消息", () => {
-		const result = fengdieToUmoJson(`Object(根) {\n  a: String\n}`, FILE);
+		const result = parseFengdieJson(`Object(根) {\n  a: String\n}`, FILE);
 		expect(located(result.diagnostics)).toEqual([{ code: "JOTL8002", line: 2, column: 4 }]);
 		expect(result.diagnostics[0]!.message).toBe(
-			"凤蝶 schema 语法错误: 此处应为 说明 `(...)`, 实际是 `:`"
+			"fengdie DSL schema 语法错误: 此处应为 说明 `(...)`, 实际是 `:`"
 		);
 	});
 });

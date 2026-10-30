@@ -112,7 +112,7 @@
 		color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
 	}
 
-	/* 折叠面板: 标题行自画展开箭头; 面板标题代替对象自身的标题, 数组的新增回到面板内容的首行. */
+	/* 折叠面板: 展开箭头画在行尾, 与钻取入口行的箭头位置一致, 标题左对齐相同; 面板标题代替对象自身的标题, 数组的新增回到面板内容的首行. */
 	:where(.jotl-panel-header) {
 		list-style: none;
 	}
@@ -121,16 +121,18 @@
 		display: none;
 	}
 
-	:where(.jotl-panel-header)::before {
+	:where(.jotl-panel-header)::after {
 		content: "›" / "";
 		flex: none;
-		width: 1em;
+		width: 1.25rem;
+		font-size: 1.25rem;
+		line-height: 1;
 		color: var(--jotl-muted, rgba(0, 0, 0, 0.45));
 		text-align: center;
 		transition: rotate 0.2s;
 	}
 
-	:where(.jotl-panel[open] > .jotl-panel-header)::before {
+	:where(.jotl-panel[open] > .jotl-panel-header)::after {
 		rotate: 90deg;
 	}
 

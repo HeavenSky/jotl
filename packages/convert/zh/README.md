@@ -4,7 +4,7 @@
 
 包页与市场页只显示英文版。
 
-把 JSON Schema 转成 TypeScript 声明再转回来，约束一个不丢；把旧版 JSON Schema、OpenAPI 与凤蝶 schema 升级为 JSON Schema 2020-12 和 Jotl。
+把 JSON Schema 转成 TypeScript 声明再转回来，约束一个不丢；把旧版 JSON Schema、OpenAPI 与 fengdie DSL schema 升级为 JSON Schema 2020-12 和 Jotl。
 
 适合用 JSON Schema 维护表单或接口契约、又需要 TS 类型的团队，以及手里还有旧方言 schema 的项目。光靠类型写不出 `maxLength: 20`，也写不出「这个枚举值叫 Admin」，所以单向生成器会丢掉这些关键字。本包把类型表达不了的关键字都写成 JSDoc 标签，`tsToSchema` 读回来的 schema 与原文深度相等。旧版升级时每处改写都报一条诊断，拿到的是一份变更清单，而不是悄悄改掉。
 
@@ -90,7 +90,7 @@ export default User;
 - 标签不被 lint 误报：TSDoc 预设与 eslint-plugin-jsdoc 标签表让检查工具认识这些自定义标签；见 [配置 TSDoc 与 ESLint](docs/lint-presets.md)。
 - 可选 typia 输出：`typiaTags: true` 把约束写成 `tags.MaxLength<20>` 这类 typia 类型标签。
 - 升级旧版并给出变更清单：draft-04 到 2019-09 的 schema，以及 OpenAPI 3.0 / Swagger 2.0 的 Schema Object 升级为 2020-12，可跨文件，每处改写一条 info 诊断；见 [升级旧版 JSON Schema](docs/upgrade.md)。
-- 凤蝶迁移到 Jotl：凤蝶 schema 源码或 umo JSON 转成 Jotl，Jotl 没有写法的信息保留在 `x-fengdie`；见 [迁移凤蝶 schema](docs/fengdie-migration.md)。
+- 凤蝶迁移到 Jotl：fengdie DSL schema 或 fengdie JSON schema 转成 Jotl，Jotl 没有写法的信息保留在 `x-fengdie`；见 [迁移 fengdie DSL schema](docs/fengdie-migration.md)。
 
 ## 不适合的场景
 

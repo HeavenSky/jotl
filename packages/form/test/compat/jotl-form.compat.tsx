@@ -156,7 +156,7 @@ describe(`React ${React.version}`, () => {
 
 	it("渲染对象, 输入改值触发 onChange, 数组新增, 联合切换", () => {
 		const onChange = vi.fn();
-		mount(form({ defaultValue: DATA, drill: false, onChange }));
+		mount(form({ defaultValue: DATA, nested: false, onChange }));
 		expect((byPath("/title") as HTMLInputElement).value).toBe("ab");
 		expect((byPath("/meta/author") as HTMLInputElement).value).toBe("张三");
 
@@ -181,7 +181,7 @@ describe(`React ${React.version}`, () => {
 		expect(byPath("/shape/a")).not.toBeNull();
 	});
 
-	it("钻取: 入口行进入下一层, 面包屑退回", () => {
+	it("层级: 入口行进入下一层, 面包屑退回", () => {
 		mount(form({ defaultValue: DATA }));
 		expect(byPath("/meta/author")).toBeNull();
 		click(byPath("/meta"));
@@ -205,7 +205,7 @@ describe(`React ${React.version}`, () => {
 		};
 		mount(
 			form(
-				{ schema, defaultValue: { a: { b: { c: "x" } } }, drill: false, collapsible: true },
+				{ schema, defaultValue: { a: { b: { c: "x" } } }, nested: false, collapsible: true },
 				ref
 			)
 		);
@@ -218,7 +218,7 @@ describe(`React ${React.version}`, () => {
 	it("ref 实例方法: validate, setValues, getValues, reset, submit", () => {
 		const ref = React.createRef<JotlFormHandle>();
 		const onSubmit = vi.fn();
-		mount(form({ defaultValue: DATA, drill: false, onSubmit, locale: "en" }, ref));
+		mount(form({ defaultValue: DATA, nested: false, onSubmit, locale: "en" }, ref));
 		let result: ReturnType<JotlFormHandle["validate"]> | undefined;
 		act(() => {
 			ref.current!.setValues({ ...DATA, title: "x" });
@@ -246,25 +246,25 @@ describe(`React ${React.version}`, () => {
 		};
 		const onChange = vi.fn();
 		const ref = React.createRef<JotlFormHandle>();
-		const view = mount(form({ schema: v1, drill: false, onChange }, ref));
+		const view = mount(form({ schema: v1, nested: false, onChange }, ref));
 		typeInto(byPath("/title"), "x");
 		act(() => void ref.current!.validate());
 		expect(view.container.querySelector(".jotl-error")).not.toBeNull();
-		view.update(form({ schema: v2, drill: false, onChange }, ref));
+		view.update(form({ schema: v2, nested: false, onChange }, ref));
 		expect((byPath("/name") as HTMLInputElement).value).toBe("新");
 		expect(view.container.querySelector(".jotl-error")).toBeNull();
 		expect(onChange).toHaveBeenLastCalledWith({ name: "新" });
 		typeInto(byPath("/name"), "改过");
 		view.update(
 			form(
-				{ schema: JSON.parse(JSON.stringify(v2)) as JsonSchema, drill: false, onChange },
+				{ schema: JSON.parse(JSON.stringify(v2)) as JsonSchema, nested: false, onChange },
 				ref
 			)
 		);
 		expect((byPath("/name") as HTMLInputElement).value).toBe("改过");
 	});
 
-	it("钻取: 点击表单级错误切到所在页并聚焦字段", () => {
+	it("层级: 点击表单级错误切到所在页并聚焦字段", () => {
 		const ref = React.createRef<JotlFormHandle>();
 		mount(
 			form(
@@ -293,7 +293,7 @@ describe(`React ${React.version}`, () => {
 
 	it("受控: 父组件不采纳新值时保持受控值; 卸载后不再回调", () => {
 		const onChange = vi.fn();
-		const view = mount(form({ value: DATA, drill: false, onChange }));
+		const view = mount(form({ value: DATA, nested: false, onChange }));
 		typeInto(byPath("/title"), "abc");
 		expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({ title: "abc" }));
 		expect((byPath("/title") as HTMLInputElement).value).toBe("ab");

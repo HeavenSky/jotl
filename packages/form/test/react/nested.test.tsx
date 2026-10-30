@@ -65,7 +65,7 @@ const crumbs = () => within(screen.getByRole("navigation", { name: "当前位置
 
 describe("钻取渲染", () => {
 	it("根页: 标量字段直接编辑, inline 对象展开, 组合字段为入口行(标签 + 摘要)", () => {
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true });
 		expect((byPath("/title") as HTMLInputElement).value).toBe("t");
 		expect((byPath("/size/w") as HTMLInputElement).value).toBe("1");
 		for (const path of ["/meta", "/tags", "/links", "/blocks", "/dict"])
@@ -83,13 +83,13 @@ describe("钻取渲染", () => {
 
 	it("非受控时 schema 变化后回到根页", () => {
 		const onPathChange = vi.fn();
-		const view = renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, onPathChange });
+		const view = renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, onPathChange });
 		fireEvent.click(entry("/meta"));
 		expect(byPath("/title")).toBeNull();
 		view.rerender(
 			<JotlForm
 				id={FORM_ID}
-				drill
+				nested
 				schema={{ ...(SCHEMA as object), title: "新" } as JsonSchema}
 				defaultValue={DATA}
 				onPathChange={onPathChange}
@@ -101,7 +101,7 @@ describe("钻取渲染", () => {
 
 	it("点击入口进入下一层, 面包屑由各层标签组成, 点上一级退回", () => {
 		const onPathChange = vi.fn();
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, onPathChange });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, onPathChange });
 		fireEvent.click(entry("/meta"));
 		expect(onPathChange).toHaveBeenLastCalledWith("/meta");
 		expect((byPath("/meta/author") as HTMLInputElement).value).toBe("张三");
@@ -129,7 +129,7 @@ describe("钻取渲染", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue: DATA,
-			drill: true,
+			nested: true,
 			path: "/tags",
 		});
 		fireEvent.change(byPath("/tags/0")!, { target: { value: "b" } });
@@ -143,13 +143,13 @@ describe("钻取渲染", () => {
 		const view = renderForm({
 			schema: SCHEMA,
 			defaultValue: DATA,
-			drill: true,
+			nested: true,
 			path: "/links",
 		});
 		expect(entry("/links/0").textContent).toContain("甲");
 		expect(entry("/links/1").textContent).toContain("已填 1 项");
 		view.unmount();
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, path: "/links/0" });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, path: "/links/0" });
 		expect((byPath("/links/0/href") as HTMLInputElement).value).toBe("https://a");
 		expect(
 			crumbs()
@@ -159,7 +159,7 @@ describe("钻取渲染", () => {
 	});
 
 	it("字典页: 值为对象时是入口, 面包屑显示键名", () => {
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, path: "/dict/k1" });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, path: "/dict/k1" });
 		expect((byPath("/dict/k1/v") as HTMLInputElement).value).toBe("x");
 		expect(
 			crumbs()
@@ -170,7 +170,7 @@ describe("钻取渲染", () => {
 
 	it("受控 path: 只经 onPathChange 通知, 父组件不采纳时停在原页", () => {
 		const onPathChange = vi.fn();
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, path: "", onPathChange });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, path: "", onPathChange });
 		fireEvent.click(entry("/meta"));
 		expect(onPathChange).toHaveBeenCalledWith("/meta");
 		expect(byPath("/title")).not.toBeNull();
@@ -182,7 +182,7 @@ describe("钻取渲染", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue: { ...DATA, meta: { seo: {} } },
-			drill: true,
+			nested: true,
 			onPathChange,
 		});
 		act(() => void handle().validate());
@@ -204,7 +204,7 @@ describe("钻取渲染", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue,
-			drill: true,
+			nested: true,
 			path: "/meta/seo",
 		});
 		act(() => void handle().validate());
@@ -220,7 +220,7 @@ describe("钻取渲染", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue: DATA,
-			drill: true,
+			nested: true,
 			onPathChange,
 		});
 		fireEvent.click(entry("/links"));
@@ -240,7 +240,7 @@ describe("钻取渲染", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue: DATA,
-			drill: true,
+			nested: true,
 			onPathChange,
 		});
 		fireEvent.click(entry("/dict"));
@@ -261,7 +261,7 @@ describe("钻取渲染", () => {
 		renderForm({
 			schema: SCHEMA,
 			defaultValue: DATA,
-			drill: true,
+			nested: true,
 			path: "/dict/nope",
 			onPathChange,
 		});
@@ -273,7 +273,7 @@ describe("钻取渲染", () => {
 		renderForm({
 			schema: SCHEMA,
 			defaultValue: { ...DATA, meta: undefined },
-			drill: true,
+			nested: true,
 			path: "/meta/seo",
 		});
 		expect(byPath("/meta/seo/robots")).not.toBeNull();
@@ -305,7 +305,7 @@ describe("钻取渲染", () => {
 		renderForm({
 			schema,
 			defaultValue: { shape: { kind: "circle", r: 1 }, extra: { note: "n" } },
-			drill: true,
+			nested: true,
 		});
 		expect(entry("/shape").tagName).toBe("BUTTON");
 		expect(screen.getByRole("checkbox", { name: "置为空" })).not.toBeNull();
@@ -315,8 +315,8 @@ describe("钻取渲染", () => {
 		expect(screen.getByRole("combobox", { name: "类型" })).not.toBeNull();
 	});
 
-	it("drill=false 时各层同页展开", () => {
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: false });
+	it("nested=false 时各层同页展开", () => {
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: false });
 		expect((byPath("/meta/author") as HTMLInputElement).value).toBe("张三");
 		expect((byPath("/links/0/href") as HTMLInputElement).value).toBe("https://a");
 	});
@@ -325,7 +325,7 @@ describe("钻取渲染", () => {
 describe("表单级错误列表定位", () => {
 	const formList = () => within(document.getElementById(`${FORM_ID}-errors`)!);
 
-	it("钻取: 点击不在当前页的错误切到所在页并聚焦字段", () => {
+	it("层级: 点击不在当前页的错误切到所在页并聚焦字段", () => {
 		const onPathChange = vi.fn();
 		const defaultValue = {
 			...DATA,
@@ -336,7 +336,7 @@ describe("表单级错误列表定位", () => {
 		const { handle } = renderForm({
 			schema: SCHEMA,
 			defaultValue,
-			drill: true,
+			nested: true,
 			path: "/meta/seo",
 			onPathChange,
 		});
@@ -349,9 +349,9 @@ describe("表单级错误列表定位", () => {
 		expect(onPathChange).toHaveBeenLastCalledWith("/links/0");
 	});
 
-	it("钻取(内部维护 path): 切页后聚焦字段", () => {
+	it("层级(内部维护 path): 切页后聚焦字段", () => {
 		const defaultValue = { ...DATA, links: [{}] };
-		const { handle } = renderForm({ schema: SCHEMA, defaultValue, drill: true });
+		const { handle } = renderForm({ schema: SCHEMA, defaultValue, nested: true });
 		fireEvent.click(entry("/meta"));
 		act(() => void handle().validate());
 		fireEvent.click(

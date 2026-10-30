@@ -567,10 +567,10 @@ describe("migrate-schema: 常规 JSON Schema", () => {
 });
 
 describe("migrate-schema: 凤蝶", () => {
-	const file = `${CLI_FIXTURES}/home.fengdie`;
-	const umoFile = `${CLI_FIXTURES}/home.umo.json`;
+	const file = `${CLI_FIXTURES}/home.schema`;
+	const jsonFile = `${CLI_FIXTURES}/home.fengdie.json`;
 
-	it("凤蝶源码: 输出 Jotl, 警告不影响退出码", () => {
+	it("fengdie DSL schema: 输出 Jotl, 警告不影响退出码", () => {
 		const r = cli(["migrate-schema", file]);
 		expect(r.code).toBe(0);
 		expect(r.stdout).toBe(migrateFengdie(readRepoFile(file), file).jotl);
@@ -580,7 +580,7 @@ describe("migrate-schema: 凤蝶", () => {
 				location: file,
 				code: "JOTL9055",
 				severity: "提示",
-				message: expect.stringContaining("凤蝶源码"),
+				message: expect.stringContaining("fengdie DSL schema"),
 			}),
 			expect.objectContaining({
 				location: `${file}:5:21`,
@@ -590,18 +590,18 @@ describe("migrate-schema: 凤蝶", () => {
 		]);
 	});
 
-	it("umo JSON: 与源码迁移结果相同, 诊断位置为 JSON 指针", () => {
-		const r = cli(["migrate-schema", umoFile]);
+	it("fengdie JSON schema: 与源码迁移结果相同, 诊断位置为 JSON 指针", () => {
+		const r = cli(["migrate-schema", jsonFile]);
 		expect(r.code).toBe(0);
 		expect(r.stdout).toBe(cli(["migrate-schema", file]).stdout);
 		expect(diagnosticLines(r.stderr)).toEqual([
 			expect.objectContaining({
-				location: umoFile,
+				location: jsonFile,
 				code: "JOTL9055",
-				message: expect.stringContaining("umo JSON"),
+				message: expect.stringContaining("fengdie JSON schema"),
 			}),
 			expect.objectContaining({
-				location: `${umoFile}#/properties/share/meta/foo`,
+				location: `${jsonFile}#/properties/share/meta/foo`,
 				code: "JOTL8105",
 			}),
 		]);
@@ -614,8 +614,8 @@ describe("migrate-schema: 凤蝶", () => {
 	});
 
 	it("凤蝶语法错误: 退出码 1", () => {
-		const r = cli(["migrate-schema", "mem/bad.fengdie"], {
-			files: { "mem/bad.fengdie": "Object(首页) {\n  title: String[\n" },
+		const r = cli(["migrate-schema", "mem/bad.schema"], {
+			files: { "mem/bad.schema": "Object(首页) {\n  title: String[\n" },
 		});
 		expect(r.code).toBe(1);
 		expect(r.stdout).toBe("");

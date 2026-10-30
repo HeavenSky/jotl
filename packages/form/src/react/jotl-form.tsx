@@ -26,7 +26,7 @@ import { fillDefaults, getDefaults, mock, validate } from "@jotl/data";
 import { jsonEqual, plan, resolveSchemaAt, type WidgetRegistration } from "../core/index.js";
 import { nodeId, syntheticJsonNode, type NodeTarget } from "./child-resolver.js";
 import { FormContext, useStoreValue, type FormContextValue } from "./context.js";
-import { clampPath, dataRootTarget, isMapValuePath, pageOfPointer } from "./drill.js";
+import { clampPath, dataRootTarget, isMapValuePath, pageOfPointer } from "./nested.js";
 import { localizedDiagnostic } from "./diagnostics.js";
 import { FormStore, pointerOf, type ValidationResult } from "./form-store.js";
 import {
@@ -172,7 +172,7 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 		scene = DEFAULT_SCENE,
 		validateOn = "blur",
 		maxDepth,
-		drill = true,
+		nested = true,
 	} = props;
 	// schema, adapters 与 registry 按内容稳定, 每次渲染新建内容相同的对象不会重新规划, 也不会让非受控数据重新初始化.
 	const schema = useStable(props.schema, jsonEqual);
@@ -227,7 +227,7 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 		store.refresh();
 		latest.current.onChange?.(store.value);
 		// 原页在新 schema 中可能已不存在, 钻取回到根页.
-		if (drill && requestedPath !== "") navigate("");
+		if (nested && requestedPath !== "") navigate("");
 	});
 
 	const [, forceRender] = useReducer((n: number) => n + 1, 0);
@@ -255,7 +255,7 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 	/** 判定缺失的键是否为字典值; 依赖渲染上下文, 由下方在 ctx 就绪后设置. */
 	const isMapValue = useRef<((path: JsonPointer) => boolean) | undefined>(undefined);
 	const path = useStoreValue(store, () =>
-		drill ? clampPath(store.value, requestedPath, p => isMapValue.current?.(p) ?? false) : ""
+		nested ? clampPath(store.value, requestedPath, p => isMapValue.current?.(p) ?? false) : ""
 	);
 	/** 定位错误时等待切到的页与要聚焦的路径; 其他导航取消它. */
 	const pendingFocus = useRef<{ page: JsonPointer; pointer: JsonPointer } | undefined>(undefined);
@@ -265,8 +265,8 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 		latest.current.onPathChange?.(next);
 	}, []);
 	useEffect(() => {
-		if (drill && path !== requestedPath) navigate(path);
-	}, [drill, navigate, path, requestedPath]);
+		if (nested && path !== requestedPath) navigate(path);
+	}, [nested, navigate, path, requestedPath]);
 
 	/** 提交校验失败时跳到第一个错误所在的层; 由下方在 ctx 就绪后设置. */
 	const jumpToError = useRef<((result: ValidationResult) => void) | undefined>(undefined);
@@ -329,8 +329,8 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 			},
 			reset: () => handle.reset(),
 			createValue: info => createValue(schema, info, latest.current.defaults),
-			drill,
-			collapsible: !drill && props.collapsible === true,
+			nested,
+			collapsible: !nested && props.collapsible === true,
 			path,
 			navigate,
 			onSubmitFailed,
@@ -339,7 +339,7 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 		}),
 		[
 			adapters,
-			drill,
+			nested,
 			props.collapsible,
 			formId,
 			goToError,
@@ -379,12 +379,12 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 			return dataRoot !== undefined && isMapValuePath(ctx, dataRoot, p);
 		};
 		// 首次渲染时 isMapValue 尚未就绪, 落在不存在的字典键上的路径没有收敛; 就绪后重渲染以立即退回.
-		if (drill && clampPath(store.value, requestedPath, isMapValue.current) !== path)
+		if (nested && clampPath(store.value, requestedPath, isMapValue.current) !== path)
 			forceRender();
 		jumpToError.current = result => {
 			const first = result.errors.find(d => d.severity === "error");
 			const dataRoot = root.node.level === "view" ? dataRootTarget(ctx, root) : undefined;
-			if (!drill || first === undefined || dataRoot === undefined) return;
+			if (!nested || first === undefined || dataRoot === undefined) return;
 			const page = pageOfPointer(ctx, dataRoot, pointerOf(first));
 			if (page !== ctx.path) navigate(page);
 		};
@@ -392,7 +392,7 @@ function JotlFormImpl(props: JotlFormProps, ref: Ref<JotlFormHandle>) {
 			const pointer = pointerOf(error);
 			const dataRoot = root.node.level === "view" ? dataRootTarget(ctx, root) : undefined;
 			const page =
-				drill && dataRoot !== undefined ? pageOfPointer(ctx, dataRoot, pointer) : ctx.path;
+				nested && dataRoot !== undefined ? pageOfPointer(ctx, dataRoot, pointer) : ctx.path;
 			if (page === ctx.path) {
 				focusPointer(formId, pointer);
 				return;

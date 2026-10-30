@@ -21,7 +21,7 @@ export interface FormContextValue {
 	/** 新增数组元素, 字典条目, 切换分支时的新值. */
 	createValue(info: SchemaInfo): unknown;
 	/** 是否钻取渲染; false 时 path 恒为根. */
-	drill: boolean;
+	nested: boolean;
 	/** 不钻取时组合字段是否渲染为可折叠面板. */
 	collapsible: boolean;
 	/** 钻取渲染的当前页(数据路径), 已按数据收敛. */

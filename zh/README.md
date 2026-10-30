@@ -67,7 +67,7 @@ pnpm exec jotl compile home.jotl --to ts --out home.d.ts
 ## 一份源码能得到什么
 
 - **schema、类型与表单保持一致**：编译为 JSON Schema 2020-12 或 TS 声明，再用 `@jotl/form` 把 schema 渲染成 React 表单，也可换用 Ant Design widget。
-- **已有 schema 可以直接接入**：把 2020-12 JSON Schema 打印回 Jotl，在 JSON Schema 与 TS 声明之间互转，把旧版 JSON Schema、OpenAPI 3.0 / Swagger 2.0 Schema Object 与凤蝶 schema 升级过来。
+- **已有 schema 可以直接接入**：把 2020-12 JSON Schema 打印回 Jotl，在 JSON Schema 与 TS 声明之间互转，把旧版 JSON Schema、OpenAPI 3.0 / Swagger 2.0 Schema Object 与 fengdie DSL schema 升级过来。
 - **数据工具适用于任意 2020-12 schema**：默认数据、校验、旧数据迁移与 Mock，可在代码中调用，也可用 `jotl validate` 和 `jotl defaults`。
 - **边写边有编辑器支持**：VS Code 插件提供带快速修复的诊断、补全、悬停、跳转定义，以及 schema、TS 与表单的实时预览。
 - **报错能直接定位**：每条诊断都带固定的 `JOTL` 代码，并指向行列或 JSON Pointer，消息有中英文两种。
@@ -79,7 +79,7 @@ pnpm exec jotl compile home.jotl --to ts --out home.d.ts
 | 包                                                                  | 用途                                                                                                 |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`@jotl/core`](../packages/core/zh/README.md)                       | 解析、编译、格式化与打印 Jotl；共用的 schema 类型、诊断与 JSON Pointer 工具                          |
-| [`@jotl/convert`](../packages/convert/zh/README.md)                 | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移凤蝶 schema                         |
+| [`@jotl/convert`](../packages/convert/zh/README.md)                 | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移 fengdie DSL schema                         |
 | [`@jotl/data`](../packages/data/zh/README.md)                       | 面向 JSON Schema 2020-12 的默认数据、校验、迁移与 Mock                                               |
 | [`@jotl/form`](../packages/form/zh/README.md)                       | React 表单渲染器（React 16.8 至 19），自带原生 HTML widget；与框架无关的渲染规划在 `@jotl/form/core` |
 | [`@jotl/antd`](../packages/antd/zh/README.md)                       | `@jotl/form` 的 Ant Design widget（antd 5 或 6，React 18 及以上）                                    |

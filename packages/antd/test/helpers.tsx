@@ -41,7 +41,7 @@ export const registry = createAntdRegistry({ dayjs });
 export function renderForm(props: Omit<JotlFormProps, "ref">) {
 	const ref = createRef<JotlFormHandle>();
 	const view = render(
-		<JotlForm id={FORM_ID} drill={false} registry={registry} {...props} ref={ref} />
+		<JotlForm id={FORM_ID} nested={false} registry={registry} {...props} ref={ref} />
 	);
 	return { ...view, handle: () => ref.current! };
 }

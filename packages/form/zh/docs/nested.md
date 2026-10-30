@@ -1,6 +1,6 @@
 # 浏览嵌套数据
 
-[English](../../docs/drill-down.md) · **简体中文**
+[English](../../docs/nested.md) · **简体中文**
 
 本页说明 `JotlForm` 如何显示对象、数组和字典，以及如何把当前层同步到路由或关闭钻取。
 
@@ -36,8 +36,8 @@ const [path, setPath] = useState("");
 ## 全部显示在一页
 
 ```tsx
-<JotlForm schema={schema} drill={false} collapsible />
+<JotlForm schema={schema} nested={false} collapsible />
 ```
 
-- `drill={false}` 时各层在同一页展开，不显示入口行与面包屑，并忽略 `path`。
-- 再加 `collapsible` 时，对象（`inline` 除外）、数组、字典与含对象分支的联合各包在可折叠面板中。面板标题行显示标题（数组元素为 `第 n 项`）、摘要与错误数；第一层默认展开，更深的默认收起。`drill` 为 `true` 时忽略 `collapsible`。
+- `nested={false}` 时各层在同一页展开，不显示入口行与面包屑，并忽略 `path`。
+- 再加 `collapsible` 时，对象（`inline` 除外）、数组、字典与含对象分支的联合各包在可折叠面板中。面板标题行显示标题（数组元素为 `第 n 项`）、摘要与错误数；第一层默认展开，更深的默认收起。`nested` 为 `true` 时忽略 `collapsible`。

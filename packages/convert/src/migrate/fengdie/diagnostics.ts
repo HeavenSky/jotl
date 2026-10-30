@@ -4,44 +4,44 @@ import { defineDiagnostics, getLocale, l10n } from "@jotl/core";
 export const MIGRATE_DIAGNOSTICS = {
 	JOTL8001: {
 		severity: "error",
-		message: "凤蝶 schema 词法错误: 无法识别的文本 `{text}`",
-		en: "Fengdie schema lexical error: unrecognized text `{text}`",
+		message: "fengdie DSL schema 词法错误: 无法识别的文本 `{text}`",
+		en: "fengdie DSL schema lexical error: unrecognized text `{text}`",
 	},
 	JOTL8002: {
 		severity: "error",
-		message: "凤蝶 schema 语法错误: 此处应为 {expected}, 实际是 {actual}",
-		en: "Fengdie schema syntax error: expected {expected} here, got {actual}",
+		message: "fengdie DSL schema 语法错误: 此处应为 {expected}, 实际是 {actual}",
+		en: "fengdie DSL schema syntax error: expected {expected} here, got {actual}",
 	},
 	JOTL8003: {
 		severity: "error",
-		message: "凤蝶 schema 块注释缺少结束标记 `*/`",
-		en: "Fengdie schema block comment is missing the closing `*/`",
+		message: "fengdie DSL schema 块注释缺少结束标记 `*/`",
+		en: "fengdie DSL schema block comment is missing the closing `*/`",
 	},
 	JOTL8004: {
 		severity: "error",
-		message: "凤蝶 schema 元数据字符串缺少结束引号",
-		en: "Fengdie schema metadata string is missing the closing quote",
+		message: "fengdie DSL schema 元数据字符串缺少结束引号",
+		en: "fengdie DSL schema metadata string is missing the closing quote",
 	},
 	JOTL8005: {
 		severity: "error",
-		message: "凤蝶 schema 说明缺少右括号 `)`",
-		en: "Fengdie schema description is missing the closing parenthesis `)`",
+		message: "fengdie DSL schema 说明缺少右括号 `)`",
+		en: "fengdie DSL schema description is missing the closing parenthesis `)`",
 	},
 	JOTL8006: {
 		severity: "error",
-		message: "umo JSON 无法解析: {reason}",
-		en: "Cannot parse umo JSON: {reason}",
+		message: "fengdie JSON schema 无法解析: {reason}",
+		en: "Cannot parse fengdie JSON schema: {reason}",
 	},
 	JOTL8007: {
 		severity: "error",
-		message: "umo JSON 结构不合法: {reason}",
-		en: "Invalid umo JSON structure: {reason}",
+		message: "fengdie JSON schema 结构不合法: {reason}",
+		en: "Invalid fengdie JSON schema structure: {reason}",
 	},
 
 	JOTL8105: {
 		severity: "warning",
-		message: "凤蝶元数据 `{key}` 不适用于类型 `{type}`(umo-edit-sdk 同样丢弃), 已丢弃",
-		en: "Fengdie metadata `{key}` does not apply to type `{type}` (umo-edit-sdk drops it too); dropped",
+		message: "凤蝶元数据 `{key}` 不适用于类型 `{type}`(凤蝶编辑器同样丢弃), 已丢弃",
+		en: "Fengdie metadata `{key}` does not apply to type `{type}` (the Fengdie editor drops it too); dropped",
 	},
 	JOTL8106: {
 		severity: "warning",
@@ -75,8 +75,8 @@ export const MIGRATE_DIAGNOSTICS = {
 	},
 	JOTL8112: {
 		severity: "warning",
-		message: "枚举成员 `{name}` 上的{part}不属于枚举语义(umo-edit-sdk 同样忽略), 已丢弃",
-		en: "Enum member `{name}` has {part}, which has no enum semantics (umo-edit-sdk ignores it too); dropped",
+		message: "枚举成员 `{name}` 上的{part}不属于枚举语义(凤蝶编辑器同样忽略), 已丢弃",
+		en: "Enum member `{name}` has {part}, which has no enum semantics (the Fengdie editor ignores it too); dropped",
 	},
 	JOTL8113: {
 		severity: "warning",
@@ -106,8 +106,8 @@ export const MIGRATE_DIAGNOSTICS = {
 	JOTL8118: {
 		severity: "warning",
 		message:
-			"类型 `{type}` 没有元数据表(umo-edit-sdk 的 toJson 在此处抛错), 元数据 `{key}` 已丢弃",
-		en: "Type `{type}` has no metadata table (umo-edit-sdk's toJson throws here); metadata `{key}` dropped",
+			"类型 `{type}` 没有元数据表(凤蝶编辑器的 toJson 在此处抛错), 元数据 `{key}` 已丢弃",
+		en: "Type `{type}` has no metadata table (the Fengdie editor's toJson throws here); metadata `{key}` dropped",
 	},
 	JOTL8119: {
 		severity: "warning",

@@ -4,7 +4,12 @@ import { act, cleanup, fireEvent, render, screen, waitFor, within } from "@testi
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { App, COMPILE_DEBOUNCE_MS } from "../src/app.js";
 import { COPY, copyOf } from "../src/copy.js";
-import { DEFAULT_EXAMPLE_ID, WIDGET_MODULE_EXAMPLE_ID, findExample } from "../src/examples.js";
+import {
+	DEFAULT_EXAMPLE_ID,
+	FENGDIE_EXAMPLE_ID,
+	WIDGET_MODULE_EXAMPLE_ID,
+	findExample,
+} from "../src/examples.js";
 import type { OutputTab } from "../src/output-tabs.js";
 import { CONFIG_STORAGE_KEY, LOCALE_STORAGE_KEY, SOURCE_STORAGE_KEY } from "../src/storage.js";
 import { offsetAt } from "../src/text-position.js";
@@ -203,6 +208,28 @@ describe("编辑与预览", () => {
 	});
 });
 
+describe("fengdie DSL schema", () => {
+	it("粘贴 fengdie DSL schema 后按迁移管线编译, 源码页签改标凤蝶, 表单出现迁移字段", async () => {
+		renderWith(VALID);
+		const fengdie = findExample(FENGDIE_EXAMPLE_ID)!.source;
+		type(fengdie);
+		await findInPanel("form", /活动标题/);
+		expect(screen.getByRole("tab", { name: COPY.sources.fengdie })).toBeTruthy();
+		expect(screen.queryByRole("tab", { name: COPY.sources.source })).toBeNull();
+		expect(screen.getByText(COPY.diagnostics.none)).toBeTruthy();
+	});
+
+	it("迁移警告可点击定位到 fengdie DSL schema位置", async () => {
+		const source = 'Object(配置) {\n  a(甲): String[default: ""]\n  a(乙): String\n}';
+		renderWith(source);
+		const item = await screen.findByRole("button", { name: /JOTL8109/ });
+		expect(item.textContent).toContain("3:3");
+		fireEvent.click(item);
+		const textarea = editor();
+		expect(textarea.selectionStart).toBe(offsetAt(source, { line: 3, column: 3 }));
+	});
+});
+
 describe("诊断", () => {
 	it("点击诊断聚焦编辑器, 选中出错区间并显示光标行列", () => {
 		renderWith(BROKEN);
@@ -309,7 +336,7 @@ describe("预览选项", () => {
 		const form = () => within(panel("form"));
 		expect(panel("form").querySelector(".jotl-panel")).toBeNull();
 		fireEvent.change(form().getByLabelText(COPY.preview.layout), {
-			target: { value: "panels" },
+			target: { value: "flat" },
 		});
 		expect(panel("form").querySelector(".jotl-panel")?.textContent).toContain("搜索优化");
 		expect(form().getByLabelText(/关键词/)).toBeTruthy();

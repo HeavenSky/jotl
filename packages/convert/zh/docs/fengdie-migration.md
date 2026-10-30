@@ -1,20 +1,22 @@
-# 迁移凤蝶 schema
+# 迁移 fengdie DSL schema
 
 [English](../../docs/fengdie-migration.md) · **简体中文**
 
-本页讲怎样在代码里把凤蝶 schema（源码或 umo JSON）转成 Jotl 与 JSON Schema 2020-12，以及每种凤蝶类型和元数据迁移后的去向。前提是已按 [README](../README.md#快速开始) 装好 `@jotl/convert`；命令行里用 [`jotl` CLI](../../../cli/zh/README.md) 的 `jotl migrate-schema`。
+本页讲怎样在代码里把 fengdie DSL schema 或 fengdie JSON schema 转成 Jotl 与 JSON Schema 2020-12，以及每种凤蝶类型和元数据迁移后的去向。前提是已按 [README](../README.md#快速开始) 装好 `@jotl/convert`；命令行里用 [`jotl` CLI](../../../cli/zh/README.md) 的 `jotl migrate-schema`。
+
+两种形态有惯用文件后缀：**fengdie DSL schema** 用 `.schema`（凤蝶编辑器语法），**fengdie JSON schema** 用 `.json`（编辑器 `toJson` 落库与传输的产物，节点为 `{key, type, description, properties?, items?, meta?}`）。`migrateFengdie` 两种都接受，按内容而非后缀判定。
 
 ## 迁移一份 schema
 
 ```ts
 import { migrateFengdie } from "@jotl/convert";
 
-const { jotl, schema, umo, diagnostics } = migrateFengdie(
+const { jotl, schema, fengdieJson, diagnostics } = migrateFengdie(
 	`Object(首页) {
     title(标题): String[maxLength: 20, required: true]
     start(开始): Date
   }`,
-	"home.fengdie"
+	"home.schema"
 );
 // jotl:
 // Root(首页): {
@@ -23,7 +25,7 @@ const { jotl, schema, umo, diagnostics } = migrateFengdie(
 // }
 ```
 
-流程为：源码 → 与 toJson 同构的 umo JSON → JSON Schema 2020-12 → 由 `@jotl/core` 的 `print` 输出 Jotl。词法与文法以凤蝶编辑器实际使用的 umo-edit-sdk 0.0.8 为准（`parse/schema.l` `schema.yy`）。
+流程为：fengdie DSL schema → 与 toJson 同构的 fengdie JSON schema → JSON Schema 2020-12 → 由 `@jotl/core` 的 `print` 输出 Jotl。词法与文法以凤蝶编辑器 0.0.8 为准（`parse/schema.l` `schema.yy`）。
 
 ## 决定迁移结果的四条口径
 
@@ -38,17 +40,17 @@ const { jotl, schema, umo, diagnostics } = migrateFengdie(
 
 | 导出                                                | 作用                                                                                                                                                                                            |
 | --------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `migrateFengdie(input, file?)`                      | `input` 为源码、umo JSON 文本（首个非空白字符为 `{`）或 umo JSON 对象；返回 `{ jotl?, schema?, umo?, diagnostics }`，有 error 时 `jotl` 为 `undefined`。`schema` 与 `jotl` 再编译的结果深度相等 |
-| `fengdieToUmoJson(source, file?)`                   | 源码 → umo JSON，另返回 `origins`（节点到源码位置）                                                                                                                                             |
-| `umoJsonToSchema(umo, { origins?, file? })`         | umo JSON → 未排序的 2020-12 文档；没有 `origins` 时，诊断位置为 umo JSON 中的指针                                                                                                               |
-| `detectMigrateInput(text)` / `umoJsonFeature(json)` | 判定输入是凤蝶源码、umo JSON 还是常规 JSON Schema，并给出依据                                                                                                                                   |
+| `migrateFengdie(input, file?)`                      | `input` 为源码、fengdie JSON schema 文本（首个非空白字符为 `{`）或 fengdie JSON schema 对象；返回 `{ jotl?, schema?, fengdieJson?, diagnostics }`，有 error 时 `jotl` 为 `undefined`。`schema` 与 `jotl` 再编译的结果深度相等 |
+| `parseFengdieJson(source, file?)`                   | 源码 → fengdie JSON schema，另返回 `origins`（节点到源码位置）                                                                                                                                             |
+| `fengdieJsonToSchema(fengdieJson, { origins?, file? })`         | fengdie JSON schema → 未排序的 2020-12 文档；没有 `origins` 时，诊断位置为 fengdie JSON schema 中的指针                                                                                                               |
+| `detectMigrateInput(text)` / `fengdieJsonFeature(json)` | 判定输入是 fengdie DSL schema、fengdie JSON schema 还是常规 JSON Schema，并给出依据                                                                                                                                   |
 | `MIGRATE_DIAGNOSTICS`                               | 凤蝶诊断代码表                                                                                                                                                                                  |
 
 ## 解读诊断
 
-- 词法与语法错误（`JOTL8001`-`JOTL8005`）与 jison 一样在第一个错误处停止。umo JSON 解析失败与结构不合法分别为 `JOTL8006` 与 `JOTL8007`。
+- 词法与语法错误（`JOTL8001`-`JOTL8005`）与 jison 一样在第一个错误处停止。fengdie JSON schema 解析失败与结构不合法分别为 `JOTL8006` 与 `JOTL8007`。
 - 其余问题都是 warning（`JOTL81xx`），不影响结果。只对真正丢失或改写的信息报 warning，无损保留在 `x-fengdie` 中的不报。
-- 会让 umo-edit-sdk 的 toJson 抛错的写法，迁移时丢弃其元数据并报 `JOTL8118`。这类写法是给没有元数据表的类型写元数据，如 `Array<string>[...]`、`Component[...]` 与根上的 `OpenAction[...]`。
+- 会让凤蝶编辑器的 toJson 抛错的写法，迁移时丢弃其元数据并报 `JOTL8118`。这类写法是给没有元数据表的类型写元数据，如 `Array<string>[...]`、`Component[...]` 与根上的 `OpenAction[...]`。
 
 其他约定：
 
@@ -57,7 +59,7 @@ const { jotl, schema, umo, diagnostics } = migrateFengdie(
 
 ## 类型映射
 
-| 凤蝶类型（umo `type`）                                                                   | 2020-12 / Jotl                                                             | 说明                                                                                                                                                                             |
+| 凤蝶类型（fengdieJson `type`）                                                                   | 2020-12 / Jotl                                                             | 说明                                                                                                                                                                             |
 | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `String`（及省略类型） `Text` `RichText` `URL` `Color` `File` `Image` `Number` `Boolean` | `string` `text` `richtext` `url` `color` `file` `image` `number` `boolean` | 未知类型名退回 `string`，报 `JOTL8111`                                                                                                                                           |
 | `Date`                                                                                   | `datetime[value_format: 'x']`                                              | 凤蝶编辑器用日期时间选择器，数据是毫秒时间戳；schema 为 `{type: integer, minimum: -MAX_SAFE_INTEGER, maximum: MAX_SAFE_INTEGER, x-valueFormat: 'x', x-ui: {widget: 'datetime'}}` |
@@ -66,7 +68,7 @@ const { jotl, schema, umo, diagnostics } = migrateFengdie(
 | `Object` `Action` `OpenAction` `Spm`                                                     | 对象                                                                       | `Spm` 固定为 `spma` `spmb` `spmc` 三个字符串                                                                                                                                     |
 | `Array`                                                                                  | 对象数组                                                                   |                                                                                                                                                                                  |
 | `Module` `ModuleArray` `命名空间.组件` `命名空间.组件[Array]`                            | 对象 / 对象数组                                                            | `namespace` `component` `version` `url` `dist` 记入 `x-fengdie`                                                                                                                  |
-| `Box` `Resource` `Plugin` `Animation` `Video`                                            | 按 umo-edit-sdk mock 数据形态构造的对象，不封闭                            |                                                                                                                                                                                  |
+| `Box` `Resource` `Plugin` `Animation` `Video`                                            | 按凤蝶编辑器 mock 数据形态构造的对象，不封闭                            |                                                                                                                                                                                  |
 | `Component`                                                                              | `string`                                                                   | 组件实例 id                                                                                                                                                                      |
 | 根 `Lottery` / `public`                                                                  | 对象                                                                       | `x-fengdie.lottery` / `x-fengdie.public`，不报 warning                                                                                                                           |
 | `export a ... export b ...`                                                              | 各自成为 `$defs` 类型，第一条为根                                          | 不是大驼峰的名字按 `print` 的规则改名，报 `JOTL8117`；多于一个导出时报 `JOTL8121`，说明取了哪个导出为根                                                                          |
@@ -84,19 +86,19 @@ const { jotl, schema, umo, diagnostics } = migrateFengdie(
 | `regExp`                                                                                                                                                                                                | `pattern`；`"/^https:/gi"` 去掉定界符；`i` 改写进 pattern（字母改为 `[hH]`，字符类补上另一种大小写），带 `u` 时 `\w` `\W` `\b` `\B` 按含 `ſ` 与开尔文符号的单词字符改写；遇 Unicode 属性类、反向引用、内联修饰符，或不带 `u` 时以补充平面字符为端点的区间，无法安全改写时保持原样并报 `JOTL8119`；`g` 忽略；`m` `s` `u` `y` 报 `JOTL8120`；未生效的标志记入 `x-fengdie.regExpFlags` |
 | `errorMsg`                                                                                                                                                                                              | `errorMessage`                                                                                                                                                                                                                                                                                                                                                                      |
 | `placeholder`，以及 `Image` 的 `width` `height` `maxWidth` `maxHeight` `aspectRatio` `maxSize` `setDefaultColorTo`                                                                                      | `x-ui.props`                                                                                                                                                                                                                                                                                                                                                                        |
-| `if: "$.路径"`                                                                                                                                                                                          | `x-ui.visibleIf`（Jotl 的 `root_if`）；其他写法记入 `x-fengdie`                                                                                                                                                                                                                                                                                                                     |
+| `if: "$.路径"`                                                                                                                                                                                          | `x-ui.visibleIf`（Jotl 的 `node_if`）：凤蝶编辑器以字段所在对象的数据求值 `if`（simple-evaluate 的 context，`$.` 与无前缀等价），路径相对该对象；`$.a[0]` 这类数字下标保持原下标。其他写法——函数调用、其他变量、`$root.`（凤蝶编辑器的 `if` 里没有这个语法，它读 `context["$root"]`，恒为假）——记入 `x-fengdie`，该字段始终显示。 |                                                                                                                                                                                                                                                                                                                     |
 | `required: true`                                                                                                                                                                                        | 父对象的 `required`（D4）                                                                                                                                                                                                                                                                                                                                                           |
 | 第一层字段的 `group`                                                                                                                                                                                    | 根对象的 `x-ui.groups`：`normal` General、`advance` Advanced、`developer` Developer、`operator` Operations（`zh-CN` 下为常规、高级、开发者、运营；D2）；更深层的记入 `x-fengdie`                                                                                                                                                                                                    |
 | `showKey`                                                                                                                                                                                               | `x-ui.summary`；不是元素字段时丢弃（`JOTL8106`）                                                                                                                                                                                                                                                                                                                                    |
 | 白名单内的其余项（`rule` `source` `searchType` `sourceType` `reuseable` `autoFetch` `entityType` `mappingRuleId` `defaultSourceType` `ucdp` `spmC` `spmD` `configId` `crossApp` `i18n` 等）与 `custom*` | `x-fengdie` 中的同名项，不报 warning（D3）                                                                                                                                                                                                                                                                                                                                          |
 | 白名单外                                                                                                                                                                                                | 丢弃，报 `JOTL8105`（与 toJson 一致）                                                                                                                                                                                                                                                                                                                                               |
 
-各类型的元数据白名单是 [`src/migrate/fengdie/umo-types.ts`](../../src/migrate/fengdie/umo-types.ts) 的 `UMO_META_KEYS`，取自 umo-edit-sdk 的 `lib/types.js`。
+各类型的元数据白名单是 [`src/migrate/fengdie/fengdie-json-types.ts`](../../src/migrate/fengdie/fengdie-json-types.ts) 的 `FENGDIE_JSON_META_KEYS`，取自凤蝶编辑器的类型表（`lib/types.js`）。
 
 ## 已知限制
 
 - **凤蝶下保存的数据可能通不过迁移后 schema 的校验。** `Image`、`File`、`URL` 字段带 `format: "uri"`，`Color` 只接受十六进制颜色，与 Jotl 自身的类型一致。凤蝶曾接受的值（如相对地址、其他写法的颜色）会被 [`@jotl/data`](../../../data/zh/README.md) 的 `validate` 报出来，需要人工修正；`@jotl/data` 的 `migrate` 也不会改写它们。
 - **凤蝶扩展元数据迁移后不生效。** 数据源（`source`、`sourceType`）、`rule`、`reuseable`、`Component` 等语义类型，以及条件必填、条件只读没有 Jotl 写法。它们保存在 `x-fengdie` 中，往返不丢，但表单与校验都会忽略。
-- **只有部分 `if` 表达式会转成条件。** 以下写法转为 `x-ui.visibleIf`：路径真假，`===` 与 `!==`，与 `null` 比较的 `==` 与 `!=`，字段类型已知时的宽松相等与数值比较，元素为常量的数组字面量 `[...].includes($.路径)`（加 `!` 时转为 `notIn`），以及 `&&`、`||`、`!` 与括号。函数调用、其他变量、算术等记入 `x-fengdie`，该字段始终显示。
+- **只有部分 `if` 表达式会转成条件。** 以下写法转为 `x-ui.visibleIf`（路径相对字段所在对象，Jotl 写作 `node_if`）：路径真假，`===` 与 `!==`，与 `null` 比较的 `==` 与 `!=`，字段类型已知时的宽松相等与数值比较，元素为常量的数组字面量 `[...].includes($.路径)`（加 `!` 时转为 `notIn`），以及 `&&`、`||`、`!` 与括号。函数调用、其他变量、`$root.`、算术等记入 `x-fengdie`，该字段始终显示。
 - **转换后的条件在边界情况下与原来不同。** 路径中间段为 `undefined` 时，凤蝶的 JavaScript 会抛异常，转换后的条件只是为假。依赖字段类型的转换假设数据符合声明的类型。
 - **有多个导出时，第一个成为根。** Jotl 文件总有一个根，迁移时报 `JOTL8121` 提示；迁移前把要作为根的导出放到最前面。

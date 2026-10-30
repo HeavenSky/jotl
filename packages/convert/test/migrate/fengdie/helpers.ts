@@ -1,4 +1,4 @@
-// 测试辅助: 迁移一段凤蝶源码, 取出诊断的代码与位置, 并核对迁移结果再编译后与期望 schema 深度相等.
+// 测试辅助: 迁移一段 fengdie DSL schema, 取出诊断的代码与位置, 并核对迁移结果再编译后与期望 schema 深度相等.
 import {
 	type Diagnostic,
 	JSON_SCHEMA_DIALECT,
@@ -10,11 +10,11 @@ import { expect } from "vitest";
 import { createAjv, enableJsonContent } from "../../../../data/src/ajv-instance.js";
 import {
 	type MigrateFengdieResult,
-	type UmoJson,
+	type FengdieJson,
 	migrateFengdie,
 } from "../../../src/migrate/index.js";
 
-export const FILE = "test.fengdie";
+export const FILE = "test.schema";
 
 // 与 `@jotl/data` 的 validate 同配置; x- 扩展关键字由 validate 编译前按需登记, 直接用 createAjv 时要自己登记.
 const ajv = createAjv();
@@ -41,7 +41,7 @@ export function codes(diagnostics: readonly Diagnostic[]): string[] {
 
 /** 迁移成功且 Jotl 再编译无诊断, 得到与迁移结果相同的 schema, 且该 schema 能被 `@jotl/data` 的 Ajv 编译; 返回迁移结果. */
 export function roundTrip(
-	input: string | UmoJson
+	input: string | FengdieJson
 ): MigrateFengdieResult & { jotl: string; schema: JsonSchemaObject } {
 	const result = migrateFengdie(input, FILE);
 	expect(result.jotl, JSON.stringify(result.diagnostics)).toBeDefined();

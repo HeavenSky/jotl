@@ -48,7 +48,7 @@ const panelOf = (path: string) =>
 const header = (panel: HTMLDetailsElement | null) =>
 	panel?.querySelector(":scope > summary") as HTMLElement;
 
-describe("折叠面板(drill=false, collapsible)", () => {
+describe("折叠面板(nested=false, collapsible)", () => {
 	it("对象与数组为面板, 标题行显示标题与摘要; inline 对象与标量字段照常渲染", () => {
 		renderForm({ schema: SCHEMA, defaultValue: DATA, collapsible: true });
 		expect(panelOf("/title")).toBeNull();
@@ -117,11 +117,11 @@ describe("折叠面板(drill=false, collapsible)", () => {
 		expect(panelOf("/d/e")?.open).toBe(false);
 	});
 
-	it("不传 collapsible 或 drill 为 true 时没有面板", () => {
+	it("不传 collapsible 或 nested 为 true 时没有面板", () => {
 		const { unmount } = renderForm({ schema: SCHEMA, defaultValue: DATA });
 		expect(document.querySelector(".jotl-panel")).toBeNull();
 		unmount();
-		renderForm({ schema: SCHEMA, defaultValue: DATA, drill: true, collapsible: true });
+		renderForm({ schema: SCHEMA, defaultValue: DATA, nested: true, collapsible: true });
 		expect(document.querySelector(".jotl-panel")).toBeNull();
 	});
 });

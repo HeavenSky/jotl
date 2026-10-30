@@ -60,7 +60,7 @@ You need Node 22 or later.
 
 - **Move between Jotl, JSON Schema 2020-12 and TS declarations in any direction.** `compile` and `convert` write to stdout or `--out`, and `--typia-tags` emits typia type tags in TS output.
 - Catch broken data and schemas in CI: `validate` locates each error in the data file, `check` reports schema problems without output, and `defaults` prints the default data a schema implies.
-- Bring old schemas forward: `migrate-schema` upgrades draft-04 through 2019-09 schemas and OpenAPI 3.0 / 3.1 and Swagger 2.0 Schema Objects to 2020-12, and turns Fengdie schemas into Jotl.
+- Bring old schemas forward: `migrate-schema` upgrades draft-04 through 2019-09 schemas and OpenAPI 3.0 / 3.1 and Swagger 2.0 Schema Objects to 2020-12, and turns fengdie DSL schemas into Jotl.
 - Parse the output with a script: one diagnostic per line, stable exit codes, `-` reads from stdin, and messages come in English or Chinese via `--lang` or `JOTL_LANG`.
 - Use your project's own components: commands that compile Jotl pick up the nearest `jotl.config.json`, the same file the editor reads.
 

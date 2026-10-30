@@ -1,26 +1,26 @@
-// 迁移到 Jotl: 旧版本 JSON Schema 与 OpenAPI / Swagger Schema Object 升级到 2020-12, 凤蝶 schema(源码或 umo JSON)迁移为 Jotl.
+// 迁移到 Jotl: 旧版本 JSON Schema 与 OpenAPI / Swagger Schema Object 升级到 2020-12, fengdie DSL schema(源码或 fengdie JSON schema)迁移为 Jotl.
 export * from "./upgrade/index.js";
 export {
 	DEFAULT_FENGDIE_FILE,
 	MIGRATE_DIAGNOSTICS,
-	fengdieToUmoJson,
-	isKnownUmoType,
+	parseFengdieJson,
+	isKnownFengdieJsonType,
 	migrateFengdie,
-	umoJsonToSchema,
-	type FengdieUmoResult,
+	fengdieJsonToSchema,
+	type FengdieJsonResult,
 	type MigrateDiagnosticCode,
 	type MigrateFengdieResult,
-	type UmoEnumItem,
-	type UmoJson,
-	type UmoMetaValue,
-	type UmoNode,
-	type UmoOrigin,
-	type UmoOrigins,
-	type UmoToSchemaOptions,
+	type FengdieJsonEnumItem,
+	type FengdieJson,
+	type FengdieJsonMetaValue,
+	type FengdieJsonNode,
+	type FengdieJsonOrigin,
+	type FengdieJsonOrigins,
+	type FengdieJsonToSchemaOptions,
 } from "./fengdie/index.js";
 export {
 	detectMigrateInput,
-	umoJsonFeature,
+	fengdieJsonFeature,
 	type MigrateInputDetection,
 	type MigrateInputKind,
 } from "./detect-input.js";

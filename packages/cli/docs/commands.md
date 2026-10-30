@@ -11,7 +11,7 @@ This page lists every `jotl` command with its options, defaults and examples, an
 | [`check`](#check)                   | Report diagnostics only, without output                                |
 | [`validate`](#validate)             | Validate JSON data files against a schema                              |
 | [`defaults`](#defaults)             | Output the default data of a schema as JSON                            |
-| [`migrate-schema`](#migrate-schema) | Migrate a Fengdie schema or a legacy JSON Schema to Jotl or 2020-12    |
+| [`migrate-schema`](#migrate-schema) | Migrate a fengdie DSL schema or a legacy JSON Schema to Jotl or 2020-12    |
 | [`format`](#format)                 | Format Jotl source, keeping comments                                   |
 
 Global options work with every command: `-h, --help` shows help (after a command, that command's help; `jotl help <command>` does the same), `-v, --version` prints the version, and `--lang <zh|en>` picks the output language (see [Use jotl in scripts and CI](scripting.md#choose-the-output-language)).
@@ -134,12 +134,12 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
                     [--accept-newer-keywords=true|false] [--on-conflict error|preferDeclared|preferLatest]
 ```
 
-Migrates a Fengdie schema or a legacy JSON Schema to Jotl (`--to jotl`, the default) or JSON Schema 2020-12 (`--to schema`). The input kind is detected automatically, and the verdict and its reason are written to stderr as info `JOTL9055`:
+Migrates a fengdie DSL schema or a legacy JSON Schema to Jotl (`--to jotl`, the default) or JSON Schema 2020-12 (`--to schema`). The input kind is detected automatically, and the verdict and its reason are written to stderr as info `JOTL9055`:
 
 | Detected as                    | When                                                                                                                                                                                                      | Handling                                                                                                  |
 | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Fengdie source                 | The text does not start with `{` or `[` (not JSON)                                                                                                                                                        | Parsed with the umo-edit-sdk grammar; rules in the [`@jotl/convert` README](../../convert/README.md)      |
-| Fengdie toJson JSON (umo JSON) | JSON in which any field has a `key` equal to its property name, a Fengdie type (such as `image`, `text`, `richtext`, `url`, `color`, `date`, `enum`, `box`), or enum members of the form `{label, value}` | As above, without parsing                                                                                 |
+| fengdie DSL schema                 | The text does not start with `{` or `[` (not JSON)                                                                                                                                                        | Parsed with the Fengdie editor grammar; rules in the [`@jotl/convert` README](../../convert/README.md)      |
+| fengdie JSON schema | JSON in which any field has a `key` equal to its property name, a Fengdie type (such as `image`, `text`, `richtext`, `url`, `color`, `date`, `enum`, `box`), or enum members of the form `{label, value}` | As above, without parsing                                                                                 |
 | Plain JSON Schema              | Any other JSON; text starting with `{` that is not valid JSON reports `JOTL9052`                                                                                                                          | draft-04 through 2019-09 and OpenAPI 3.0 / 3.1 / Swagger 2.0 Schema Objects are upgraded to 2020-12 first |
 
 Options for plain JSON Schema input:
@@ -156,8 +156,8 @@ Options for plain JSON Schema input:
 - `migrate-schema` does not read `jotl.config.json`.
 
 ```sh
-jotl migrate-schema home.fengdie --out home.jotl
-jotl migrate-schema home.umo.json --to schema
+jotl migrate-schema home.schema --out home.jotl
+jotl migrate-schema home.fengdie.json --to schema
 jotl migrate-schema legacy.json --to schema --out legacy.2020-12.json
 jotl migrate-schema pet.json --to schema --schema-version openapi-3.0 --on-conflict preferLatest
 ```

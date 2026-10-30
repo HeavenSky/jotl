@@ -1,33 +1,33 @@
-// 凤蝶语法树 → umo JSON: 与 umo-edit-sdk `lib/schema.js` 的 toJson(无 checkLevel, 无 options)同构, 另记录各节点的源码位置.
+// 凤蝶语法树 → fengdie JSON schema: 与凤蝶编辑器 `toJson`(`lib/schema.js`, 无 checkLevel, 无 options)同构, 另记录各节点的源码位置.
 import type { Diagnostic, SourceRange } from "@jotl/core";
 import type { FengdieDocument, Meta, Prop, RootSchema } from "./ast.js";
 import { enumMemberPart, type MigrateDiagnosticCode, migrateDiagnostic } from "./diagnostics.js";
 import {
-	UMO_CUSTOM_META_RE,
-	UMO_DEFAULT_TYPE,
-	UMO_MODULE_DIST,
-	UMO_SUPPORTED_TYPES,
-	type UmoJson,
-	type UmoMetaValue,
-	type UmoNode,
-	umoMetaKeys,
-} from "./umo-types.js";
+	FENGDIE_JSON_CUSTOM_META_RE,
+	FENGDIE_JSON_DEFAULT_TYPE,
+	FENGDIE_JSON_MODULE_DIST,
+	FENGDIE_JSON_TYPES,
+	type FengdieJson,
+	type FengdieJsonMetaValue,
+	type FengdieJsonNode,
+	fengdieJsonMetaKeys,
+} from "./fengdie-json-types.js";
 
-/** umo JSON 节点(含枚举成员)到源码位置: range 为字段名或类型关键字, meta 为各元数据项. */
-export interface UmoOrigin {
+/** fengdie JSON schema 节点(含枚举成员)到源码位置: range 为字段名或类型关键字, meta 为各元数据项. */
+export interface FengdieJsonOrigin {
 	range: SourceRange;
 	meta?: Map<string, SourceRange>;
 }
 
-export type UmoOrigins = WeakMap<object, UmoOrigin>;
+export type FengdieJsonOrigins = WeakMap<object, FengdieJsonOrigin>;
 
-export class UmoBuilder {
+export class FengdieJsonBuilder {
 	readonly diagnostics: Diagnostic[] = [];
-	readonly origins: UmoOrigins = new WeakMap();
+	readonly origins: FengdieJsonOrigins = new WeakMap();
 
-	document(doc: FengdieDocument): UmoJson {
+	document(doc: FengdieDocument): FengdieJson {
 		if (doc.kind === "schema") return this.root(doc.schema);
-		const json: Record<string, UmoNode> = {};
+		const json: Record<string, FengdieJsonNode> = {};
 		for (const { name, schema } of doc.exports) {
 			if (Object.hasOwn(json, name.text))
 				this.warn("JOTL8116", { name: name.text }, name.range);
@@ -36,8 +36,8 @@ export class UmoBuilder {
 		return json;
 	}
 
-	private root(schema: RootSchema): UmoNode {
-		const node: UmoNode = {
+	private root(schema: RootSchema): FengdieJsonNode {
+		const node: FengdieJsonNode = {
 			type: schema.type,
 			description: schema.label.text,
 			properties: this.properties(schema.props),
@@ -49,8 +49,8 @@ export class UmoBuilder {
 		return node;
 	}
 
-	private properties(props: readonly Prop[]): Record<string, UmoNode> {
-		const properties: Record<string, UmoNode> = {};
+	private properties(props: readonly Prop[]): Record<string, FengdieJsonNode> {
+		const properties: Record<string, FengdieJsonNode> = {};
 		for (const prop of props) {
 			const key = prop.key.text;
 			if (Object.hasOwn(properties, key))
@@ -63,7 +63,7 @@ export class UmoBuilder {
 		return properties;
 	}
 
-	private prop(prop: Prop): UmoNode {
+	private prop(prop: Prop): FengdieJsonNode {
 		const key = prop.key.text;
 		const description = prop.label.text;
 		switch (prop.kind) {
@@ -99,10 +99,10 @@ export class UmoBuilder {
 
 	/** getType: 取路径中第一段已知类型名(不区分大小写), 都不认识时为 `string`. */
 	private leafType(path: readonly { text: string; range: SourceRange }[]): string {
-		if (path.length === 0) return UMO_DEFAULT_TYPE;
+		if (path.length === 0) return FENGDIE_JSON_DEFAULT_TYPE;
 		for (const segment of path) {
 			const type = segment.text.toLowerCase();
-			if (UMO_SUPPORTED_TYPES.has(type)) return type;
+			if (FENGDIE_JSON_TYPES.has(type)) return type;
 		}
 		const first = path[0]!.range;
 		const last = path[path.length - 1]!.range;
@@ -111,19 +111,19 @@ export class UmoBuilder {
 			{ type: path.map(s => s.text).join(".") },
 			{ file: first.file, start: first.start, end: last.end }
 		);
-		return UMO_DEFAULT_TYPE;
+		return FENGDIE_JSON_DEFAULT_TYPE;
 	}
 
 	/** _processMeta: 只保留该类型白名单内与 `custom*` 的元数据, 同名后者覆盖; module 类补 `dist`. */
-	private attachMeta(node: UmoNode, type: string, meta: Meta | undefined): void {
+	private attachMeta(node: FengdieJsonNode, type: string, meta: Meta | undefined): void {
 		if (meta === undefined || meta.entries.length === 0) return;
-		const allowed = umoMetaKeys(type);
-		const item: Record<string, UmoMetaValue> = {};
+		const allowed = fengdieJsonMetaKeys(type);
+		const item: Record<string, FengdieJsonMetaValue> = {};
 		const ranges = new Map<string, SourceRange>();
 		for (const entry of meta.entries) {
 			const key = entry.key.text;
 			if (ranges.has(key)) this.warn("JOTL8110", { key }, entry.key.range);
-			if (allowed?.includes(key) || UMO_CUSTOM_META_RE.test(key)) {
+			if (allowed?.includes(key) || FENGDIE_JSON_CUSTOM_META_RE.test(key)) {
 				item[key] = entry.value;
 				ranges.set(key, entry.range);
 			} else if (allowed === undefined) {
@@ -132,7 +132,7 @@ export class UmoBuilder {
 				this.warn("JOTL8105", { key, type }, entry.key.range);
 			}
 		}
-		if (type === "module" || type === "modulearray") item.dist = UMO_MODULE_DIST;
+		if (type === "module" || type === "modulearray") item.dist = FENGDIE_JSON_MODULE_DIST;
 		node.meta = item;
 		this.origins.get(node)!.meta = ranges;
 	}

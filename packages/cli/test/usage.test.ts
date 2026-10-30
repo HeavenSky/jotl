@@ -58,23 +58,23 @@ describe("用法错误: 退出码 2, 不输出结果", () => {
 			"JOTL9005",
 		],
 		[
-			"凤蝶源码用 --schema-version",
-			["migrate-schema", `${CLI_FIXTURES}/home.fengdie`, "--schema-version", "draft-07"],
+			"fengdie DSL schema用 --schema-version",
+			["migrate-schema", `${CLI_FIXTURES}/home.schema`, "--schema-version", "draft-07"],
 			"JOTL9013",
 		],
 		[
-			"umo JSON 用 --on-conflict",
-			["migrate-schema", `${CLI_FIXTURES}/home.umo.json`, "--on-conflict", "error"],
+			"fengdie JSON schema 用 --on-conflict",
+			["migrate-schema", `${CLI_FIXTURES}/home.fengdie.json`, "--on-conflict", "error"],
 			"JOTL9013",
 		],
 		[
-			"凤蝶源码用 --accept-newer-keywords",
-			["migrate-schema", `${CLI_FIXTURES}/home.fengdie`, "--accept-newer-keywords=true"],
+			"fengdie DSL schema用 --accept-newer-keywords",
+			["migrate-schema", `${CLI_FIXTURES}/home.schema`, "--accept-newer-keywords=true"],
 			"JOTL9013",
 		],
 		[
 			"migrate-schema --to 取值无效",
-			["migrate-schema", `${CLI_FIXTURES}/home.fengdie`, "--to", "ts"],
+			["migrate-schema", `${CLI_FIXTURES}/home.schema`, "--to", "ts"],
 			"JOTL9005",
 		],
 		["--typia-tags 不配 --to ts", ["compile", SOURCE, "--typia-tags"], "JOTL9011"],
@@ -122,7 +122,7 @@ describe("--out 输出到文件", () => {
 		["convert", [SOURCE, "--to", "jotl"]],
 		["defaults", [SOURCE]],
 		["migrate-schema", [`${CLI_FIXTURES}/legacy-draft-04.json`, "--to", "schema"]],
-		["migrate-schema", [`${CLI_FIXTURES}/home.fengdie`]],
+		["migrate-schema", [`${CLI_FIXTURES}/home.schema`]],
 	])("%s 写入 --out 指定的文件, stdout 为空, 内容与不带 --out 时相同", (command, args) => {
 		const toStdout = cli([command, ...args]);
 		const toFile = cli([command, ...args, "--out", "mem/out.txt"]);

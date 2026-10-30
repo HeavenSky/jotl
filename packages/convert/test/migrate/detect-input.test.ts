@@ -1,11 +1,11 @@
-// 迁移输入类型判定: 凤蝶源码, umo JSON 与常规 JSON Schema.
+// 迁移输入类型判定: fengdie DSL schema, fengdie JSON schema 与常规 JSON Schema.
 import { describe, expect, it } from "vitest";
 import { detectMigrateInput } from "../../src/migrate/index.js";
 
 describe("detectMigrateInput", () => {
 	it.each([
-		["凤蝶源码", "Object(首页) { a(A) }", "fengdie"],
-		["注释开头的凤蝶源码", "/* 首页 */\nexport A Object(甲) { a(A) }", "fengdie"],
+		["fengdie DSL schema", "Object(首页) { a(A) }", "fengdie"],
+		["注释开头的 fengdie DSL schema", "/* 首页 */\nexport A Object(甲) { a(A) }", "fengdie"],
 		[
 			"字段带 key",
 			JSON.stringify({

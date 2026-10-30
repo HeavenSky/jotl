@@ -16,6 +16,7 @@ import {
 import {
 	DEFAULT_EXAMPLE_ID,
 	EXAMPLES,
+	FENGDIE_EXAMPLE_ID,
 	FIXTURE_EXAMPLES,
 	SHOWCASE_EXAMPLE_ID,
 	WIDGET_MODULE_EXAMPLE_ID,
@@ -79,6 +80,61 @@ describe("compileSource 与 buildPlayground", () => {
 		expect(d?.code).toBe("JOTL1004");
 		expect(d?.start).toEqual({ line: 2, column: 10 });
 		expect(d?.end).toEqual({ line: 2, column: 15 });
+	});
+});
+
+describe("凤蝶迁移", () => {
+	const FENGDIE = findExample(FENGDIE_EXAMPLE_ID)!.source;
+
+	it("fengdie DSL schema先迁移再编译: schema 与 TS 来自迁移产物, 诊断标记 migrate 阶段", () => {
+		const build = buildPlayground(FENGDIE, schemaToTs);
+		expect(build.report.fengdie).toBe(true);
+		expect(build.report.diagnostics).toEqual([]);
+		expect(build.report.output?.schema.$defs?.Root?.properties?.title).toMatchObject({
+			type: "string",
+			maxLength: 40,
+			default: "限时活动",
+		});
+		expect(build.ts?.text).toContain("start?: number;");
+	});
+
+	it("迁移警告定位在 fengdie DSL schema 的行列上, 标记 migrate 阶段", () => {
+		const source = 'Object(配置) {\n  a(甲): String[default: ""]\n  a(乙): String\n}';
+		const report = compileSource(source);
+		expect(report.fengdie).toBe(true);
+		expect(report.output).toBeDefined();
+		const warning = report.diagnostics.find(d => d.code === "JOTL8109");
+		expect(warning).toMatchObject({ stage: "migrate", severity: "warning" });
+		expect(warning?.start).toEqual({ line: 3, column: 3 });
+	});
+
+	it("凤蝶语法错误只报迁移诊断, 不产生输出", () => {
+		const report = compileSource("Object(配置) {\n  a(甲): String\n");
+		expect(report.fengdie).toBe(true);
+		expect(report.output).toBeUndefined();
+		expect(report.diagnostics[0]).toMatchObject({ stage: "migrate", severity: "error" });
+	});
+
+	it("fengdie JSON schema(toJson 产物) 也走迁移", () => {
+		const fengdieJson =
+			'{\n  "type": "object",\n  "description": "配置",\n  "properties": {\n    "a": { "key": "a", "type": "string", "description": "甲" }\n  }\n}';
+		const build = buildPlayground(fengdieJson, schemaToTs);
+		expect(build.report.fengdie).toBe(true);
+		expect(build.ts?.text).toContain("a?: string;");
+	});
+
+	it("普通 JSON Schema 与 Jotl 源码不进入迁移管线", () => {
+		expect(compileSource('{ "type": "object" }').fengdie).toBeUndefined();
+		expect(compileSource("A: { a: string }").fengdie).toBeUndefined();
+		expect(compileSource("A: { a: strng }").fengdie).toBeUndefined();
+	});
+
+	it("凤蝶示例编译成功, 表单可见 showKey 摘要与条件显示", () => {
+		const build = buildPlayground(FENGDIE, schemaToTs);
+		const text = build.report.output!.schemaText;
+		expect(text).toContain('"summary": "name"');
+		expect(text).toContain('"visibleIf"');
+		expect(build.ts?.text).toContain("export default");
 	});
 });
 
@@ -200,6 +256,7 @@ describe("示例集", () => {
 		expect(EXAMPLES.map(e => e.id)).toEqual([
 			SHOWCASE_EXAMPLE_ID,
 			WIDGET_MODULE_EXAMPLE_ID,
+			FENGDIE_EXAMPLE_ID,
 			...expected.map(e => e.id),
 		]);
 	});
