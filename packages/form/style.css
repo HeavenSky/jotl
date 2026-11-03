@@ -733,6 +733,9 @@
   :where(.jotl-array-add, .jotl-map-add)::before {
     content: "+ " / "";
   }
+  :where(	.jotl-map-value > .jotl-field:not(:has(> .jotl-field-control > .jotl-entry)) > .jotl-label	) {
+    display: none;
+  }
   :where(.jotl-breadcrumb-item + .jotl-breadcrumb-item)::before {
     content: "/" / "";
     padding: 0 0.5rem;
@@ -771,6 +774,15 @@
   .jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-object {
     padding: 0;
     border-width: 0;
+  }
+  .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-label {
+    font-weight: 500;
+  }
+  .jotl-form > .jotl-object > .jotl-object-title {
+    font-size: 16px;
+    line-height: 24px;
+    padding-inline: 0;
+    margin-bottom: var(--jotl-gap, 16px);
   }
 }
 @property --tw-border-style {

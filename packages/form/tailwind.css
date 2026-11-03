@@ -101,6 +101,16 @@
 	:where(.jotl-array-add, .jotl-map-add)::before {
 		content: "+ " / "";
 	}
+
+	/*
+	 * 字典行的简单值字段不显示标签: 键名已由同行的键输入框表达, 标签会把值控件挤到第二行;
+	 * 钻取入口行的标签保留; 隐藏的 label 仍经 for 关联为控件提供无障碍名.
+	 */
+	:where(
+		.jotl-map-value > .jotl-field:not(:has(> .jotl-field-control > .jotl-entry)) > .jotl-label
+	) {
+		display: none;
+	}
 }
 
 /* 渲染器(src/react)的面包屑, 折叠面板与页头. */
@@ -157,5 +167,22 @@
 	.jotl-panel-body > .jotl-field > .jotl-field-control > .jotl-object {
 		padding: 0;
 		border-width: 0;
+	}
+
+	/* 层级入口行的标题字重对齐平铺面板标题(font-medium), 盖过外壳标签上的 font-normal 工具类. */
+	.jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-label {
+		font-weight: 500;
+	}
+
+	/*
+	 * 平铺根对象的标题对齐层级面包屑页头(react/styles.ts 的 breadcrumb): 字号, 行高一致;
+	 * 根对象经 page-root 变体无边框, 标题去掉 legend 骑边框用的左右留白;
+	 * legend 不占 grid 轨道, 补出与层级相同的标题下间距(gap-gap). 层级下该标题被面包屑替代隐藏.
+	 */
+	.jotl-form > .jotl-object > .jotl-object-title {
+		font-size: 16px;
+		line-height: 24px;
+		padding-inline: 0;
+		margin-bottom: var(--jotl-gap, 16px);
 	}
 }
