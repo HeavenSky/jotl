@@ -4,15 +4,15 @@
 
 This page lists every `jotl` command with its options, defaults and examples, and explains how input formats are detected. It assumes `jotl` is installed as in the [quick start](../README.md); `jotl <command> --help` prints the same options offline.
 
-| Command                             | What it does                                                           |
-| ----------------------------------- | ---------------------------------------------------------------------- |
-| [`compile`](#compile)               | Compile Jotl to JSON Schema 2020-12 (default) or TS declarations       |
-| [`convert`](#convert)               | Convert between Jotl, JSON Schema and TS declarations in any direction |
-| [`check`](#check)                   | Report diagnostics only, without output                                |
-| [`validate`](#validate)             | Validate JSON data files against a schema                              |
-| [`defaults`](#defaults)             | Output the default data of a schema as JSON                            |
-| [`migrate-schema`](#migrate-schema) | Migrate a fengdie DSL schema or a legacy JSON Schema to Jotl or 2020-12    |
-| [`format`](#format)                 | Format Jotl source, keeping comments                                   |
+| Command                             | What it does                                                            |
+| ----------------------------------- | ----------------------------------------------------------------------- |
+| [`compile`](#compile)               | Compile Jotl to JSON Schema 2020-12 (default) or TS declarations        |
+| [`convert`](#convert)               | Convert between Jotl, JSON Schema and TS declarations in any direction  |
+| [`check`](#check)                   | Report diagnostics only, without output                                 |
+| [`validate`](#validate)             | Validate JSON data files against a schema                               |
+| [`defaults`](#defaults)             | Output the default data of a schema as JSON                             |
+| [`migrate-schema`](#migrate-schema) | Migrate a fengdie DSL schema or a legacy JSON Schema to Jotl or 2020-12 |
+| [`format`](#format)                 | Format Jotl source, keeping comments                                    |
 
 Global options work with every command: `-h, --help` shows help (after a command, that command's help; `jotl help <command>` does the same), `-v, --version` prints the version, and `--lang <zh|en>` picks the output language (see [Use jotl in scripts and CI](scripting.md#choose-the-output-language)).
 
@@ -136,11 +136,11 @@ jotl migrate-schema <file> [--to jotl|schema] [--out <file>] [--schema-version <
 
 Migrates a fengdie DSL schema or a legacy JSON Schema to Jotl (`--to jotl`, the default) or JSON Schema 2020-12 (`--to schema`). The input kind is detected automatically, and the verdict and its reason are written to stderr as info `JOTL9055`:
 
-| Detected as                    | When                                                                                                                                                                                                      | Handling                                                                                                  |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| fengdie DSL schema                 | The text does not start with `{` or `[` (not JSON)                                                                                                                                                        | Parsed with the Fengdie editor grammar; rules in the [`@jotl/convert` README](../../convert/README.md)      |
+| Detected as         | When                                                                                                                                                                                                      | Handling                                                                                                  |
+| ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| fengdie DSL schema  | The text does not start with `{` or `[` (not JSON)                                                                                                                                                        | Parsed with the Fengdie editor grammar; rules in the [`@jotl/convert` README](../../convert/README.md)    |
 | fengdie JSON schema | JSON in which any field has a `key` equal to its property name, a Fengdie type (such as `image`, `text`, `richtext`, `url`, `color`, `date`, `enum`, `box`), or enum members of the form `{label, value}` | As above, without parsing                                                                                 |
-| Plain JSON Schema              | Any other JSON; text starting with `{` that is not valid JSON reports `JOTL9052`                                                                                                                          | draft-04 through 2019-09 and OpenAPI 3.0 / 3.1 / Swagger 2.0 Schema Objects are upgraded to 2020-12 first |
+| Plain JSON Schema   | Any other JSON; text starting with `{` that is not valid JSON reports `JOTL9052`                                                                                                                          | draft-04 through 2019-09 and OpenAPI 3.0 / 3.1 / Swagger 2.0 Schema Objects are upgraded to 2020-12 first |
 
 Options for plain JSON Schema input:
 

@@ -205,7 +205,12 @@ describe(`React ${React.version}`, () => {
 		};
 		mount(
 			form(
-				{ schema, defaultValue: { a: { b: { c: "x" } } }, nested: false, collapsible: true },
+				{
+					schema,
+					defaultValue: { a: { b: { c: "x" } } },
+					nested: false,
+					collapsible: true,
+				},
 				ref
 			)
 		);

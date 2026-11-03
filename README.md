@@ -79,7 +79,7 @@ Rendering a form in the browser needs only `@jotl/core`, `@jotl/data` and `@jotl
 | Package                                                       | What it does                                                                                                         |
 | ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
 | [`@jotl/core`](packages/core/README.md)                       | Parse, compile, format and print Jotl; shared schema types, diagnostics and JSON Pointer utilities                   |
-| [`@jotl/convert`](packages/convert/README.md)                 | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate fengdie DSL schemas             |
+| [`@jotl/convert`](packages/convert/README.md)                 | JSON Schema to and from TS declarations; upgrade legacy JSON Schema and OpenAPI; migrate fengdie DSL schemas         |
 | [`@jotl/data`](packages/data/README.md)                       | Default data, validation, migration and Mock for JSON Schema 2020-12                                                 |
 | [`@jotl/form`](packages/form/README.md)                       | React form renderer (React 16.8 to 19) with native HTML widgets; framework-independent planning in `@jotl/form/core` |
 | [`@jotl/antd`](packages/antd/README.md)                       | Ant Design widgets for `@jotl/form` (antd 5 or 6, React 18+)                                                         |

@@ -79,7 +79,7 @@ pnpm exec jotl compile home.jotl --to ts --out home.d.ts
 | 包                                                                  | 用途                                                                                                 |
 | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`@jotl/core`](../packages/core/zh/README.md)                       | 解析、编译、格式化与打印 Jotl；共用的 schema 类型、诊断与 JSON Pointer 工具                          |
-| [`@jotl/convert`](../packages/convert/zh/README.md)                 | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移 fengdie DSL schema                         |
+| [`@jotl/convert`](../packages/convert/zh/README.md)                 | JSON Schema 与 TS 声明互转；升级旧版 JSON Schema 与 OpenAPI；迁移 fengdie DSL schema                 |
 | [`@jotl/data`](../packages/data/zh/README.md)                       | 面向 JSON Schema 2020-12 的默认数据、校验、迁移与 Mock                                               |
 | [`@jotl/form`](../packages/form/zh/README.md)                       | React 表单渲染器（React 16.8 至 19），自带原生 HTML widget；与框架无关的渲染规划在 `@jotl/form/core` |
 | [`@jotl/antd`](../packages/antd/zh/README.md)                       | `@jotl/form` 的 Ant Design widget（antd 5 或 6，React 18 及以上）                                    |

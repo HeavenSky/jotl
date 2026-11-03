@@ -97,7 +97,10 @@ export function detectMigrateInput(text: string): MigrateInputDetection {
 	if (feature !== undefined) return { kind: "fengdie-json", reason: feature, json };
 	return {
 		kind: "json-schema",
-		reason: l10n("是 JSON 且没有 fengdie JSON schema 特征", "is JSON without fengdie JSON schema features"),
+		reason: l10n(
+			"是 JSON 且没有 fengdie JSON schema 特征",
+			"is JSON without fengdie JSON schema features"
+		),
 		json,
 	};
 }
