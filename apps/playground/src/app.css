@@ -344,6 +344,23 @@ body {
 	color: var(--pg-error);
 }
 
+.pg-migrated {
+	display: flex;
+	flex-direction: column;
+	gap: 0.5rem;
+	min-height: 0;
+}
+
+.pg-copy {
+	align-self: flex-end;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid var(--pg-border);
+	border-radius: 4px;
+	background: transparent;
+	font-size: 0.8125rem;
+	cursor: pointer;
+}
+
 .pg-notice {
 	padding: 0.5rem 0.75rem;
 	border: 1px solid #e6c36a;

@@ -228,6 +228,28 @@ describe("fengdie DSL schema", () => {
 		const textarea = editor();
 		expect(textarea.selectionStart).toBe(offsetAt(source, { line: 3, column: 3 }));
 	});
+
+	it("凤蝶输入出现「迁移后 Jotl」页签, 展示迁移产物并可复制; 普通 Jotl 源码没有该页签", async () => {
+		renderWith("A: {\n  x: string\n}");
+		expect(screen.queryByRole("tab", { name: COPY.tabs.migrated })).toBeNull();
+		const fengdie = findExample(FENGDIE_EXAMPLE_ID)!.source;
+		type(fengdie);
+		await findInPanel("form", /活动标题/);
+		fireEvent.click(screen.getByRole("tab", { name: COPY.tabs.migrated }));
+		const panel = document.getElementById("pg-panel-migrated")!;
+		const text = within(panel).getByTestId("migrated-jotl").textContent ?? "";
+		expect(text).toContain("活动标题");
+		// 复制按钮写入剪贴板; jsdom 没有 navigator.clipboard, 注入替身.
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		Object.defineProperty(navigator, "clipboard", { value: { writeText }, configurable: true });
+		fireEvent.click(within(panel).getByRole("button", { name: COPY.output.copy }));
+		await waitFor(() =>
+			expect(within(panel).getByRole("button", { name: COPY.output.copied })).toBeTruthy()
+		);
+		expect(writeText).toHaveBeenCalledWith(expect.stringContaining("活动标题"));
+		// @ts-expect-error 测试替身, 用后移除.
+		delete navigator.clipboard;
+	});
 });
 
 describe("诊断", () => {
@@ -335,9 +357,7 @@ describe("预览选项", () => {
 		);
 		const form = () => within(panel("form"));
 		expect(panel("form").querySelector(".jotl-panel")).toBeNull();
-		fireEvent.change(form().getByLabelText(COPY.preview.layout), {
-			target: { value: "flat" },
-		});
+		fireEvent.change(form().getByLabelText(COPY.preview.layout), { target: { value: "flat" } });
 		expect(panel("form").querySelector(".jotl-panel")?.textContent).toContain("搜索优化");
 		expect(form().getByLabelText(/关键词/)).toBeTruthy();
 		expect(JSON.parse(screen.getByTestId("form-data").textContent!)).toEqual({});

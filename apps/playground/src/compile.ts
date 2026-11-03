@@ -45,6 +45,8 @@ export interface CompiledSchema {
 	defaultExport?: string;
 	/** schema 来自凤蝶迁移产物, sourceMap 对应迁移生成的 Jotl 而非编辑器内容. */
 	fengdie?: boolean;
+	/** fengdie 输入迁移出的 Jotl 源码, 供「迁移后 Jotl」页签展示与复制. */
+	migratedJotl?: string;
 }
 
 export interface CompileReport {
@@ -144,8 +146,11 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
 	let migrated: ReturnType<typeof migrateFengdie> | undefined;
 	if (isFengdieInput(source)) {
 		migrated = migrateFengdie(source, PLAYGROUND_FILE);
-		const migrateDiagnostics = migrated.diagnostics.map(d => toPlayground(d, "migrate", undefined));
-		if (migrated.jotl === undefined) return { source, fengdie: true, diagnostics: migrateDiagnostics };
+		const migrateDiagnostics = migrated.diagnostics.map(d =>
+			toPlayground(d, "migrate", undefined)
+		);
+		if (migrated.jotl === undefined)
+			return { source, fengdie: true, diagnostics: migrateDiagnostics };
 		let result: ReturnType<typeof compile>;
 		try {
 			result = compile(migrated.jotl, PLAYGROUND_FILE, options);
@@ -174,6 +179,7 @@ export function compileSource(source: string, options: CompileOptions = {}): Com
 			schemaText: formatSchema(schema),
 			sourceMap: result.value.sourceMap,
 			fengdie: true,
+			migratedJotl: migrated.jotl,
 		};
 		if (defaultExport !== undefined) output.defaultExport = defaultExport;
 		return { source, fengdie: true, output, diagnostics };

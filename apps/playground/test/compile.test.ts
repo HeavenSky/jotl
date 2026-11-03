@@ -1,6 +1,6 @@
 // 编译与预览的纯函数: 源码到 schema 文本, TS 文本与源码行列诊断; 以及打包进产物的示例集.
 import { schemaToTs } from "@jotl/convert";
-import type { JsonSchema, Result } from "@jotl/core";
+import { isSchemaObject, type JsonSchema, type Result } from "@jotl/core";
 import { describe, expect, it } from "vitest";
 import { isSkipped, listFixtures, readFixture, sortByKey } from "../../../test-utils/fixtures.js";
 import {
@@ -90,7 +90,9 @@ describe("凤蝶迁移", () => {
 		const build = buildPlayground(FENGDIE, schemaToTs);
 		expect(build.report.fengdie).toBe(true);
 		expect(build.report.diagnostics).toEqual([]);
-		expect(build.report.output?.schema.$defs?.Root?.properties?.title).toMatchObject({
+		// $defs 的值也可能是 boolean, 读取 properties 前先收窄.
+		const root = build.report.output?.schema.$defs?.Root;
+		expect(isSchemaObject(root) ? root.properties?.title : undefined).toMatchObject({
 			type: "string",
 			maxLength: 40,
 			default: "限时活动",

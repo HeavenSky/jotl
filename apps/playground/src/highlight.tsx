@@ -15,7 +15,7 @@ export interface Token {
 	text: string;
 	kind?: TokenKind;
 }
-export type CodeLang = "json" | "ts";
+export type CodeLang = "json" | "ts" | "jotl";
 
 const JSON_TOKEN =
 	/("(?:[^"\\\n]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false|null)\b|([{}[\],])/g;
@@ -125,20 +125,22 @@ export function CodeBlock({
 	testId?: string;
 }) {
 	const tokens = useMemo(
-		() => (lang === "json" ? tokenizeJson(text) : tokenizeTs(text)),
-		[text, lang]
+		() => (lang === "json" ? tokenizeJson(text) : lang === "ts" ? tokenizeTs(text) : []),
+		[lang, text]
 	);
 	return (
 		<pre className="pg-code" data-testid={testId}>
-			{tokens.map((t, i) =>
-				t.kind === undefined ? (
-					t.text
-				) : (
-					<span key={i} className={`pg-tok-${t.kind}`}>
-						{t.text}
-					</span>
-				)
-			)}
+			{lang === "jotl"
+				? text
+				: tokens.map((t, i) =>
+						t.kind === undefined ? (
+							t.text
+						) : (
+							<span key={i} className={`pg-tok-${t.kind}`}>
+								{t.text}
+							</span>
+						)
+					)}
 		</pre>
 	);
 }

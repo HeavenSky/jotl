@@ -9,8 +9,10 @@ import { PanelErrorBoundary } from "./error-boundary.js";
 import { FormPreview } from "./form-preview.js";
 import { CodeBlock } from "./highlight.js";
 
-export const OUTPUT_TABS = ["schema", "ts", "form", "debug"] as const;
+export const OUTPUT_TABS = ["schema", "ts", "migrated", "form", "debug"] as const;
 export type OutputTab = (typeof OUTPUT_TABS)[number];
+/** 当前输出可见的页签: 「迁移后 Jotl」只在 fengdie 输入下有产物, 其余输入不显示. */
+const BASE_TABS: readonly OutputTab[] = ["schema", "ts", "form", "debug"];
 
 export interface OutputTabsProps {
 	/** 最近一次编译成功的结果; 从未成功时缺省. */
@@ -52,6 +54,26 @@ function TsOutput({ build }: { build: PlaygroundBuild }) {
 	return <CodeBlock text={text} lang="ts" testId="ts-output" />;
 }
 
+/** 「迁移后 Jotl」: fengdie 输入迁移出的 Jotl 源码, 带复制按钮. */
+function MigratedOutput({ text }: { text: string }) {
+	const COPY = useCopy();
+	const [copied, setCopied] = useState(false);
+	const copy = () => {
+		void navigator.clipboard.writeText(text).then(() => {
+			setCopied(true);
+			window.setTimeout(() => setCopied(false), 1500);
+		});
+	};
+	return (
+		<div className="pg-migrated" data-testid="migrated-output">
+			<button type="button" className="pg-copy" onClick={copy}>
+				{copied ? COPY.output.copied : COPY.output.copy}
+			</button>
+			<CodeBlock text={text} lang="jotl" testId="migrated-jotl" />
+		</div>
+	);
+}
+
 /** 按 schema 换 key 挂载, 降级记录随新 schema 清空; 调试视图的注册表另含 schema 声明的模块, 与表单实际使用的一致. */
 function BuildPanels({
 	build,
@@ -83,6 +105,9 @@ function BuildPanels({
 			<TabPanel tab="ts" active={active}>
 				<TsOutput build={build} />
 			</TabPanel>
+			<TabPanel tab="migrated" active={active}>
+				<MigratedOutput text={output.migratedJotl ?? ""} />
+			</TabPanel>
 			<TabPanel tab="form" active={active}>
 				<PanelErrorBoundary resetKey={output.schemaText}>
 					<FormPreview
@@ -112,18 +137,22 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 	const [active, setActive] = useState<OutputTab>("form");
 	const tabs = useRef(new Map<OutputTab, HTMLButtonElement>());
 
+	const visible: readonly OutputTab[] = build?.report.fengdie ? [...OUTPUT_TABS] : BASE_TABS;
+	// 当前页签被隐藏(切回非凤蝶输入)时回到表单页签.
+	const effective = visible.includes(active) ? active : "form";
+
 	const select = (tab: OutputTab) => {
 		setActive(tab);
 		tabs.current.get(tab)?.focus();
 	};
 	const onKeyDown = (event: KeyboardEvent) => {
-		const index = OUTPUT_TABS.indexOf(active);
-		const last = OUTPUT_TABS.length - 1;
+		const index = visible.indexOf(effective);
+		const last = visible.length - 1;
 		const target =
 			event.key === "ArrowRight"
-				? (index + 1) % OUTPUT_TABS.length
+				? (index + 1) % visible.length
 				: event.key === "ArrowLeft"
-					? (index + last) % OUTPUT_TABS.length
+					? (index + last) % visible.length
 					: event.key === "Home"
 						? 0
 						: event.key === "End"
@@ -131,7 +160,7 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 							: undefined;
 		if (target === undefined) return;
 		event.preventDefault();
-		select(OUTPUT_TABS[target]!);
+		select(visible[target]!);
 	};
 
 	const output = build?.report.output;
@@ -143,7 +172,7 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 				aria-label={COPY.tabs.label}
 				onKeyDown={onKeyDown}
 			>
-				{OUTPUT_TABS.map(tab => (
+				{visible.map(tab => (
 					<button
 						key={tab}
 						ref={el => {
@@ -154,9 +183,9 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 						role="tab"
 						id={tabId(tab)}
 						className="pg-tab"
-						aria-selected={tab === active}
+						aria-selected={tab === effective}
 						aria-controls={panelId(tab)}
-						tabIndex={tab === active ? 0 : -1}
+						tabIndex={tab === effective ? 0 : -1}
 						onClick={() => setActive(tab)}
 					>
 						{COPY.tabs[tab]}
@@ -171,7 +200,7 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 			<div className={stale ? "pg-panels pg-panels-stale" : "pg-panels"}>
 				{build === undefined || output === undefined ? (
 					OUTPUT_TABS.map(tab => (
-						<TabPanel key={tab} tab={tab} active={active}>
+						<TabPanel key={tab} tab={tab} active={effective}>
 							<p className="pg-empty">{COPY.output.empty}</p>
 						</TabPanel>
 					))
@@ -180,7 +209,7 @@ export function OutputTabs({ build, stale, locale }: OutputTabsProps) {
 						key={output.schemaText}
 						build={build}
 						output={output}
-						active={active}
+						active={effective}
 						locale={locale}
 					/>
 				)}
