@@ -1,5 +1,6 @@
 // 表单状态仓库: 根数据的不可变更新与字段级订阅, 数组与字典条目的稳定 key, 联合分支的选择与缓存, 触碰记录, 校验与错误分发.
 import { formatPointer, tryParsePointer, type Diagnostic, type JsonPointer } from "@jotl/core";
+import { jsonEqual } from "../core/index.js";
 
 export type ValidateTrigger = "change" | "blur" | "submit";
 
@@ -215,9 +216,14 @@ export class FormStore {
 		this.#commit(setIn(this.#value, tokens, value), path);
 	}
 
-	/** 外部写入(受控值变化, setValues): 不触发 onChange, 清除分支选择. */
+	/**
+	 * 外部写入(受控值变化, setValues): 不触发 onChange, 清除分支选择.
+	 * 引用相同或深度相等视为受控回显, 保留分支缓存; 值实际变化视为换数据, 分支缓存一并失效,
+	 * 避免切回分支时带出上一条记录的值.
+	 */
 	replace(value: unknown): void {
 		if (value === this.#value) return;
+		if (!jsonEqual(value, this.#value)) this.#branchCache.clear();
 		this.#value = value;
 		this.#selections.clear();
 		if (this.#validated) this.#runValidation();
