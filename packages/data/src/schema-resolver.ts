@@ -263,6 +263,16 @@ export function itemSchemas(nodes: readonly JsonSchemaObject[], index: number): 
 	return out;
 }
 
+/**
+ * 同一数据位置适用的多个声明(allOf 分支, 多个 $ref 目标)合成为一个 schema, 单个时原样返回.
+ * 声明间不相容的约束(如无交集的 enum)不在合成时裁决, 仍由 validate 报告.
+ */
+export function combineSchemas(schemas: readonly JsonSchema[]): JsonSchema | undefined {
+	if (schemas.length === 0) return undefined;
+	if (schemas.length === 1) return schemas[0];
+	return { allOf: [...schemas] };
+}
+
 export function safeRegExp(pattern: string): RegExp | undefined {
 	try {
 		return new RegExp(pattern, "u");

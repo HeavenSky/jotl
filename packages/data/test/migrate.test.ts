@@ -175,3 +175,112 @@ describe("migrate", () => {
 		expect(validate(v2, migrated).value).toEqual({ valid: true });
 	});
 });
+
+describe("migrate 联合分支", () => {
+	const choice: JsonSchema = {
+		$defs: {
+			Choice: {
+				type: "object",
+				oneOf: [
+					{
+						type: "object",
+						properties: { kind: { const: "a" }, a: { type: "string" } },
+						required: ["kind"],
+					},
+					{
+						type: "object",
+						properties: { kind: { const: "b" }, b: { type: "string" } },
+						required: ["kind"],
+					},
+				],
+			},
+		},
+		$ref: "#/$defs/Choice",
+	};
+
+	it("discriminator 字段的值决定分支, 相同 schema 下不改动数据", () => {
+		const result = migrate(choice, { kind: "b" });
+		expect(result.value).toEqual({ data: { kind: "b" }, changed: [] });
+		expect(validate(choice, { kind: "b" }).value).toEqual({ valid: true });
+	});
+
+	it("联合节点同级的公共字段参与迁移, 不被删除", () => {
+		const withCommon: JsonSchema = {
+			...choice,
+			$defs: {
+				...choice.$defs,
+				Choice: {
+					...((choice.$defs as Record<string, JsonSchemaObject>)
+						.Choice as JsonSchemaObject),
+					properties: { common: { type: "string" } },
+				},
+			},
+		};
+		const data = { common: "keep", kind: "a", a: "x" };
+		expect(validate(withCommon, data).value).toEqual({ valid: true });
+		const result = migrate(withCommon, data);
+		expect(result.value).toEqual({ data, changed: [] });
+	});
+
+	it("anyOf 分支同样保留公共字段, 公共字段缺失时补默认值", () => {
+		const anyOf: JsonSchema = {
+			type: "object",
+			properties: {
+				common: { type: "string", default: "c0" },
+				payload: {
+					anyOf: [
+						{
+							type: "object",
+							properties: { kind: { const: "x" }, x: { type: "number" } },
+						},
+						{
+							type: "object",
+							properties: { kind: { const: "y" }, y: { type: "string" } },
+						},
+					],
+				},
+			},
+			required: ["payload"],
+		};
+		const result = migrate(anyOf, { payload: { kind: "y", y: "s" } });
+		expect(result.value).toEqual({
+			data: { common: "c0", payload: { kind: "y", y: "s" } },
+			changed: ["/common"],
+		});
+	});
+});
+
+describe("migrate 组合与不可满足 schema", () => {
+	it("同一字段受多个 allOf 子 schema 约束时组合处理, 枚举外的值被默认值替换", () => {
+		const schema: JsonSchema = {
+			type: "object",
+			allOf: [
+				{ properties: { x: { type: "string" } } },
+				{ properties: { x: { enum: ["ok"], default: "ok" } } },
+			],
+		};
+		const result = migrate(schema, { x: "bad" });
+		expect(result.value).toEqual({ data: { x: "ok" }, changed: ["/x"] });
+	});
+
+	it("经 $ref 或 allOf 引入的 false schema 同样删除可选字段", () => {
+		const byRef: JsonSchema = {
+			type: "object",
+			$defs: { Never: false },
+			properties: { x: { $ref: "#/$defs/Never" } },
+		};
+		expect(migrate(byRef, { x: "bad" }).value).toEqual({ data: {}, changed: ["/x"] });
+		const byAllOf: JsonSchema = {
+			type: "object",
+			properties: { x: { allOf: [{ $ref: "#/$defs/Never" }] } },
+			$defs: { Never: false },
+		};
+		expect(migrate(byAllOf, { x: "bad" }).value).toEqual({ data: {}, changed: ["/x"] });
+		const inline: JsonSchema = {
+			type: "object",
+			$defs: { Never: false },
+			properties: { x: false },
+		};
+		expect(migrate(inline, { x: "bad" }).value).toEqual({ data: {}, changed: ["/x"] });
+	});
+});

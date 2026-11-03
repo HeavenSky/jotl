@@ -15,6 +15,7 @@ import {
 	matchBranch,
 	produce,
 	requiredKeys,
+	seesFalseSchema,
 	unionBranches,
 	zeroValue,
 	type ProduceContext,
@@ -24,6 +25,7 @@ import { withLocale, type LocaleOptions } from "./diagnostics.js";
 import {
 	acceptsType,
 	allowedValues,
+	combineSchemas,
 	hasOwn,
 	itemSchemas,
 	propertySchemas,
@@ -73,10 +75,17 @@ function migrateValue(
 	schema: JsonSchema | undefined,
 	value: unknown,
 	pointer: JsonPointer,
-	required: boolean
+	required: boolean,
+	/** 联合节点选中分支后沿用的父级约束(公共字段, 类型等), 已剥掉组合关键字. */
+	parents?: readonly JsonSchemaObject[]
 ): Migrated {
-	if (schema === false) return replace(ctx, [], pointer, required);
-	const nodes = expandNodes(ctx, schema);
+	// false schema(含经 $ref 或 allOf 引入的)不可满足, 值不能保留.
+	if (seesFalseSchema(ctx, schema)) return replace(ctx, [], pointer, required);
+	const expanded = expandNodes(ctx, schema);
+	const nodes =
+		parents === undefined || parents.length === 0
+			? expanded
+			: [...parents, ...expanded.filter(node => !parents.includes(node))];
 	if (nodes.length === 0) return { keep: true, value };
 
 	const allowed = allowedValues(nodes);
@@ -88,13 +97,15 @@ function migrateValue(
 
 	const branches = unionBranches(nodes);
 	if (branches !== undefined) {
+		const next = parentConstraints(nodes, parents);
 		const matched = matchBranch(ctx, nodes, value);
-		if (matched !== undefined) return migrateValue(ctx, matched, value, pointer, required);
+		if (matched !== undefined)
+			return migrateValue(ctx, matched, value, pointer, required, next);
 		for (const branch of branches) {
 			const converted = convert(value, schemaTypes(expandNodes(ctx, branch)));
 			if (converted.keep) {
 				ctx.changed.push(pointer);
-				return migrateValue(ctx, branch, converted.value, pointer, required);
+				return migrateValue(ctx, branch, converted.value, pointer, required, next);
 			}
 		}
 		return replace(ctx, nodes, pointer, required);
@@ -132,7 +143,7 @@ function migrateObject(
 				n.unevaluatedProperties === undefined
 		);
 	for (const key of Object.keys(value)) {
-		const child = propertySchemas(nodes, key)[0];
+		const child = combineSchemas(propertySchemas(nodes, key));
 		const childPointer = appendPointer(pointer, key);
 		if (!declared.has(key) && (dropUndeclared || child === undefined)) {
 			if (dropUndeclared) {
@@ -147,7 +158,7 @@ function migrateObject(
 	}
 	for (const key of declared) {
 		if (hasOwn(value, key)) continue;
-		const produced = produce(ctx, propertySchemas(nodes, key)[0], false, false);
+		const produced = produce(ctx, combineSchemas(propertySchemas(nodes, key)), false, false);
 		if (produced.has) {
 			setOwn(value, key, produced.value);
 			ctx.changed.push(appendPointer(pointer, key));
@@ -169,7 +180,13 @@ function migrateArray(
 	const out: unknown[] = [];
 	value.forEach((item, index) => {
 		const itemPointer = appendPointer(pointer, index);
-		const migrated = migrateValue(ctx, itemSchemas(nodes, index)[0], item, itemPointer, false);
+		const migrated = migrateValue(
+			ctx,
+			combineSchemas(itemSchemas(nodes, index)),
+			item,
+			itemPointer,
+			false
+		);
 		if (!migrated.keep) return;
 		if (unique && out.some(v => jsonEqual(v, migrated.value))) {
 			if (!ctx.changed.includes(itemPointer)) ctx.changed.push(itemPointer);
@@ -177,6 +194,30 @@ function migrateArray(
 		}
 		out.push(migrated.value);
 	});
+	return out;
+}
+
+/**
+ * 联合节点选定分支后, 联合节点同级的约束(公共字段, 类型等)剥掉组合关键字后并入父级约束,
+ * 供分支内的迁移沿用; 不能经合成 schema 或 $ref 回到原联合节点, 否则下一轮展开会再次选中它.
+ */
+function parentConstraints(
+	nodes: readonly JsonSchemaObject[],
+	outer: readonly JsonSchemaObject[] | undefined
+): JsonSchemaObject[] {
+	const out: JsonSchemaObject[] = [];
+	const add = (node: JsonSchemaObject): void => {
+		if (!out.includes(node)) out.push(node);
+	};
+	if (outer !== undefined) for (const node of outer) add(node);
+	for (const node of nodes) {
+		if (node.oneOf === undefined && node.anyOf === undefined) {
+			add(node);
+			continue;
+		}
+		const { oneOf: _oneOf, anyOf: _anyOf, ...rest } = node;
+		add(rest as JsonSchemaObject);
+	}
 	return out;
 }
 

@@ -1,7 +1,8 @@
 // 创建与缓存校验用的 Ajv 实例: 2020-12 方言, ajv-formats(部分 format 按规范收紧), 自定义 color 格式与 Jotl 扩展关键字.
 import { Ajv2020, _, type KeywordCxt, type Options, type ValidateFunction } from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
-import { type JsonSchema, isValueFormatAlias } from "@jotl/core";
+import { formatPointer, type JsonSchema } from "@jotl/core";
+import { isValueFormatAlias } from "@jotl/core";
 import { countDecimals, rangeViolation } from "./decimal.js";
 import { addStrictFormats } from "./formats.js";
 import { isValidValueFormatValue } from "./value-format.js";
@@ -169,9 +170,37 @@ export function compileSchema(schema: JsonSchema): CompileOutcome {
 const subschemaCache = new WeakMap<object, WeakMap<object, CompileOutcome>>();
 const SUBSCHEMA_KEY = "__jotl_at";
 let subschemaSeq = 0;
+let documentSeq = 0;
+
+/** 在文档树中按对象身份定位目标的 JSON 指针; 不在文档内时为 undefined. */
+function pointerTo(document: JsonSchema, target: object): string | undefined {
+	const tokens: string[] = [];
+	const seen = new Set<object>();
+	const visit = (node: unknown): boolean => {
+		if (typeof node !== "object" || node === null || seen.has(node)) return false;
+		seen.add(node);
+		if (node === target) return true;
+		if (Array.isArray(node)) {
+			for (let i = 0; i < node.length; i++) {
+				tokens.push(String(i));
+				if (visit(node[i])) return true;
+				tokens.pop();
+			}
+			return false;
+		}
+		for (const [key, value] of Object.entries(node)) {
+			tokens.push(key);
+			if (visit(value)) return true;
+			tokens.pop();
+		}
+		return false;
+	};
+	return visit(document) ? formatPointer(tokens) : undefined;
+}
 
 /**
- * 编译文档内的子 schema(或由文档节点合成的 schema): 放进文档浅拷贝的 $defs 中按片段取出, 其中的引用因此在文档内解析.
+ * 编译文档内的子 schema(或由文档节点合成的 schema): 文档内的目标按原位置取片段编译,
+ * 嵌套 $id 资源与 $anchor 的作用域保持不变; 合成的 schema 放进文档浅拷贝的 $defs 中按片段取出, 其中的引用因此在文档内解析.
  * 按 (文档, 子 schema) 对象身份缓存; 编译后同样从 Ajv 注册表移除.
  */
 export function compileSubschema(document: JsonSchema, schema: JsonSchema): CompileOutcome {
@@ -181,6 +210,32 @@ export function compileSubschema(document: JsonSchema, schema: JsonSchema): Comp
 	const cached = perDocument.get(schema);
 	if (cached) return cached;
 	const ajv = sharedAjv();
+	let outcome: CompileOutcome;
+	const pointer = pointerTo(document, schema);
+	if (pointer !== undefined) {
+		// 整份文档按登记 base 编译后取目标片段: 目标位于带 $id 的子资源内时, 其中的 #/... 与 $anchor 引用按该资源解析.
+		const id =
+			typeof document.$id === "string" && document.$id !== ""
+				? document.$id.replace(/#$/, "")
+				: `urn:jotl:data:document:${++documentSeq}`;
+		const ref = `${id}#${pointer}`;
+		try {
+			registerExtensionKeywords(ajv, document);
+			ajv.addSchema(document, id);
+			const validate = ajv.getSchema(ref);
+			outcome =
+				validate === undefined
+					? { ok: false, error: new Error(`cannot resolve ${ref}`) }
+					: { ok: true, validate };
+		} catch (error) {
+			outcome = { ok: false, error };
+		} finally {
+			ajv.removeSchema(ref);
+			ajv.removeSchema(id);
+		}
+		perDocument.set(schema, outcome);
+		return outcome;
+	}
 	// 子 schema 自带的 $id 会与它在文档中的原位置重复登记, $schema 只允许出现在资源根上.
 	const { $id: _id, $schema: _schema, ...entry } = schema;
 	const id =
@@ -198,7 +253,6 @@ export function compileSubschema(document: JsonSchema, schema: JsonSchema): Comp
 		},
 	};
 	const ref = `${id}#/$defs/${SUBSCHEMA_KEY}`;
-	let outcome: CompileOutcome;
 	try {
 		registerExtensionKeywords(ajv, wrapper);
 		ajv.addSchema(wrapper);

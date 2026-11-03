@@ -25,6 +25,7 @@ import { cloneJson, isPlainObject, jsonEqual, setOwn } from "./json-value.js";
 import {
 	acceptsType,
 	allowedValues,
+	combineSchemas,
 	createResolver,
 	hasOwn,
 	isLabeledEnum,
@@ -147,7 +148,7 @@ export function fillInto(
 		for (const node of nodes)
 			for (const key of Object.keys(node.properties ?? {})) declared.add(key);
 		for (const key of declared) {
-			const child = propertySchemas(nodes, key)[0];
+			const child = combineSchemas(propertySchemas(nodes, key));
 			if (child === undefined) continue;
 			if (!hasOwn(value, key)) {
 				const produced = produce(
@@ -166,13 +167,13 @@ export function fillInto(
 		}
 		for (const key of Object.keys(value)) {
 			if (declared.has(key)) continue;
-			const child = propertySchemas(nodes, key)[0];
+			const child = combineSchemas(propertySchemas(nodes, key));
 			if (child !== undefined)
 				fillInto(ctx, child, value[key], appendPointer(pointer, key), filled);
 		}
 	} else if (Array.isArray(value)) {
 		value.forEach((item, index) => {
-			const child = itemSchemas(nodes, index)[0];
+			const child = combineSchemas(itemSchemas(nodes, index));
 			if (child !== undefined)
 				fillInto(ctx, child, item, appendPointer(pointer, index), filled);
 		});
@@ -181,7 +182,11 @@ export function fillInto(
 	if (branch !== undefined) fillInto(ctx, branch, value, pointer, filled);
 }
 
-/** 按值的类型与字段重合度为 anyOf/oneOf 选一个分支; 带标签枚举与无组合关键字时为 undefined. */
+/**
+ * 按值的类型, 区分字段的取值约束与字段重合度为 anyOf/oneOf 选一个分支; 带标签枚举与无组合关键字时为 undefined.
+ * 数据字段的值已能落入分支声明的 const/enum 时优先选该分支(discrimriminator 场景);
+ * 分支声明的取值不含数据现值时排除该分支; 都无区分字段时退回字段重合度.
+ */
 export function matchBranch(
 	ctx: ProduceContext,
 	nodes: readonly JsonSchemaObject[],
@@ -191,22 +196,46 @@ export function matchBranch(
 	if (branches === undefined) return undefined;
 	let best: JsonSchema | undefined;
 	let bestScore = -1;
+	let bestTagged = false;
 	for (const branch of branches) {
 		const branchNodes = expandNodes(ctx, branch);
 		if (!acceptsType(schemaTypes(branchNodes), value)) continue;
 		const allowed = allowedValues(branchNodes);
 		if (allowed !== undefined && !allowed.some(v => jsonEqual(v, value))) continue;
+		let tagged = false;
+		let mismatch = false;
 		let score = 0;
 		if (isPlainObject(value)) {
-			for (const key of Object.keys(value))
+			for (const key of Object.keys(value)) {
+				const keyAllowed = keyAllowedValues(branchNodes, key);
+				if (keyAllowed !== undefined) {
+					if (!keyAllowed.some(v => jsonEqual(v, value[key]))) {
+						mismatch = true;
+						break;
+					}
+					tagged = true;
+					continue;
+				}
 				if (branchNodes.some(n => n.properties?.[key] !== undefined)) score++;
+			}
 		}
-		if (score > bestScore) {
+		if (mismatch) continue;
+		if (tagged === bestTagged ? score > bestScore : tagged) {
 			best = branch;
 			bestScore = score;
+			bestTagged = tagged;
 		}
 	}
 	return best;
+}
+
+/** 分支对对象字段 key 声明的离散取值(const/enum); 未声明时为 undefined. */
+function keyAllowedValues(
+	branchNodes: readonly JsonSchemaObject[],
+	key: string
+): unknown[] | undefined {
+	const schemas = propertySchemas(branchNodes, key).filter(isSchemaObject);
+	return schemas.length > 0 ? allowedValues(schemas) : undefined;
 }
 
 /** 非带标签枚举的 anyOf/oneOf 分支. */
@@ -244,6 +273,23 @@ export function expandNodes(
 	};
 	visit(schema);
 	return nodes;
+}
+
+/** 展开链上($ref 目标或 allOf 元素)是否出现 false schema; 遍历口径与 expandNodes 一致, 改其一须同步另一个. */
+export function seesFalseSchema(ctx: ProduceContext, schema: JsonSchema | undefined): boolean {
+	if (schema === false) return true;
+	if (!isSchemaObject(schema)) return false;
+	const seen = new Set<object>();
+	const visit = (node: JsonSchema | undefined): boolean => {
+		if (node === false) return true;
+		if (!isSchemaObject(node) || seen.has(node)) return false;
+		seen.add(node);
+		if (typeof node.$ref === "string" && visit(resolveOrWarn(ctx, node.$ref, node)))
+			return true;
+		for (const sub of node.allOf ?? []) if (visit(sub)) return true;
+		return false;
+	};
+	return visit(schema);
 }
 
 function resolveOrWarn(
@@ -400,7 +446,7 @@ function produceObject(
 	const out: Record<string, unknown> = {};
 	let count = 0;
 	for (const key of keys) {
-		const child = propertySchemas(nodes, key)[0];
+		const child = combineSchemas(propertySchemas(nodes, key));
 		const produced = produce(ctx, child, childNeed(ctx, required.has(key), need), false);
 		if (produced.has) {
 			setOwn(out, key, produced.value);
@@ -418,7 +464,7 @@ function produceItems(ctx: ProduceContext, nodes: JsonSchemaObject[]): unknown[]
 	const count = ctx.opts.arrayItems === "minItems" ? (pick(nodes, "minItems") ?? 0) : 0;
 	const items: unknown[] = [];
 	for (let i = 0; i < count; i++) {
-		const child = itemSchemas(nodes, i)[0];
+		const child = combineSchemas(itemSchemas(nodes, i));
 		const produced = produce(ctx, child, true, false);
 		if (produced.has) items.push(produced.value);
 		else items.push(zeroOf(ctx, child));

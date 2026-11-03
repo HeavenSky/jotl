@@ -152,4 +152,60 @@ describe("validate 的 at", () => {
 			"JOTL4018",
 		]);
 	});
+
+	it("带 $id 的子资源内, 引用按该资源而非文档根解析", () => {
+		const nested: JsonSchemaObject = {
+			$id: "https://example.com/root",
+			$defs: {
+				X: { type: "string" },
+				Child: {
+					$id: "child",
+					$defs: { X: { type: "integer" } },
+					type: "object",
+					properties: { x: { $ref: "#/$defs/X" } },
+				},
+			},
+		};
+		// #/$defs/X 在子资源内指子资源自己的 X(integer), 不是文档根的 string.
+		expect(validate(nested, { x: 1 }, { at: "/$defs/Child" }).value).toEqual({ valid: true });
+		const result = validate(nested, { x: "s" }, { at: "/$defs/Child" });
+		expect(result.value).toEqual({ valid: false });
+		expect(result.diagnostics.map(d => d.code)).toEqual(["JOTL4001"]);
+		// 目标位于资源后代时同样按所属资源解析.
+		expect(validate(nested, 1, { at: "/$defs/Child/properties/x" }).value).toEqual({
+			valid: true,
+		});
+		expect(validate(nested, "s", { at: "/$defs/Child/properties/x" }).value).toEqual({
+			valid: false,
+		});
+		// 与整份文档经 $ref 进入该资源的校验结论一致.
+		const whole: JsonSchemaObject = { ...nested, $ref: "child" };
+		expect(validate(whole, { x: 1 }).value).toEqual({ valid: true });
+		expect(validate(whole, { x: "s" }).value).toEqual({ valid: false });
+	});
+
+	it("多层嵌套 $id 资源各按自己的作用域解析", () => {
+		const nested: JsonSchemaObject = {
+			$defs: {
+				Outer: {
+					$id: "https://example.com/outer",
+					$defs: {
+						V: { type: "number" },
+						Inner: {
+							$id: "inner",
+							$defs: { V: { type: "string" } },
+							type: "object",
+							properties: { v: { $ref: "#/$defs/V" } },
+						},
+					},
+				},
+			},
+		};
+		expect(validate(nested, { v: "s" }, { at: "/$defs/Outer/$defs/Inner" }).value).toEqual({
+			valid: true,
+		});
+		expect(validate(nested, { v: 1 }, { at: "/$defs/Outer/$defs/Inner" }).value).toEqual({
+			valid: false,
+		});
+	});
 });
