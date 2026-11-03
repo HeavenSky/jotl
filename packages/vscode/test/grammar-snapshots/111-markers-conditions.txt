@@ -195,7 +195,7 @@
   "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
   "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
   "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
->   bonus(奖励)?: string[root_if: {and: [{left: 'level', op: 'gte', right: 5}, {left: '$.level', op: 'lt', right: 9}]}]
+>   bonus(奖励)?: string[root_if: {op: 'and', conditions: [{left: 'level', op: 'gte', right: 5}, {left: '$.level', op: 'lt', right: 9}]}]
   "bonus" meta.object.type.jotl variable.other.property.jotl
   "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
   "奖励" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
@@ -207,7 +207,13 @@
   "root_if" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
   ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
   "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
-  "and" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  "op" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "and" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "conditions" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
   ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
   "[" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
   "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
@@ -248,7 +254,7 @@
   "]" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.end.jotl
   "}" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.end.jotl
   "]" meta.object.type.jotl meta.metadata.jotl punctuation.definition.metadata.end.jotl
->   warn(警告)?: string[root_if: {or: [{left: 'level', op: 'gt', right: 8}, {left: 'level', op: 'lte', right: 0}]}]
+>   warn(警告)?: string[root_if: {op: 'or', conditions: [{left: 'level', op: 'gt', right: 8}, {left: 'level', op: 'lte', right: 0}]}]
   "warn" meta.object.type.jotl variable.other.property.jotl
   "(" meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
   "警告" meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
@@ -260,7 +266,13 @@
   "root_if" meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
   ":" meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
   "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
-  "or" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  "op" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "or" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "conditions" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
   ":" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
   "[" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl punctuation.definition.array.begin.jotl
   "{" meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.array.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
@@ -382,7 +394,7 @@
   "self" meta.object.type.jotl meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
   "blank" meta.object.type.jotl meta.object.type.jotl meta.enum.jotl variable.other.enummember.jotl
   "}" meta.object.type.jotl meta.object.type.jotl meta.enum.jotl punctuation.definition.enum.end.jotl
->     tip(提示)?: string[node_if: {not: {left: 'url', op: 'in', right: ['https://a.com']}}]
+>     tip(提示)?: string[node_if: {op: 'not', condition: {left: 'url', op: 'in', right: ['https://a.com']}}]
   "tip" meta.object.type.jotl meta.object.type.jotl variable.other.property.jotl
   "(" meta.object.type.jotl meta.object.type.jotl meta.label.jotl punctuation.definition.label.begin.jotl
   "提示" meta.object.type.jotl meta.object.type.jotl meta.label.jotl string.unquoted.label.jotl
@@ -394,7 +406,13 @@
   "node_if" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl entity.other.attribute-name.metadata.jotl
   ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl punctuation.separator.key-value.jotl
   "{" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
-  "not" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  "op" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
+  ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.begin.jotl
+  "not" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl
+  "'" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl string.quoted.single.jotl punctuation.definition.string.end.jotl
+  "," meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.comma.jotl
+  "condition" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl support.type.property-name.jotl
   ":" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl punctuation.separator.key-value.jotl
   "{" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.object.literal.jotl punctuation.definition.dictionary.begin.jotl
   "left" meta.object.type.jotl meta.object.type.jotl meta.metadata.jotl meta.object.literal.jotl meta.object.literal.jotl support.type.property-name.jotl

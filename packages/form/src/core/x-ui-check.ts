@@ -63,25 +63,42 @@ const NUMERIC_COMPARISONS = ["gt", "gte", "lt", "lte"];
 const checkCondition: Check = (v, p) => {
 	if (!isPlainObject(v)) return issue(p, "type");
 	const keys = Object.keys(v);
-	if (keys.length === 1 && (keys[0] === "all" || keys[0] === "any"))
-		return arrayOf(checkCondition)(v[keys[0]], appendPointer(p, keys[0]));
-	if (keys.length === 1 && keys[0] === "not")
-		return checkCondition(v.not, appendPointer(p, "not"));
+	if (keys.includes("conditions") || keys.includes("condition")) {
+		if (v.op === "not") {
+			if (keys.length !== 2) return issue(p, "condition");
+			return checkCondition(v.condition, appendPointer(p, "condition"));
+		}
+		if (v.op !== "and" && v.op !== "or") return issue(appendPointer(p, "op"), "enum");
+		if (keys.length !== 2) return issue(p, "condition");
+		const items = arrayOf(checkCondition)(v.conditions, appendPointer(p, "conditions"));
+		if (items) return items;
+		return Array.isArray(v.conditions) && v.conditions.length === 0
+			? issue(appendPointer(p, "conditions"), "empty")
+			: undefined;
+	}
 	const hasBase = Object.hasOwn(v, "base");
-	if (keys.length !== (hasBase ? 3 : 2) || !Object.hasOwn(v, "field"))
-		return issue(p, "condition");
-	if (hasBase && v.base !== "node") return issue(appendPointer(p, "base"), "enum");
-	const op = keys.find(k => k !== "field" && k !== "base");
-	if (!(COMPARISONS as readonly (string | undefined)[]).includes(op))
-		return issue(p, "condition");
-	const fieldIssue = isString(v.field, appendPointer(p, "field"));
-	if (fieldIssue) return fieldIssue;
-	if ((op === "in" || op === "notIn") && !Array.isArray(v[op]))
-		return issue(appendPointer(p, op), "type");
-	if (op === "truthy" && typeof v.truthy !== "boolean")
-		return issue(appendPointer(p, "truthy"), "type");
-	if (NUMERIC_COMPARISONS.includes(op!) && typeof v[op!] !== "number")
-		return issue(appendPointer(p, op!), "type");
+	const required = ["left", "op", "right"];
+	for (const key of required)
+		if (!Object.hasOwn(v, key)) return issue(appendPointer(p, key), "required");
+	if (keys.length !== required.length + (hasBase ? 1 : 0)) return issue(p, "condition");
+	const baseIssue = hasBase
+		? v.base === "root" || v.base === "node"
+			? undefined
+			: issue(appendPointer(p, "base"), "enum")
+		: undefined;
+	if (baseIssue) return baseIssue;
+	const leftIssue =
+		isString(v.left, appendPointer(p, "left")) ??
+		(v.left === "" ? issue(appendPointer(p, "left"), "empty") : undefined);
+	if (leftIssue) return leftIssue;
+	if (!(COMPARISONS as readonly (string | undefined)[]).includes(v.op as string | undefined))
+		return issue(appendPointer(p, "op"), "enum");
+	if ((v.op === "in" || v.op === "notIn") && !Array.isArray(v.right))
+		return issue(appendPointer(p, "right"), "type");
+	if (v.op === "truthy" && typeof v.right !== "boolean")
+		return issue(appendPointer(p, "right"), "type");
+	if (NUMERIC_COMPARISONS.includes(v.op as string) && typeof v.right !== "number")
+		return issue(appendPointer(p, "right"), "type");
 	return undefined;
 };
 

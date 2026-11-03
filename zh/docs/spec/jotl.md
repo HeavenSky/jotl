@@ -357,25 +357,25 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 ```jotl
 a?: string[root_if: {left: 'mode', op: 'eq', right: 'dark'}]
 b?: string[node_if: {left: 'type', op: 'in', right: ['paid', 'vip']}]
-c?: string[root_if: {and: [{left: 'list[*].on', op: 'truthy'}, {not: {left: 'a.b[0]', op: 'eq', right: 1}}]}]
+c?: string[root_if: {op: 'and', conditions: [{left: 'list[*].on', op: 'truthy'}, {op: 'not', condition: {left: 'a.b[0]', op: 'eq', right: 1}}]}]
 d?: string[node_if: 'href']
 ```
 
 - 叶子条件为 `{left: 路径, op, right?}`；`op` 取 `eq` `ne` `in` `not_in` `gt` `gte` `lt` `lte` `truthy` `falsy`，后两个不写 `right`。
-- 组合条件为 `{and: [...]}` `{or: [...]}` `{not: 条件}`；直接写路径字符串等价于 `{left: 路径, op: 'truthy'}`。
+- 组合条件为 `{op: 'and', conditions: [...]}` `{op: 'or', conditions: [...]}` `{op: 'not', condition: ...}`——与[x-ui 规范](x-ui.md)中 `visibleIf` 的形态一致；直接写路径字符串等价于 `{left: 路径, op: 'truthy'}`。
 - 路径为 lodash `get` 语法（`a.b[0].c` `a['x-y']`），`[*]` 取当前节点所在数组的对应下标；`root_if` 另接受 `$.` 前缀，`node_if` 的路径以 `$.` 开头报 JOTL1017。
 - 基准：`root_if` 从数据根算起，`node_if` 从字段所在的对象算起；不支持向上引用。
-- 编译为 `x-ui.visibleIf`（[x-ui 规范](x-ui.md)中的条件格式）：
+- 编译为 `x-ui.visibleIf`（[x-ui 规范](x-ui.md)中的条件格式）；叶子的 `left` 保留原路径（去掉 `$.` 前缀），并带上 `op`/`right`：
 
-| 写法                                                   | 编译为                                                                        |
-| ------------------------------------------------------ | ----------------------------------------------------------------------------- |
-| `left` 路径                                            | `field`：JSON Pointer（`[*]` 保留为 `*` 片段）；`node_if` 另加 `base: "node"` |
-| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'` | 同名键，值为 `right`                                                          |
-| `op: 'not_in'`                                         | `notIn`，值为 `right`                                                         |
-| `op: 'truthy'` / 路径字符串                            | `truthy: true`                                                                |
-| `op: 'falsy'`                                          | `truthy: false`                                                               |
-| `{and: [...]}` `{or: [...]}` `{not: 条件}`             | `{all: [...]}` `{any: [...]}` `{not: 条件}`                                   |
-| 同时写 `root_if` 与 `node_if`                          | `{all: [根条件, 节点条件]}`                                                   |
+| 写法                                                                             | 编译为                                          |
+| -------------------------------------------------------------------------------- | ----------------------------------------------- |
+| `left` 路径                                                                      | `left`：同一路径；`node_if` 另加 `base: "node"` |
+| `op: 'eq'` `'ne'` `'in'` `'gt'` `'gte'` `'lt'` `'lte'`                           | 同名 `op`，值为 `right`                         |
+| `op: 'not_in'`                                                                   | `op: 'notIn'`，值为 `right`                     |
+| `op: 'truthy'` / 路径字符串                                                      | `op: 'truthy', right: true`                     |
+| `op: 'falsy'`                                                                    | `op: 'truthy', right: false`                    |
+| `{op: 'and', conditions: [...]}` `{op: 'or', ...}` `{op: 'not', condition: ...}` | 形态不变（`node_if` 下叶子加 `base: "node"`）   |
+| 同时写 `root_if` 与 `node_if`                                                    | `{op: 'and', conditions: [根条件, 节点条件]}`   |
 
 - 条件只控制显示，不控制必填与只读。
 

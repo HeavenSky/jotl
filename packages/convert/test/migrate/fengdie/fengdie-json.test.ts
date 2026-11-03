@@ -125,7 +125,9 @@ describe("新增写法", () => {
 
 	it("负数元数据与 $ 开头的名字", () => {
 		expect(
-			fengdieJson(`Object(根) { n(数): Number[min: -10, max: -0.5] $a(美元): String $b-c(横线) }`)
+			fengdieJson(
+				`Object(根) { n(数): Number[min: -10, max: -0.5] $a(美元): String $b-c(横线) }`
+			)
 		).toEqual({
 			type: "object",
 			description: "根",
@@ -205,7 +207,11 @@ describe("新增写法", () => {
 			description: "根",
 			properties: { t: str("t", "T") },
 		});
-		expect(fengdieJson(`Object(空) {}`)).toEqual({ type: "object", description: "空", properties: {} });
+		expect(fengdieJson(`Object(空) {}`)).toEqual({
+			type: "object",
+			description: "空",
+			properties: {},
+		});
 	});
 });
 

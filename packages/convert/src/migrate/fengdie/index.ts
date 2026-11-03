@@ -8,9 +8,18 @@ import { FengdieJsonBuilder, type FengdieJsonOrigins } from "./fengdie-json.js";
 import type { FengdieJson } from "./fengdie-json-types.js";
 
 export { MIGRATE_DIAGNOSTICS, type MigrateDiagnosticCode } from "./diagnostics.js";
-export { isKnownFengdieJsonType, fengdieJsonToSchema, type FengdieJsonToSchemaOptions } from "./to-schema.js";
+export {
+	isKnownFengdieJsonType,
+	fengdieJsonToSchema,
+	type FengdieJsonToSchemaOptions,
+} from "./to-schema.js";
 export type { FengdieJsonOrigin, FengdieJsonOrigins } from "./fengdie-json.js";
-export type { FengdieJsonEnumItem, FengdieJson, FengdieJsonMetaValue, FengdieJsonNode } from "./fengdie-json-types.js";
+export type {
+	FengdieJsonEnumItem,
+	FengdieJson,
+	FengdieJsonMetaValue,
+	FengdieJsonNode,
+} from "./fengdie-json-types.js";
 
 export const DEFAULT_FENGDIE_FILE = "default.schema";
 
@@ -82,7 +91,10 @@ export function migrateFengdie(
 	} else {
 		fengdieJson = input;
 	}
-	const converted = fengdieJsonToSchema(fengdieJson, origins === undefined ? { file } : { origins, file });
+	const converted = fengdieJsonToSchema(
+		fengdieJson,
+		origins === undefined ? { file } : { origins, file }
+	);
 	diagnostics.push(...converted.diagnostics);
 	diagnostics.sort(byPosition);
 	if (converted.value === undefined) return { fengdieJson, diagnostics };

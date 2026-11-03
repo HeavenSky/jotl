@@ -1,13 +1,10 @@
 // 元数据取值的校验与转换(根 `id`, 错误文案, 布局, 条件, 场景覆盖, 规则表); 编译器与打印器共用, 保证打印出的元数据能编译回原值.
 import {
 	type Condition,
-	type JsonPointer,
 	type JsonSchema,
-	appendPointer,
-	isPointer,
 	isSchemaObject,
 	l10n,
-	tryParsePointer,
+	parseLodashPath,
 	xUiMetaSchema,
 } from "../schema/index.js";
 import { CONDITION_OPS, ERROR_MESSAGE_KEYWORDS, LAYOUTS } from "./builtins.js";
@@ -104,93 +101,9 @@ export function orderIssue(
 	return undefined;
 }
 
-// ---- 路径与 JSON Pointer ----
-
-/** lodash `get` 路径(`a.b[0]` `a['x-y']` `list[*].on`) → 片段; 不合法时返回 undefined. */
-export function parsePath(path: string): string[] | undefined {
-	const tokens: string[] = [];
-	let i = 0;
-	let expectName = true;
-	while (i < path.length) {
-		const ch = path[i]!;
-		if (ch === "[") {
-			const close = path[i + 1];
-			if (close === "'" || close === '"') {
-				let j = i + 2;
-				let name = "";
-				while (j < path.length && path[j] !== close) {
-					if (path[j] === "\\" && j + 1 < path.length) j++;
-					name += path[j];
-					j++;
-				}
-				if (path[j] !== close || path[j + 1] !== "]") return undefined;
-				tokens.push(name);
-				i = j + 2;
-			} else {
-				const end = path.indexOf("]", i);
-				if (end < 0) return undefined;
-				const inner = path.slice(i + 1, end);
-				if (inner !== "*" && !/^(0|[1-9]\d*)$/.test(inner)) return undefined;
-				tokens.push(inner);
-				i = end + 1;
-			}
-			expectName = false;
-			continue;
-		}
-		if (ch === ".") {
-			if (expectName) return undefined;
-			i++;
-			expectName = true;
-			if (i >= path.length) return undefined;
-			continue;
-		}
-		if (!expectName) return undefined;
-		let j = i;
-		while (j < path.length && path[j] !== "." && path[j] !== "[") {
-			if (path[j] === "]") return undefined;
-			j++;
-		}
-		tokens.push(path.slice(i, j));
-		i = j;
-		expectName = false;
-	}
-	return tokens.length > 0 && !expectName ? tokens : undefined;
-}
-
-function pathToPointer(path: string, root: boolean): JsonPointer | undefined {
-	const body = root && path.startsWith("$.") ? path.slice(2) : path;
-	const tokens = parsePath(body);
-	return tokens === undefined ? undefined : appendPointer("", ...tokens);
-}
-
-const PLAIN_SEGMENT = /^[^.[\]'"\\\s]+$/;
-
-/** 指针 → lodash 路径; 空指针返回 undefined. */
-export function pointerToPath(pointer: JsonPointer): string | undefined {
-	if (!isPointer(pointer) || pointer === "") return undefined;
-	let out = "";
-	for (const token of tryParsePointer(pointer) ?? []) {
-		if (token === "*" || /^(0|[1-9]\d*)$/.test(token)) out += `[${token}]`;
-		else if (PLAIN_SEGMENT.test(token) && !/^\d/.test(token))
-			out += out === "" ? token : `.${token}`;
-		else out += `['${token.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}']`;
-	}
-	return out;
-}
-
 // ---- 条件 ----
 
 const LEAF_KEYS = new Set(["left", "op", "right"]);
-const OP_KEYWORDS: Readonly<Record<string, string>> = {
-	eq: "eq",
-	ne: "ne",
-	in: "in",
-	not_in: "notIn",
-	gt: "gt",
-	gte: "gte",
-	lt: "lt",
-	lte: "lte",
-};
 
 type ConditionResult = { condition: Condition } | { issue: ValueIssue };
 
@@ -208,30 +121,40 @@ export function compileCondition(value: unknown, base: "root" | "node"): Conditi
 	const v = value as Record<string, unknown>;
 	const keys = Object.keys(v);
 	for (const group of ["and", "or"] as const) {
-		if (!Object.hasOwn(v, group)) continue;
-		if (keys.length !== 1 || !Array.isArray(v[group]) || (v[group] as unknown[]).length === 0) {
+		if (v.op !== group) continue;
+		if (
+			keys.length !== 2 ||
+			!Object.hasOwn(v, "conditions") ||
+			!Array.isArray(v.conditions) ||
+			(v.conditions as unknown[]).length === 0
+		) {
 			return invalid(
 				l10n(
-					`\`${group}\` 应为非空的条件数组, 且不能与其他键并列`,
-					`\`${group}\` must be a non-empty array of conditions and cannot be combined with other keys`
+					`\`op: '${group}'\` 应带非空的 \`conditions\` 数组, 且不能有其他键`,
+					"`op: '" +
+						group +
+						"'` must come with a non-empty `conditions` array and no other keys"
 				)
 			);
 		}
 		const items: Condition[] = [];
-		for (const item of v[group] as unknown[]) {
+		for (const item of v.conditions as unknown[]) {
 			const r = compileCondition(item, base);
 			if ("issue" in r) return r;
 			items.push(r.condition);
 		}
-		return { condition: group === "and" ? { all: items } : { any: items } };
+		return { condition: { op: group, conditions: items } };
 	}
-	if (Object.hasOwn(v, "not")) {
-		if (keys.length !== 1)
+	if (v.op === "not") {
+		if (keys.length !== 2 || !Object.hasOwn(v, "condition"))
 			return invalid(
-				l10n("`not` 不能与其他键并列", "`not` cannot be combined with other keys")
+				l10n(
+					"`op: 'not'` 应带 `condition`, 且不能有其他键",
+					"`op: 'not'` must come with `condition` and no other keys"
+				)
 			);
-		const r = compileCondition(v.not, base);
-		return "issue" in r ? r : { condition: { not: r.condition } };
+		const r = compileCondition(v.condition, base);
+		return "issue" in r ? r : { condition: { op: "not", condition: r.condition } };
 	}
 	const extra = keys.find(k => !LEAF_KEYS.has(k));
 	if (extra !== undefined)
@@ -256,13 +179,13 @@ function leaf(
 	base: "root" | "node"
 ): ConditionResult {
 	if (base === "node" && path.startsWith("$.")) return { issue: issue("nodePathRootPrefix") };
-	const field = pathToPointer(path, base === "root");
-	if (field === undefined) return { issue: issue("invalidPath", { path }) };
-	const head = base === "node" ? { field, base: "node" as const } : { field };
+	const body = base === "root" && path.startsWith("$.") ? path.slice(2) : path;
+	if (parseLodashPath(body) === undefined) return { issue: issue("invalidPath", { path }) };
+	const head = base === "node" ? { base: "node" as const, left: body } : { left: body };
 	if (op === "truthy" || op === "falsy") {
 		if (hasRight)
 			return invalid(l10n(`\`${op}\` 不写 \`right\``, `\`${op}\` takes no \`right\``));
-		return { condition: { ...head, truthy: op === "truthy" } };
+		return { condition: { ...head, op: "truthy", right: op === "truthy" } as Condition };
 	}
 	if (!hasRight) return invalid(l10n(`\`${op}\` 需要 \`right\``, `\`${op}\` needs \`right\``));
 	if ((op === "in" || op === "not_in") && !Array.isArray(right))
@@ -273,7 +196,8 @@ function leaf(
 		return invalid(
 			l10n(`\`${op}\` 的 \`right\` 应为数字`, `\`right\` of \`${op}\` must be a number`)
 		);
-	return { condition: { ...head, [OP_KEYWORDS[op]!]: right } as Condition };
+	const schemaOp = op === "not_in" ? "notIn" : op;
+	return { condition: { ...head, op: schemaOp, right } as Condition };
 }
 
 /** `x-ui.visibleIf` → `root_if` / `node_if` 的取值; 叶子基准不一致或不合法时返回 undefined. */
@@ -305,28 +229,34 @@ function sortDeep(value: unknown): unknown {
 function printConditionValue(condition: unknown, bases: Set<string>): unknown {
 	if (!isSchemaObject(condition)) return undefined;
 	const c = condition as Record<string, unknown>;
-	for (const [group, out] of [
-		["all", "and"],
-		["any", "or"],
-	] as const) {
-		if (!Object.hasOwn(c, group)) continue;
-		if (!Array.isArray(c[group]) || (c[group] as unknown[]).length === 0) return undefined;
-		const items = (c[group] as unknown[]).map(i => printConditionValue(i, bases));
-		return items.some(i => i === undefined) ? undefined : { [out]: items };
+	for (const group of ["and", "or"] as const) {
+		if (c.op !== group) continue;
+		if (!Array.isArray(c.conditions) || (c.conditions as unknown[]).length === 0)
+			return undefined;
+		const items = (c.conditions as unknown[]).map(i => printConditionValue(i, bases));
+		return items.some(i => i === undefined) ? undefined : { op: group, conditions: items };
 	}
-	if (Object.hasOwn(c, "not")) {
-		const inner = printConditionValue(c.not, bases);
-		return inner === undefined ? undefined : { not: inner };
+	if (c.op === "not") {
+		const inner = printConditionValue(c.condition, bases);
+		return inner === undefined ? undefined : { op: "not", condition: inner };
 	}
-	if (typeof c.field !== "string") return undefined;
-	const path = pointerToPath(c.field);
-	if (path === undefined) return undefined;
+	if (typeof c.left !== "string" || parseLodashPath(c.left) === undefined) return undefined;
 	bases.add(c.base === "node" ? "node" : "root");
-	if (c.truthy === true) return path;
-	if (c.truthy === false) return { left: path, op: "falsy" };
-	for (const [op, keyword] of Object.entries(OP_KEYWORDS)) {
-		if (Object.hasOwn(c, keyword)) return { left: path, op, right: c[keyword] };
+	if (c.op === "truthy") {
+		if (c.right !== true && c.right !== false) return undefined;
+		return c.right === true ? c.left : { left: c.left, op: "falsy" };
 	}
+	if (c.op === "notIn") return { left: c.left, op: "not_in", right: c.right };
+	if (
+		c.op === "eq" ||
+		c.op === "ne" ||
+		c.op === "in" ||
+		c.op === "gt" ||
+		c.op === "gte" ||
+		c.op === "lt" ||
+		c.op === "lte"
+	)
+		return { left: c.left, op: c.op, right: c.right };
 	return undefined;
 }
 
@@ -399,7 +329,7 @@ function liftConditions(
 		}
 	}
 	if (conditions.length > 0)
-		out.visibleIf = conditions.length === 1 ? conditions[0] : { all: conditions };
+		out.visibleIf = conditions.length === 1 ? conditions[0] : { op: "and", conditions };
 	return { value: out };
 }
 

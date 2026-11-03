@@ -624,7 +624,7 @@ describe("元数据表", () => {
 		expect(field(`: Boolean[if: "$.a.list[0]"]`).x).toStrictEqual({
 			title: "X",
 			type: "boolean",
-			"x-ui": { visibleIf: { field: "/a/list/0", base: "node", truthy: true } },
+			"x-ui": { visibleIf: { base: "node", left: "a.list[0]", op: "truthy", right: true } },
 		});
 		const other = field(`: Boolean[if: "showShare"]`);
 		expect(other.x).toMatchObject({ "x-fengdie": { if: "showShare" } });
@@ -655,72 +655,78 @@ describe("元数据表", () => {
 		};
 
 		it.each<[string, unknown]>([
-			["$.o.k", { field: "/o/k", base: "node", truthy: true }],
-			["!$.s", { field: "/s", base: "node", truthy: false }],
-			["!!$.s", { field: "/s", base: "node", truthy: true }],
-			["$.list[0].v", { field: "/list/0/v", base: "node", truthy: true }],
-			["$.o['k']", { field: "/o/k", base: "node", truthy: true }],
-			["$.s === 'a'", { field: "/s", base: "node", eq: "a" }],
-			["$.n === -1.5", { field: "/n", base: "node", eq: -1.5 }],
-			["$.b === true", { field: "/b", base: "node", eq: true }],
-			["$.s === null", { field: "/s", base: "node", eq: null }],
-			["$.s !== 'a'", { field: "/s", base: "node", ne: "a" }],
-			["'a' === $.s", { field: "/s", base: "node", eq: "a" }],
-			["$.s == 'a'", { field: "/s", base: "node", eq: "a" }],
-			["$.e != 'b'", { field: "/e", base: "node", ne: "b" }],
-			["$.n == 2", { field: "/n", base: "node", eq: 2 }],
-			["$.b != false", { field: "/b", base: "node", ne: false }],
+			["$.o.k", { base: "node", left: "o.k", op: "truthy", right: true }],
+			["!$.s", { base: "node", left: "s", op: "truthy", right: false }],
+			["!!$.s", { base: "node", left: "s", op: "truthy", right: true }],
+			["$.list[0].v", { base: "node", left: "list[0].v", op: "truthy", right: true }],
+			["$.o['k']", { base: "node", left: "o.k", op: "truthy", right: true }],
+			["$.s === 'a'", { base: "node", left: "s", op: "eq", right: "a" }],
+			["$.n === -1.5", { base: "node", left: "n", op: "eq", right: -1.5 }],
+			["$.b === true", { base: "node", left: "b", op: "eq", right: true }],
+			["$.s === null", { base: "node", left: "s", op: "eq", right: null }],
+			["$.s !== 'a'", { base: "node", left: "s", op: "ne", right: "a" }],
+			["'a' === $.s", { base: "node", left: "s", op: "eq", right: "a" }],
+			["$.s == 'a'", { base: "node", left: "s", op: "eq", right: "a" }],
+			["$.e != 'b'", { base: "node", left: "e", op: "ne", right: "b" }],
+			["$.n == 2", { base: "node", left: "n", op: "eq", right: 2 }],
+			["$.b != false", { base: "node", left: "b", op: "ne", right: false }],
 			[
 				"$.s == null",
 				{
-					all: [
-						{ field: "/s", base: "node", truthy: false },
-						{ field: "/s", base: "node", notIn: [false, 0, ""] },
+					op: "and",
+					conditions: [
+						{ base: "node", left: "s", op: "truthy", right: false },
+						{ base: "node", left: "s", op: "notIn", right: [false, 0, ""] },
 					],
 				},
 			],
 			[
 				"$.s != null",
 				{
-					any: [
-						{ field: "/s", base: "node", truthy: true },
-						{ field: "/s", base: "node", in: [false, 0, ""] },
+					op: "or",
+					conditions: [
+						{ base: "node", left: "s", op: "truthy", right: true },
+						{ base: "node", left: "s", op: "in", right: [false, 0, ""] },
 					],
 				},
 			],
-			["$.n > 1", { field: "/n", base: "node", gt: 1 }],
-			["$.n >= 1e3", { field: "/n", base: "node", gte: 1000 }],
-			["$.d < 0", { field: "/d", base: "node", lt: 0 }],
-			["$.nums[1] <= 2", { field: "/nums/1", base: "node", lte: 2 }],
-			["3 < $.n", { field: "/n", base: "node", gt: 3 }],
+			["$.n > 1", { base: "node", left: "n", op: "gt", right: 1 }],
+			["$.n >= 1e3", { base: "node", left: "n", op: "gte", right: 1000 }],
+			["$.d < 0", { base: "node", left: "d", op: "lt", right: 0 }],
+			["$.nums[1] <= 2", { base: "node", left: "nums[1]", op: "lte", right: 2 }],
+			["3 < $.n", { base: "node", left: "n", op: "gt", right: 3 }],
 			[
 				"$.b && $.s === 'a' && !$.o.k",
 				{
-					all: [
-						{ field: "/b", base: "node", truthy: true },
-						{ field: "/s", base: "node", eq: "a" },
-						{ field: "/o/k", base: "node", truthy: false },
+					op: "and",
+					conditions: [
+						{ base: "node", left: "b", op: "truthy", right: true },
+						{ base: "node", left: "s", op: "eq", right: "a" },
+						{ base: "node", left: "o.k", op: "truthy", right: false },
 					],
 				},
 			],
 			[
 				"$.b || $.n > 1",
 				{
-					any: [
-						{ field: "/b", base: "node", truthy: true },
-						{ field: "/n", base: "node", gt: 1 },
+					op: "or",
+					conditions: [
+						{ base: "node", left: "b", op: "truthy", right: true },
+						{ base: "node", left: "n", op: "gt", right: 1 },
 					],
 				},
 			],
 			[
 				"$.b && ($.s === 'a' || $.s === 'b')",
 				{
-					all: [
-						{ field: "/b", base: "node", truthy: true },
+					op: "and",
+					conditions: [
+						{ base: "node", left: "b", op: "truthy", right: true },
 						{
-							any: [
-								{ field: "/s", base: "node", eq: "a" },
-								{ field: "/s", base: "node", eq: "b" },
+							op: "or",
+							conditions: [
+								{ base: "node", left: "s", op: "eq", right: "a" },
+								{ base: "node", left: "s", op: "eq", right: "b" },
 							],
 						},
 					],
@@ -729,12 +735,14 @@ describe("元数据表", () => {
 			[
 				"$.b || $.s && $.n",
 				{
-					any: [
-						{ field: "/b", base: "node", truthy: true },
+					op: "or",
+					conditions: [
+						{ base: "node", left: "b", op: "truthy", right: true },
 						{
-							all: [
-								{ field: "/s", base: "node", truthy: true },
-								{ field: "/n", base: "node", truthy: true },
+							op: "and",
+							conditions: [
+								{ base: "node", left: "s", op: "truthy", right: true },
+								{ base: "node", left: "n", op: "truthy", right: true },
 							],
 						},
 					],
@@ -743,34 +751,40 @@ describe("元数据表", () => {
 			[
 				"!($.b && $.s)",
 				{
-					not: {
-						all: [
-							{ field: "/b", base: "node", truthy: true },
-							{ field: "/s", base: "node", truthy: true },
+					op: "not",
+					condition: {
+						op: "and",
+						conditions: [
+							{ base: "node", left: "b", op: "truthy", right: true },
+							{ base: "node", left: "s", op: "truthy", right: true },
 						],
 					},
 				},
 			],
-			["!($.s === 'a')", { not: { field: "/s", base: "node", eq: "a" } }],
-			["['a', 'b'].includes($.s)", { field: "/s", base: "node", in: ["a", "b"] }],
+			[
+				"!($.s === 'a')",
+				{ op: "not", condition: { base: "node", left: "s", op: "eq", right: "a" } },
+			],
+			["['a', 'b'].includes($.s)", { base: "node", left: "s", op: "in", right: ["a", "b"] }],
 			[
 				"[1, -2, true, null, 'x',].includes($.zz)",
-				{ field: "/zz", base: "node", in: [1, -2, true, null, "x"] },
+				{ base: "node", left: "zz", op: "in", right: [1, -2, true, null, "x"] },
 			],
-			["[].includes($.n)", { field: "/n", base: "node", in: [] }],
-			["!['a'].includes($.e)", { field: "/e", base: "node", notIn: ["a"] }],
-			["!!['a'].includes($.e)", { field: "/e", base: "node", in: ["a"] }],
-			["!(['a'].includes($.e))", { field: "/e", base: "node", notIn: ["a"] }],
+			["[].includes($.n)", { base: "node", left: "n", op: "in", right: [] }],
+			["!['a'].includes($.e)", { base: "node", left: "e", op: "notIn", right: ["a"] }],
+			["!!['a'].includes($.e)", { base: "node", left: "e", op: "in", right: ["a"] }],
+			["!(['a'].includes($.e))", { base: "node", left: "e", op: "notIn", right: ["a"] }],
 			[
 				"$.b && [0].includes($.list[0].v)",
 				{
-					all: [
-						{ field: "/b", base: "node", truthy: true },
-						{ field: "/list/0/v", base: "node", in: [0] },
+					op: "and",
+					conditions: [
+						{ base: "node", left: "b", op: "truthy", right: true },
+						{ base: "node", left: "list[0].v", op: "in", right: [0] },
 					],
 				},
 			],
-			["$.zz.yy", { field: "/zz/yy", base: "node", truthy: true }],
+			["$.zz.yy", { base: "node", left: "zz.yy", op: "truthy", right: true }],
 		])("%s", (expr, expected) => {
 			const { visibleIf, trace, codes: c } = cond(expr);
 			expect(visibleIf).toStrictEqual(expected);
@@ -830,9 +844,10 @@ describe("元数据表", () => {
 					x: {
 						"x-ui": {
 							visibleIf: {
-								all: [
-									{ field: "/n", base: "node", eq: 1 },
-									{ field: "/n", base: "node", truthy: false },
+								op: "and",
+								conditions: [
+									{ base: "node", left: "n", op: "eq", right: 1 },
+									{ base: "node", left: "n", op: "truthy", right: false },
 								],
 							},
 						},
@@ -842,7 +857,7 @@ describe("元数据表", () => {
 			const compared = fengdieJsonToSchema(fengdieJson("$.n > 1"));
 			expect(compared.value!.$defs!.A).toMatchObject({
 				properties: {
-					x: { "x-ui": { visibleIf: { field: "/n", base: "node", gt: 1 } } },
+					x: { "x-ui": { visibleIf: { base: "node", left: "n", op: "gt", right: 1 } } },
 				},
 			});
 			const kept = fengdieJsonToSchema(fengdieJson("$.missing > 1"));

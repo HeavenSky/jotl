@@ -12,12 +12,12 @@ export interface Shipping {
   method: "express" | "pickup";
   /**
    * @title 收货地址
-   * @ui `{"visibleIf":{"field":"/method","eq":"express"}}`
+   * @ui `{"visibleIf":{"left":"method","op":"eq","right":"express"}}`
    */
   address?: string;
   /**
    * @title 自提点
-   * @ui `{"visibleIf":{"field":"/method","ne":"express"}}`
+   * @ui `{"visibleIf":{"left":"method","op":"ne","right":"express"}}`
    */
   store?: string;
   /**
@@ -28,7 +28,7 @@ export interface Shipping {
   /**
    * 只在需要发票且不是自提时填写
    * @title 发票抬头
-   * @ui `{"visibleIf":{"all":[{"field":"/invoice","truthy":true},{"not":{"field":"/method","in":["pickup"]}}]}}`
+   * @ui `{"visibleIf":{"op":"and","conditions":[{"left":"invoice","op":"truthy","right":true},{"op":"not","condition":{"left":"method","op":"in","right":["pickup"]}}]}}`
    */
   title?: string;
   /**
@@ -46,7 +46,7 @@ export interface Shipping {
     gift: boolean;
     /**
      * @title 赠言
-     * @ui `{"visibleIf":{"any":[{"field":"/items/*\/gift","eq":true},{"field":"/method","notIn":["express","pickup"]}]}}`
+     * @ui `{"visibleIf":{"op":"or","conditions":[{"left":"items[*].gift","op":"eq","right":true},{"left":"method","op":"notIn","right":["express","pickup"]}]}}`
      */
     note?: string;
   }[];

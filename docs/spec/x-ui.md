@@ -20,7 +20,7 @@ The type is `XUi` in `@jotl/core` ([`packages/core/src/schema/x-ui.ts`](../../pa
 | `columns`   | Integer of at least 1                              | Number of columns when `layout` is `grid`, default 2                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           |
 | `hidden`    | Boolean                                            | Hides the node                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
 | `visibleIf` | [Visibility condition](#visibility-conditions)     | The node is not shown while the condition is false                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
-| `summary`   | Field name                                         | Objects, arrays of objects and maps: entry rows and breadcrumbs show this field's value; see [Nested rendering](#nested-rendering)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
+| `summary`   | Field name                                         | Objects, arrays of objects and maps: entry rows and breadcrumbs show this field's value; see [Nested rendering](#nested-rendering)                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 | `thousands` | Boolean                                            | `number` `integer` `money` `bigint`: show thousands separators when not focused and when read-only; defaults to `true` for `money`, `false` otherwise                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
 | `variants`  | Scene name → scene override object                 | Overrides per rendering scene; the scene name is passed in by the renderer, default `"default"`                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
 | `rules`     | Array of [rules](#rule-table)                      | Only takes effect on the root node                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
@@ -32,26 +32,26 @@ A scene override object and a rule's `ui` may contain only `widget` `props` `dec
 ## Visibility conditions
 
 ```ts
-type Leaf = { field: JsonPointer; base?: "node" };
+type Leaf = { base?: "root" | "node"; left: string } & (
+	| { op: "eq"; right: unknown }
+	| { op: "ne"; right: unknown }
+	| { op: "in"; right: unknown[] }
+	| { op: "notIn"; right: unknown[] }
+	| { op: "truthy"; right: boolean }
+	| { op: "gt" | "gte" | "lt" | "lte"; right: number }
+);
 type Condition =
-	| (Leaf &
-			(
-				| { eq: unknown }
-				| { ne: unknown }
-				| { in: unknown[] }
-				| { notIn: unknown[] }
-				| { truthy: boolean }
-			))
-	| (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
-	| { all: Condition[] }
-	| { any: Condition[] }
-	| { not: Condition };
+	| Leaf
+	| { op: "and" | "or"; conditions: Condition[] }
+	| { op: "not"; condition: Condition };
 ```
 
-- A leaf condition consists of `field`, an optional `base` and exactly one comparison.
-- `field` is a JSON Pointer. Without `base` it starts at the data root; with `base: "node"` it starts at the object containing the current node. A `*` in it takes the corresponding index of the array containing the current node.
+- Every condition is an object with an `op`; leaves carry `left`, combinators carry `conditions` (`and` `or`) or `condition` (`not`).
+- A leaf's `left` is a lodash `get` path (`a.b[0].c` `a['x-y']`); `[*]` (or a `*` segment) takes the index of the array containing the current node. `base` defaults to `root` (the data root); `base: "node"` starts at the object containing the current node. Upward references are not supported.
+- `right` is required: a candidate array for `in` `notIn`, a boolean for `truthy`, a number for `gt` `gte` `lt` `lte`.
 - `gt` `gte` `lt` `lte` compare only when both sides are numbers; otherwise they are false.
-- Comparison uses deep equality of JSON values. When the value `field` points to does not exist, `eq` `in` `truthy: true` are false and `ne` `notIn` `truthy: false` are true. `truthy` follows JavaScript truthiness, so an empty array is truthy.
+- Comparison uses deep equality of JSON values. When the value `left` points to does not exist, `eq` `in` are false and `ne` `notIn` are true. `truthy` compares against `right` using JavaScript truthiness, so an empty array is truthy.
+- Unrecognizable condition shapes evaluate to false.
 - Invisible fields keep their data and are still validated; their errors appear in the form-level error list (`ViewProps.errors`).
 - The evaluator is `evaluateCondition(cond, data, dataPath)` from `@jotl/form/core`, where `dataPath` is the actual path of the current node.
 

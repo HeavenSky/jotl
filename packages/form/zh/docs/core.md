@@ -14,7 +14,7 @@ const schema = {
 	properties: {
 		title: { type: "string", title: "标题", "x-ui": { widget: "headline" } },
 		kind: { enum: ["a", "b"] },
-		extra: { type: "string", "x-ui": { visibleIf: { field: "/kind", eq: "b" } } },
+		extra: { type: "string", "x-ui": { visibleIf: { left: "kind", op: "eq", right: "b" } } },
 	},
 	required: ["title"],
 };
@@ -50,7 +50,7 @@ evaluateCondition(extra.visibleIf!, { kind: "b" }, extra.dataPath); // true
 | `expand(node, schema, registry, ctx?)`                                                                      | 展开标记为 `lazy: true` 的节点，返回 `Result<RenderPlanNode>`。`ctx` 中的场景、模式与 `maxDepth` 优先，其次沿用同一进程内 `plan()` 生成该节点时的值，再次取默认值                                                                                                                          |
 | `resolvePlanNode(node, schema)`                                                                             | 渲染计划节点的有效 schema（`ResolvedNode`），与 `plan()` 判定形态所用的一致，含按 `type` 数组拆出的分支与数组无 `items` 时的空元素 schema。节点被复制或序列化后按 `schemaPointer` 解析                                                                                                     |
 | `resolveSchemaAt(schema, pointer)` `resolveSchema(document, schema, pointer?)`                              | 有效 schema：沿文档内 `$ref`（`#` 与 `#/...`）由远及近浅合并到引用处，并合并 `allOf` 成员。`origin` 给出每个关键字所在的 schema 位置，`unresolvedRef` 为无法解析的引用。`resolveSchemaAt` 按文档与指针缓存，指针不存在时返回空 schema                                                      |
-| `evaluateCondition(cond, data, dataPath)`                                                                   | 按数据求 `visibleIf`。`dataPath` 为实际路径，条件中 `field` 的 `*` 取其中同一位置的片段；叶子带 `base: "node"` 时 `field` 从节点所在对象起算；`gt` `gte` `lt` `lte` 只比较数值                                                                                                             |
+| `evaluateCondition(cond, data, dataPath)`                                                                   | 按数据求 `visibleIf`。`dataPath` 为实际路径，条件中 `left` 的 `*` 取其中同一位置的片段；叶子带 `base: "node"`（缺省 `root`）时 `left` 从节点所在对象起算；`gt` `gte` `lt` `lte` 只比较数值                                                                                                 |
 | `jsonEqual(a, b)`                                                                                           | 条件比较所用的 JSON 值深度相等                                                                                                                                                                                                                                                             |
 | `resolveXUi(schema, schemaPointer?, options?)`                                                              | 返回 `Result<ResolvedXUi>`：某个位置合并后的 `x-ui`、各层候选 widget、命中的根 `rules`、选中的 widget 与降级。未传 `registry` 时按所有 widget 名均已注册计算。供语言服务与调试视图使用                                                                                                     |
 | `checkXUi(value)`                                                                                           | 不依赖 Ajv 的 `x-ui` 结构校验，返回第一处问题或 `undefined`；规则与 `@jotl/core` 的 `xUiMetaSchema` 一致                                                                                                                                                                                   |

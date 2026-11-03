@@ -1,6 +1,6 @@
 // 凤蝶 `if` 表达式(JS 表达式, 编辑器以字段所在对象的数据求值, `$.` 可省略) → `x-ui.visibleIf`;
 // 只转换与 JS 求值结果逐值一致的写法, 其余返回 undefined.
-import { type Condition, formatPointer } from "@jotl/core";
+import { type Condition, type ConditionOp, formatLodashPath } from "@jotl/core";
 
 /**
  * 路径处的数据类型: string number boolean 为已声明的标量, composite 为对象或数组, unknown 为无法确定,
@@ -165,7 +165,7 @@ class Parser {
 			this.i += 1;
 			items.push(this.and());
 		}
-		return group("any", items);
+		return group("or", items);
 	}
 
 	private and(): Condition {
@@ -174,7 +174,7 @@ class Parser {
 			this.i += 1;
 			items.push(this.unary());
 		}
-		return group("all", items);
+		return group("and", items);
 	}
 
 	/** `!x`, `(x)` 与 `[...].includes(x)` 之后不能再接比较运算符: JS 中 `!$.a === 1` 比较的是布尔值. */
@@ -201,7 +201,7 @@ class Parser {
 		if (this.isOp("[")) return this.includes();
 		const path = this.path();
 		if (path === undefined) fail();
-		return this.leaf(path, { truthy: true });
+		return this.leaf(path, "truthy", true);
 	}
 
 	/**
@@ -227,7 +227,7 @@ class Parser {
 		const path = this.path();
 		if (path === undefined) fail();
 		this.expectOp(")");
-		return this.leaf(path, { in: options });
+		return this.leaf(path, "in", options);
 	}
 
 	private comparison(): Condition {
@@ -235,7 +235,7 @@ class Parser {
 		const next = this.peek();
 		if (!(next?.t === "op" && COMPARES.has(next.v))) {
 			if (!("path" in left)) fail();
-			return this.leaf(left.path, { truthy: true });
+			return this.leaf(left.path, "truthy", true);
 		}
 		this.i += 1;
 		const right = this.operand();
@@ -256,9 +256,9 @@ class Parser {
 	private compare(path: string[], op: Compare, literal: Literal): Condition {
 		switch (op) {
 			case "===":
-				return this.leaf(path, { eq: literal });
+				return this.leaf(path, "eq", literal);
 			case "!==":
-				return this.leaf(path, { ne: literal });
+				return this.leaf(path, "ne", literal);
 			case "==":
 			case "!=": {
 				const positive = op === "==";
@@ -266,27 +266,31 @@ class Parser {
 				if (literal === null) {
 					return positive
 						? {
-								all: [
-									this.leaf(path, { truthy: false }),
-									this.leaf(path, { notIn: [false, 0, ""] }),
+								op: "and",
+								conditions: [
+									this.leaf(path, "truthy", false),
+									this.leaf(path, "notIn", [false, 0, ""]),
 								],
 							}
 						: {
-								any: [
-									this.leaf(path, { truthy: true }),
-									this.leaf(path, { in: [false, 0, ""] }),
+								op: "or",
+								conditions: [
+									this.leaf(path, "truthy", true),
+									this.leaf(path, "in", [false, 0, ""]),
 								],
 							};
 				}
 				// 宽松相等只在字段类型与字面量类型相同时等于严格相等.
 				if (this.typeOf(path) !== typeof literal) fail();
-				return this.leaf(path, positive ? { eq: literal } : { ne: literal });
+				return this.leaf(path, positive ? "eq" : "ne", literal);
 			}
 			default: {
 				// JS 的大小比较会把字符串, 布尔与 null 转成数字; 只有字段声明为数值时与 gt gte lt lte 一致.
 				if (typeof literal !== "number" || this.typeOf(path) !== "number") fail();
-				const keyword = { ">": "gt", ">=": "gte", "<": "lt", "<=": "lte" }[op];
-				return this.leaf(path, { [keyword]: literal });
+				const keyword = { ">": "gt", ">=": "gte", "<": "lt", "<=": "lte" }[
+					op
+				] as ConditionOp;
+				return this.leaf(path, keyword, literal);
 			}
 		}
 	}
@@ -295,9 +299,11 @@ class Parser {
 		return this.resolve(path);
 	}
 
-	private leaf(path: string[], test: Record<string, unknown>): Condition {
+	private leaf(path: string[], op: ConditionOp, right?: unknown): Condition {
 		if (this.resolve(path) === "invalid") fail();
-		return { field: formatPointer(path), ...test } as Condition;
+		const left = formatLodashPath(path);
+		if (left === undefined) fail();
+		return (right === undefined ? { left, op } : { left, op, right }) as Condition;
 	}
 
 	private operand(): Operand {
@@ -357,29 +363,26 @@ class Parser {
 	}
 }
 
-function group(key: "all" | "any", items: Condition[]): Condition {
+function group(op: "and" | "or", items: Condition[]): Condition {
 	if (items.length === 1) return items[0]!;
 	const flat: Condition[] = [];
 	for (const item of items) {
-		if (key in item) flat.push(...(item as Record<typeof key, Condition[]>)[key]);
+		if ((item as { op?: unknown }).op === op)
+			flat.push(...(item as { conditions: Condition[] }).conditions);
 		else flat.push(item);
 	}
-	return { [key]: flat } as Condition;
+	return { op, conditions: flat } as Condition;
 }
 
 function negate(c: Condition): Condition {
-	if ("truthy" in c) return { ...c, truthy: !c.truthy };
-	// in 与 notIn 恰好互补(字段缺失时 in 为假, notIn 为真).
-	if ("in" in c) {
-		const { in: options, ...rest } = c;
-		return { ...rest, notIn: options };
+	if ("left" in c) {
+		if (c.op === "truthy") return { ...c, right: !c.right } as Condition;
+		// in 与 notIn 恰好互补(字段缺失时 in 为假, notIn 为真).
+		if (c.op === "in") return { ...c, op: "notIn" } as Condition;
+		if (c.op === "notIn") return { ...c, op: "in" } as Condition;
 	}
-	if ("notIn" in c) {
-		const { notIn: options, ...rest } = c;
-		return { ...rest, in: options };
-	}
-	if ("not" in c) return c.not;
-	return { not: c };
+	if (c.op === "not") return c.condition;
+	return { op: "not", condition: c };
 }
 
 /** 解析凤蝶 `if` 表达式; 不能逐值等价地表示为 visibleIf 时返回 undefined. */
@@ -399,12 +402,8 @@ export function parseIfExpression(source: string, resolve: IfPathResolver): Cond
  * 对应 visibleIf 叶子的 `base: "node"`; 递归应用到组合条件的每个叶子.
  */
 export function withNodeBase(condition: Condition): Condition {
-	const c: unknown = condition;
-	if (Array.isArray((c as { all?: Condition[] }).all))
-		return { all: (c as { all: Condition[] }).all.map(withNodeBase) } as Condition;
-	if (Array.isArray((c as { any?: Condition[] }).any))
-		return { any: (c as { any: Condition[] }).any.map(withNodeBase) } as Condition;
-	if (Object.hasOwn(c as object, "not"))
-		return { not: withNodeBase((c as { not: Condition }).not) } as Condition;
-	return { ...condition, base: "node" };
+	if (condition.op === "and" || condition.op === "or")
+		return { op: condition.op, conditions: condition.conditions.map(withNodeBase) };
+	if (condition.op === "not") return { op: "not", condition: withNodeBase(condition.condition) };
+	return { ...condition, base: "node" } as Condition;
 }

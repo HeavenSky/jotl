@@ -518,22 +518,23 @@ describe("通用元数据", () => {
 		});
 	});
 
-	it("条件: lodash 路径转为指针, op 映射, node_if 加 base, 字符串为 truthy", () => {
+	it("条件: left 保留 lodash 路径, op 映射, node_if 加 base, 字符串为 truthy", () => {
 		const visible = (meta: string) => compileField(`: string[${meta}]`)["x-ui"];
 		expect(visible("root_if: {left: \"$.a.b[0]['x-y']\", op: 'not_in', right: [1]}")).toEqual({
-			visibleIf: { field: "/a/b/0/x-y", notIn: [1] },
+			visibleIf: { left: "a.b[0]['x-y']", op: "notIn", right: [1] },
 		});
 		expect(visible("node_if: 'list[*].on'")).toEqual({
-			visibleIf: { field: "/list/*/on", base: "node", truthy: true },
+			visibleIf: { left: "list[*].on", base: "node", op: "truthy", right: true },
 		});
-		expect(visible("root_if: {not: {left: 'a', op: 'falsy'}}")).toEqual({
-			visibleIf: { not: { field: "/a", truthy: false } },
+		expect(visible("root_if: {op: 'not', condition: {left: 'a', op: 'falsy'}}")).toEqual({
+			visibleIf: { op: "not", condition: { left: "a", op: "truthy", right: false } },
 		});
 		expect(visible("root_if: 'a', node_if: {left: 'b', op: 'gte', right: 2}")).toEqual({
 			visibleIf: {
-				all: [
-					{ field: "/a", truthy: true },
-					{ field: "/b", base: "node", gte: 2 },
+				op: "and",
+				conditions: [
+					{ left: "a", op: "truthy", right: true },
+					{ left: "b", base: "node", op: "gte", right: 2 },
 				],
 			},
 		});
@@ -549,7 +550,7 @@ describe("通用元数据", () => {
 				view: {
 					widget: "json",
 					order: ["a"],
-					visibleIf: { field: "/a", base: "node", truthy: true },
+					visibleIf: { left: "a", base: "node", op: "truthy", right: true },
 				},
 			},
 		});
@@ -557,7 +558,7 @@ describe("通用元数据", () => {
 
 	it("规则表: ui 中的 root_if / node_if 同场景覆盖编译为 visibleIf, 也接受 visibleIf 原名", () => {
 		const doc = compileDoc(
-			"A: [rules: [{match: {type: 'string'}, ui: {node_if: 'on', widget: 'textarea'}}, {match: {enum: true}, ui: {visibleIf: {field: '/a', truthy: true}}}]] {}"
+			"A: [rules: [{match: {type: 'string'}, ui: {node_if: 'on', widget: 'textarea'}}, {match: {enum: true}, ui: {visibleIf: {left: 'a', op: 'truthy', right: true}}}]] {}"
 		);
 		expect(doc["x-ui"]).toEqual({
 			version: 1,
@@ -566,10 +567,13 @@ describe("通用元数据", () => {
 					match: { type: "string" },
 					ui: {
 						widget: "textarea",
-						visibleIf: { field: "/on", base: "node", truthy: true },
+						visibleIf: { left: "on", base: "node", op: "truthy", right: true },
 					},
 				},
-				{ match: { enum: true }, ui: { visibleIf: { field: "/a", truthy: true } } },
+				{
+					match: { enum: true },
+					ui: { visibleIf: { left: "a", op: "truthy", right: true } },
+				},
 			],
 		});
 		expect(
@@ -643,7 +647,7 @@ describe("文件与根", () => {
 			default: {},
 			deprecated: true,
 			readOnly: true,
-			"x-ui": { summary: "y", visibleIf: { field: "/z", truthy: true } },
+			"x-ui": { summary: "y", visibleIf: { left: "z", op: "truthy", right: true } },
 		});
 	});
 });

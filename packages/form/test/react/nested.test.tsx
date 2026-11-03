@@ -372,7 +372,7 @@ describe("表单级错误列表定位", () => {
 					type: "string",
 					title: "乙",
 					minLength: 3,
-					"x-ui": { visibleIf: { field: "/a", eq: "show" } },
+					"x-ui": { visibleIf: { left: "a", op: "eq", right: "show" } },
 				},
 			},
 		};

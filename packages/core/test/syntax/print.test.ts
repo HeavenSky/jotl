@@ -620,7 +620,7 @@ describe("元数据还原", () => {
 		expect(
 			fieldLine({
 				type: "boolean",
-				"x-ui": { visibleIf: { field: "/a/0", base: "node", truthy: false } },
+				"x-ui": { visibleIf: { base: "node", left: "a[0]", op: "truthy", right: false } },
 			})
 		).toBe("x: boolean[node_if: {left: 'a[0]', op: 'falsy'}]");
 	});
@@ -709,7 +709,7 @@ describe("根与类型名", () => {
 				rules: [
 					{
 						match: { type: "string" },
-						ui: { visibleIf: { field: "/on", base: "node", truthy: true } },
+						ui: { visibleIf: { base: "node", left: "on", op: "truthy", right: true } },
 					},
 				],
 			},

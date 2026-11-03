@@ -32,26 +32,26 @@
 ## 显示条件
 
 ```ts
-type Leaf = { field: JsonPointer; base?: "node" };
+type Leaf = { base?: "root" | "node"; left: string } & (
+	| { op: "eq"; right: unknown }
+	| { op: "ne"; right: unknown }
+	| { op: "in"; right: unknown[] }
+	| { op: "notIn"; right: unknown[] }
+	| { op: "truthy"; right: boolean }
+	| { op: "gt" | "gte" | "lt" | "lte"; right: number }
+);
 type Condition =
-	| (Leaf &
-			(
-				| { eq: unknown }
-				| { ne: unknown }
-				| { in: unknown[] }
-				| { notIn: unknown[] }
-				| { truthy: boolean }
-			))
-	| (Leaf & ({ gt: number } | { gte: number } | { lt: number } | { lte: number }))
-	| { all: Condition[] }
-	| { any: Condition[] }
-	| { not: Condition };
+	| Leaf
+	| { op: "and" | "or"; conditions: Condition[] }
+	| { op: "not"; condition: Condition };
 ```
 
-- 叶子条件由 `field`、可选的 `base` 和恰好一个比较项组成。
-- `field` 是 JSON Pointer：不写 `base` 时从数据根起算，`base: "node"` 时从当前节点所在的对象起算；其中的 `*` 取当前节点所在数组的对应下标。
+- 每个条件都是带 `op` 的对象：叶子带 `left`，组合条件带 `conditions`（`and` `or`）或 `condition`（`not`）。
+- 叶子的 `left` 是 lodash `get` 路径（`a.b[0].c` `a['x-y']`）；`[*]`（或 `*` 片段）取当前节点所在数组的对应下标。`base` 缺省为 `root`（数据根）；`base: "node"` 从当前节点所在的对象起算。不支持向上引用。
+- `right` 必写：`in` `notIn` 为候选数组，`truthy` 为布尔，`gt` `gte` `lt` `lte` 为数值。
 - `gt` `gte` `lt` `lte` 只在两边都是数值时比较，否则为假。
-- 比较按 JSON 值深度相等。`field` 指向的值不存在时，`eq` `in` `truthy: true` 为假，`ne` `notIn` `truthy: false` 为真；`truthy` 按 JavaScript 真值判断，空数组为真。
+- 比较按 JSON 值深度相等。`left` 指向的值不存在时，`eq` `in` 为假，`ne` `notIn` 为真；`truthy` 按 `right` 与 JavaScript 真值比较，空数组为真。
+- 形态不可识别的条件求值为假。
 - 不可见字段保留数据，校验照常进行，其错误显示在表单级错误列表（`ViewProps.errors`）中。
 - 求值函数是 `@jotl/form/core` 的 `evaluateCondition(cond, data, dataPath)`，`dataPath` 为当前节点的实际路径。
 

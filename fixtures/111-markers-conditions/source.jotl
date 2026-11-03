@@ -13,14 +13,14 @@ Settings(设置): [description: '设置页', rules: [{match: {type: 'boolean'}, 
   city(城市)?: Cities
   cities(常驻城市)?: Cities[multiple: true, maxItems: 2]
   advanced(高级选项)?: string[root_if: {left: 'mode', op: 'eq', right: 'pro'}]
-  bonus(奖励)?: string[root_if: {and: [{left: 'level', op: 'gte', right: 5}, {left: '$.level', op: 'lt', right: 9}]}]
-  warn(警告)?: string[root_if: {or: [{left: 'level', op: 'gt', right: 8}, {left: 'level', op: 'lte', right: 0}]}]
+  bonus(奖励)?: string[root_if: {op: 'and', conditions: [{left: 'level', op: 'gte', right: 5}, {left: '$.level', op: 'lt', right: 9}]}]
+  warn(警告)?: string[root_if: {op: 'or', conditions: [{left: 'level', op: 'gt', right: 8}, {left: 'level', op: 'lte', right: 0}]}]
   quiet(静默)?: string[root_if: {left: 'city', op: 'falsy'}, description: '未选城市时显示']
   links(链接)?: array[summary: 'url'] {
     url(地址): url
     open(打开)?: boolean
     target(目标)?: enum[node_if: 'open']{ self blank }
-    tip(提示)?: string[node_if: {not: {left: 'url', op: 'in', right: ['https://a.com']}}]
+    tip(提示)?: string[node_if: {op: 'not', condition: {left: 'url', op: 'in', right: ['https://a.com']}}]
     extra(附加)?: string[root_if: {left: 'links[*].open', op: 'truthy'}]
   }
 }

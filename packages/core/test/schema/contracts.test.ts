@@ -19,7 +19,11 @@ import {
 describe("契约类型", () => {
 	it("x-ui 覆盖 CT4 的全部字段", () => {
 		const visibleIf: Condition = {
-			all: [{ field: "/mode", eq: "dark" }, { not: { field: "/tags/*", truthy: true } }],
+			op: "and",
+			conditions: [
+				{ left: "mode", op: "eq", right: "dark" },
+				{ op: "not", condition: { left: "tags[*]", op: "truthy", right: true } },
+			],
 		};
 		const ui: XUi = {
 			widget: "banner-card",

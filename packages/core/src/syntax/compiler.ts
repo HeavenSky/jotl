@@ -1998,7 +1998,7 @@ class Compiler {
 		}
 		if (conditions.length > 0)
 			this.xUi(schema).visibleIf =
-				conditions.length === 1 ? conditions[0]! : { all: conditions };
+				conditions.length === 1 ? conditions[0]! : { op: "and", conditions };
 		const variants = this.objectMeta(m, "variants");
 		if (variants) {
 			const fields = this.fieldsOf(schema, kind, input);

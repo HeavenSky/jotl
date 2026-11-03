@@ -168,7 +168,7 @@ describe("显示条件 visibleIf(R8, D43)", () => {
 				type: "string",
 				title: "颜色",
 				maxLength: 3,
-				"x-ui": { visibleIf: { field: "/custom", eq: true } },
+				"x-ui": { visibleIf: { left: "custom", op: "eq", right: true } },
 			},
 		},
 	};
@@ -202,7 +202,10 @@ describe("显示条件 visibleIf(R8, D43)", () => {
 				type: "object",
 				properties: {
 					kind: { type: "string", enum: ["a", "b"] },
-					extra: { type: "string", "x-ui": { visibleIf: { field: "/*/kind", eq: "b" } } },
+					extra: {
+						type: "string",
+						"x-ui": { visibleIf: { left: "[*].kind", op: "eq", right: "b" } },
+					},
 				},
 			},
 		};

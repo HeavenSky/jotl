@@ -672,7 +672,7 @@ describe("P1 计划节点字段", () => {
 	});
 
 	it("hidden 与 visibleIf 写入节点", () => {
-		const visibleIf = { field: "/items/*/kind", eq: "image" };
+		const visibleIf = { left: "items[*].kind", op: "eq", right: "image" } as const;
 		const root = planOk(
 			obj({
 				secret: { type: "string", "x-ui": { hidden: true } },

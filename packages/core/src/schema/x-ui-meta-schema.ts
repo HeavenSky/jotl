@@ -79,50 +79,70 @@ export const xUiMetaSchema: JsonSchemaObject = {
 		Condition: {
 			anyOf: [
 				{
+					// 叶子: left 加 op, right 按 op 约束类型, base 可选.
 					type: "object",
 					properties: {
-						field: { type: "string" },
-						base: { const: "node" },
-						eq: true,
-						ne: true,
-						in: { type: "array" },
-						notIn: { type: "array" },
-						truthy: { type: "boolean" },
-						gt: { type: "number" },
-						gte: { type: "number" },
-						lt: { type: "number" },
-						lte: { type: "number" },
+						base: { enum: ["root", "node"] },
+						left: { type: "string", minLength: 1 },
+						op: {
+							enum: ["eq", "ne", "in", "notIn", "truthy", "gt", "gte", "lt", "lte"],
+						},
+						right: true,
 					},
-					required: ["field"],
-					// field 加且仅加一个比较项, base 可选.
-					anyOf: [
-						{ maxProperties: 2, properties: { base: false } },
+					required: ["left", "op", "right"],
+					additionalProperties: false,
+					allOf: [
 						{
-							minProperties: 3,
-							maxProperties: 3,
-							properties: { base: true },
-							required: ["base"],
+							if: { properties: { op: { const: "in" } }, required: ["op"] },
+							then: { properties: { right: { type: "array" } } },
+						},
+						{
+							if: { properties: { op: { const: "notIn" } }, required: ["op"] },
+							then: { properties: { right: { type: "array" } } },
+						},
+						{
+							if: { properties: { op: { const: "truthy" } }, required: ["op"] },
+							then: { properties: { right: { type: "boolean" } } },
+						},
+						{
+							if: {
+								properties: { op: { enum: ["gt", "gte", "lt", "lte"] } },
+								required: ["op"],
+							},
+							then: { properties: { right: { type: "number" } } },
 						},
 					],
-					minProperties: 2,
+				},
+				{
+					type: "object",
+					properties: {
+						op: { const: "and" },
+						conditions: {
+							type: "array",
+							minItems: 1,
+							items: { $ref: "#/$defs/Condition" },
+						},
+					},
+					required: ["op", "conditions"],
 					additionalProperties: false,
 				},
 				{
 					type: "object",
-					properties: { all: { type: "array", items: { $ref: "#/$defs/Condition" } } },
-					required: ["all"],
+					properties: {
+						op: { const: "or" },
+						conditions: {
+							type: "array",
+							minItems: 1,
+							items: { $ref: "#/$defs/Condition" },
+						},
+					},
+					required: ["op", "conditions"],
 					additionalProperties: false,
 				},
 				{
 					type: "object",
-					properties: { any: { type: "array", items: { $ref: "#/$defs/Condition" } } },
-					required: ["any"],
-					additionalProperties: false,
-				},
-				{
-					type: "object",
-					properties: { not: { $ref: "#/$defs/Condition" } },
-					required: ["not"],
+					properties: { op: { const: "not" }, condition: { $ref: "#/$defs/Condition" } },
+					required: ["op", "condition"],
 					additionalProperties: false,
 				},
 			],

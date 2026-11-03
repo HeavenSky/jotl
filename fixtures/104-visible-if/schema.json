@@ -29,8 +29,9 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "field": "/method",
-              "eq": "express"
+              "left": "method",
+              "op": "eq",
+              "right": "express"
             }
           }
         },
@@ -39,8 +40,9 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "field": "/method",
-              "ne": "express"
+              "left": "method",
+              "op": "ne",
+              "right": "express"
             }
           }
         },
@@ -55,15 +57,19 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "all": [
+              "op": "and",
+              "conditions": [
                 {
-                  "field": "/invoice",
-                  "truthy": true
+                  "left": "invoice",
+                  "op": "truthy",
+                  "right": true
                 },
                 {
-                  "not": {
-                    "field": "/method",
-                    "in": [
+                  "op": "not",
+                  "condition": {
+                    "left": "method",
+                    "op": "in",
+                    "right": [
                       "pickup"
                     ]
                   }
@@ -92,14 +98,17 @@
                 "type": "string",
                 "x-ui": {
                   "visibleIf": {
-                    "any": [
+                    "op": "or",
+                    "conditions": [
                       {
-                        "field": "/items/*/gift",
-                        "eq": true
+                        "left": "items[*].gift",
+                        "op": "eq",
+                        "right": true
                       },
                       {
-                        "field": "/method",
-                        "notIn": [
+                        "left": "method",
+                        "op": "notIn",
+                        "right": [
                           "express",
                           "pickup"
                         ]

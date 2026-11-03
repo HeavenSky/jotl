@@ -378,7 +378,7 @@ describe("schema 写入的 x-ui", () => {
 	it("合法时无诊断", () => {
 		expect(
 			compileCodes(
-				"A: {\n  a: string[schema: {'x-ui': {layout: 'stack', visibleIf: {field: '/b', truthy: true}}}]\n}"
+				"A: {\n  a: string[schema: {'x-ui': {layout: 'stack', visibleIf: {left: 'b', op: 'truthy', right: true}}}]\n}"
 			)
 		).toEqual([]);
 	});

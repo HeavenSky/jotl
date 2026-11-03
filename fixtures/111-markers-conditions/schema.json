@@ -89,8 +89,9 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "field": "/mode",
-              "eq": "pro"
+              "left": "mode",
+              "op": "eq",
+              "right": "pro"
             }
           }
         },
@@ -99,14 +100,17 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "all": [
+              "op": "and",
+              "conditions": [
                 {
-                  "field": "/level",
-                  "gte": 5
+                  "left": "level",
+                  "op": "gte",
+                  "right": 5
                 },
                 {
-                  "field": "/level",
-                  "lt": 9
+                  "left": "level",
+                  "op": "lt",
+                  "right": 9
                 }
               ]
             }
@@ -117,14 +121,17 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "any": [
+              "op": "or",
+              "conditions": [
                 {
-                  "field": "/level",
-                  "gt": 8
+                  "left": "level",
+                  "op": "gt",
+                  "right": 8
                 },
                 {
-                  "field": "/level",
-                  "lte": 0
+                  "left": "level",
+                  "op": "lte",
+                  "right": 0
                 }
               ]
             }
@@ -136,8 +143,9 @@
           "type": "string",
           "x-ui": {
             "visibleIf": {
-              "field": "/city",
-              "truthy": false
+              "left": "city",
+              "op": "truthy",
+              "right": false
             }
           }
         },
@@ -165,9 +173,10 @@
                 ],
                 "x-ui": {
                   "visibleIf": {
-                    "field": "/open",
                     "base": "node",
-                    "truthy": true
+                    "left": "open",
+                    "op": "truthy",
+                    "right": true
                   }
                 }
               },
@@ -176,10 +185,12 @@
                 "type": "string",
                 "x-ui": {
                   "visibleIf": {
-                    "not": {
-                      "field": "/url",
+                    "op": "not",
+                    "condition": {
                       "base": "node",
-                      "in": [
+                      "left": "url",
+                      "op": "in",
+                      "right": [
                         "https://a.com"
                       ]
                     }
@@ -191,8 +202,9 @@
                 "type": "string",
                 "x-ui": {
                   "visibleIf": {
-                    "field": "/links/*/open",
-                    "truthy": true
+                    "left": "links[*].open",
+                    "op": "truthy",
+                    "right": true
                   }
                 }
               }

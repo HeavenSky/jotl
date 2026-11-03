@@ -50,23 +50,23 @@ export interface Settings {
   cities?: Cities[];
   /**
    * @title 高级选项
-   * @ui `{"visibleIf":{"field":"/mode","eq":"pro"}}`
+   * @ui `{"visibleIf":{"left":"mode","op":"eq","right":"pro"}}`
    */
   advanced?: string;
   /**
    * @title 奖励
-   * @ui `{"visibleIf":{"all":[{"field":"/level","gte":5},{"field":"/level","lt":9}]}}`
+   * @ui `{"visibleIf":{"op":"and","conditions":[{"left":"level","op":"gte","right":5},{"left":"level","op":"lt","right":9}]}}`
    */
   bonus?: string;
   /**
    * @title 警告
-   * @ui `{"visibleIf":{"any":[{"field":"/level","gt":8},{"field":"/level","lte":0}]}}`
+   * @ui `{"visibleIf":{"op":"or","conditions":[{"left":"level","op":"gt","right":8},{"left":"level","op":"lte","right":0}]}}`
    */
   warn?: string;
   /**
    * 未选城市时显示
    * @title 静默
-   * @ui `{"visibleIf":{"field":"/city","truthy":false}}`
+   * @ui `{"visibleIf":{"left":"city","op":"truthy","right":false}}`
    */
   quiet?: string;
   /**
@@ -85,17 +85,17 @@ export interface Settings {
     open?: boolean;
     /**
      * @title 目标
-     * @ui `{"visibleIf":{"field":"/open","base":"node","truthy":true}}`
+     * @ui `{"visibleIf":{"base":"node","left":"open","op":"truthy","right":true}}`
      */
     target?: "self" | "blank";
     /**
      * @title 提示
-     * @ui `{"visibleIf":{"not":{"field":"/url","base":"node","in":["https://a.com"]}}}`
+     * @ui `{"visibleIf":{"op":"not","condition":{"base":"node","left":"url","op":"in","right":["https://a.com"]}}}`
      */
     tip?: string;
     /**
      * @title 附加
-     * @ui `{"visibleIf":{"field":"/links/*\/open","truthy":true}}`
+     * @ui `{"visibleIf":{"left":"links[*].open","op":"truthy","right":true}}`
      */
     extra?: string;
   }[];

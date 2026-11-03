@@ -58,13 +58,15 @@ describe("checkXUi 与 xUiMetaSchema 规则一致", () => {
 				columns: 3,
 				hidden: false,
 				visibleIf: {
-					all: [
-						{ field: "/a", eq: 1 },
+					op: "and",
+					conditions: [
+						{ left: "a", op: "eq", right: 1 },
 						{
-							any: [
-								{ field: "/b", in: [1] },
-								{ not: { field: "/c", truthy: true } },
-								{ field: "/d", base: "node", gte: 1 },
+							op: "or",
+							conditions: [
+								{ left: "b", op: "in", right: [1] },
+								{ op: "not", condition: { left: "c", op: "truthy", right: true } },
+								{ base: "node", left: "d", op: "gte", right: 1 },
 							],
 						},
 					],
@@ -86,7 +88,9 @@ describe("checkXUi 与 xUiMetaSchema 规则一致", () => {
 			})
 		).toBeUndefined();
 		expect(checkXUi({})).toBeUndefined();
-		expect(checkXUi({ columns: 2.0, visibleIf: { field: "/a", eq: null } })).toBeUndefined();
+		expect(
+			checkXUi({ columns: 2.0, visibleIf: { left: "a", op: "eq", right: null } })
+		).toBeUndefined();
 	});
 
 	const INVALID: [string, unknown, string, string][] = [
@@ -138,37 +142,78 @@ describe("checkXUi 与 xUiMetaSchema 规则一致", () => {
 			"/rules/0/match/enum",
 			"type",
 		],
+		["叶子缺 right", { visibleIf: { left: "a", op: "eq" } }, "/visibleIf/right", "required"],
 		[
-			"叶子条件两个比较项",
-			{ visibleIf: { field: "/a", eq: 1, ne: 2 } },
+			"叶子多余键",
+			{ visibleIf: { left: "a", op: "eq", right: 1, like: 1 } },
 			"/visibleIf",
 			"condition",
 		],
-		["叶子条件缺比较项", { visibleIf: { field: "/a" } }, "/visibleIf", "condition"],
-		["叶子条件未知比较项", { visibleIf: { field: "/a", like: 1 } }, "/visibleIf", "condition"],
-		["gt 非数值", { visibleIf: { field: "/a", gt: "1" } }, "/visibleIf/gt", "type"],
+		[
+			"gt 非数值",
+			{ visibleIf: { left: "a", op: "gt", right: "1" } },
+			"/visibleIf/right",
+			"type",
+		],
 		[
 			"base 取值非法",
-			{ visibleIf: { field: "/a", base: "root", eq: 1 } },
+			{ visibleIf: { left: "a", base: "parent", op: "eq", right: 1 } },
 			"/visibleIf/base",
 			"enum",
 		],
 		[
-			"只有 field 与 base",
-			{ visibleIf: { field: "/a", base: "node" } },
+			"只有 left 与 base",
+			{ visibleIf: { left: "a", base: "node" } },
+			"/visibleIf/op",
+			"required",
+		],
+		[
+			"in 不是数组",
+			{ visibleIf: { left: "a", op: "in", right: 1 } },
+			"/visibleIf/right",
+			"type",
+		],
+		[
+			"truthy 非布尔",
+			{ visibleIf: { left: "a", op: "truthy", right: 1 } },
+			"/visibleIf/right",
+			"type",
+		],
+		[
+			"left 非字符串",
+			{ visibleIf: { left: 1, op: "eq", right: 1 } },
+			"/visibleIf/left",
+			"type",
+		],
+		[
+			"op 取值非法",
+			{ visibleIf: { left: "a", op: "like", right: 1 } },
+			"/visibleIf/op",
+			"enum",
+		],
+		[
+			"and 与 not 并存",
+			{ visibleIf: { op: "and", conditions: [], condition: {} } },
 			"/visibleIf",
 			"condition",
 		],
-		["in 不是数组", { visibleIf: { field: "/a", in: 1 } }, "/visibleIf/in", "type"],
-		["truthy 非布尔", { visibleIf: { field: "/a", truthy: 1 } }, "/visibleIf/truthy", "type"],
-		["field 非字符串", { visibleIf: { field: 1, eq: 1 } }, "/visibleIf/field", "type"],
-		["all 与 any 并存", { visibleIf: { all: [], any: [] } }, "/visibleIf", "condition"],
-		["all 不是数组", { visibleIf: { all: {} } }, "/visibleIf/all", "type"],
+		[
+			"conditions 不是数组",
+			{ visibleIf: { op: "and", conditions: {} } },
+			"/visibleIf/conditions",
+			"type",
+		],
+		[
+			"空的条件数组",
+			{ visibleIf: { op: "and", conditions: [] } },
+			"/visibleIf/conditions",
+			"empty",
+		],
 		[
 			"嵌套条件非法",
-			{ visibleIf: { not: { all: [{ field: "/a" }] } } },
-			"/visibleIf/not/all/0",
-			"condition",
+			{ visibleIf: { op: "not", condition: { op: "and", conditions: [{ left: "a" }] } } },
+			"/visibleIf/condition/conditions/0/op",
+			"required",
 		],
 	];
 

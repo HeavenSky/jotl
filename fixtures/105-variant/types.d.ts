@@ -30,7 +30,7 @@ export interface Article {
   tags?: string[];
   /**
    * @title 作者
-   * @ui `{"variants":{"mobile":{"visibleIf":{"field":"/title","truthy":true}}}}`
+   * @ui `{"variants":{"mobile":{"visibleIf":{"left":"title","op":"truthy","right":true}}}}`
    */
   author?: Author;
 }

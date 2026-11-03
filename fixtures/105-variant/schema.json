@@ -79,8 +79,9 @@
             "variants": {
               "mobile": {
                 "visibleIf": {
-                  "field": "/title",
-                  "truthy": true
+                  "left": "title",
+                  "op": "truthy",
+                  "right": true
                 }
               }
             }

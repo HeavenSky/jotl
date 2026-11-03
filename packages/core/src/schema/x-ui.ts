@@ -1,5 +1,4 @@
 // x-ui 关键字(CT4)的类型.
-import type { JsonPointer } from "./json-pointer.js";
 import type { JsonSchemaObject } from "./json-schema.js";
 
 /** 对象节点的布局(D42); tabs 时每个 groups 项一个标签页, 未分组字段放第一个标签页. */
@@ -10,26 +9,100 @@ export interface XUiGroup {
 	fields: string[];
 }
 
-/** 叶子条件的基准: 缺省为数据根; "node" 为当前节点所在的对象. */
-export type ConditionBase = "node";
+/**
+ * 叶子条件的基准: 缺省为数据根; "node" 为当前节点所在的对象.
+ */
+export type ConditionBase = "root" | "node";
+
+/** 叶子条件的比较算子; `right` 的类型按 `op` 约束(见 ConditionLeaf). */
+export type ConditionOp = "eq" | "ne" | "in" | "notIn" | "truthy" | "gt" | "gte" | "lt" | "lte";
 
 /**
- * 显示条件(D43). field 为从基准起算的指针, 其中的 "*" 取当前节点所在数组的对应下标;
- * eq ne in notIn 按 JSON 值深度相等比较, gt gte lt lte 只比较数值.
+ * 叶子条件(D43): `left` 为从基准起算的 lodash `get` 路径, 其中的 "*" 取当前节点所在数组的对应下标;
+ * eq ne 按 JSON 值深度相等比较, in notIn 的 right 为候选数组, truthy 的 right 为布尔,
+ * gt gte lt lte 只比较数值.
+ */
+export type ConditionLeaf = { base?: ConditionBase; left: string } & (
+	| { op: "eq" | "ne"; right: unknown }
+	| { op: "in" | "notIn"; right: unknown[] }
+	| { op: "truthy"; right: boolean }
+	| { op: "gt" | "gte" | "lt" | "lte"; right: number }
+);
+
+/**
+ * 显示条件(D43): 叶子, 与(`{op: "and", conditions}`), 或(`{op: "or", conditions}`)或非(`{op: "not", condition}`).
  */
 export type Condition =
-	| { field: JsonPointer; base?: ConditionBase; eq: unknown }
-	| { field: JsonPointer; base?: ConditionBase; ne: unknown }
-	| { field: JsonPointer; base?: ConditionBase; in: unknown[] }
-	| { field: JsonPointer; base?: ConditionBase; notIn: unknown[] }
-	| { field: JsonPointer; base?: ConditionBase; truthy: boolean }
-	| { field: JsonPointer; base?: ConditionBase; gt: number }
-	| { field: JsonPointer; base?: ConditionBase; gte: number }
-	| { field: JsonPointer; base?: ConditionBase; lt: number }
-	| { field: JsonPointer; base?: ConditionBase; lte: number }
-	| { all: Condition[] }
-	| { any: Condition[] }
-	| { not: Condition };
+	| ConditionLeaf
+	| { op: "and" | "or"; conditions: Condition[] }
+	| { op: "not"; condition: Condition };
+
+const PLAIN_SEGMENT = /^[^.[\]'"\\\s]+$/;
+const LodashIndex = /^(?:0|[1-9]\d*)$/;
+
+/** lodash `get` 路径(`a.b[0]` `a['x-y']` `list[*].on`) → 片段; 不合法时返回 undefined. */
+export function parseLodashPath(path: string): string[] | undefined {
+	const tokens: string[] = [];
+	let i = 0;
+	let expectName = true;
+	while (i < path.length) {
+		const ch = path[i]!;
+		if (ch === "[") {
+			const close = path[i + 1];
+			if (close === "'" || close === '"') {
+				let j = i + 2;
+				let name = "";
+				while (j < path.length && path[j] !== close) {
+					if (path[j] === "\\" && j + 1 < path.length) j++;
+					name += path[j];
+					j++;
+				}
+				if (path[j] !== close || path[j + 1] !== "]") return undefined;
+				tokens.push(name);
+				i = j + 2;
+			} else {
+				const end = path.indexOf("]", i);
+				if (end < 0) return undefined;
+				const inner = path.slice(i + 1, end);
+				if (inner !== "*" && !LodashIndex.test(inner)) return undefined;
+				tokens.push(inner);
+				i = end + 1;
+			}
+			expectName = false;
+			continue;
+		}
+		if (ch === ".") {
+			if (expectName) return undefined;
+			i++;
+			expectName = true;
+			if (i >= path.length) return undefined;
+			continue;
+		}
+		if (!expectName) return undefined;
+		let j = i;
+		while (j < path.length && path[j] !== "." && path[j] !== "[") {
+			if (path[j] === "]") return undefined;
+			j++;
+		}
+		tokens.push(path.slice(i, j));
+		i = j;
+		expectName = false;
+	}
+	return tokens.length > 0 && !expectName ? tokens : undefined;
+}
+
+/** 片段 → lodash `get` 路径; 空片段数组返回 undefined. */
+export function formatLodashPath(tokens: readonly string[]): string | undefined {
+	if (tokens.length === 0) return undefined;
+	let out = "";
+	for (const token of tokens) {
+		if (token === "*" || LodashIndex.test(token)) out += `[${token}]`;
+		else if (PLAIN_SEGMENT.test(token) && !/^\d/.test(token))
+			out += out === "" ? token : `.${token}`;
+		else out += `['${token.replace(/\\/g, "\\\\").replace(/'/g, "\\'")}']`;
+	}
+	return out;
+}
 
 export type XUiVariant = Omit<XUi, "variants" | "rules" | "version" | "widgets">;
 
