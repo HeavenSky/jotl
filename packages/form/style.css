@@ -785,6 +785,19 @@
     margin-bottom: var(--jotl-gap, 16px);
   }
 }
+.jotl-form > .jotl-object > .jotl-object-title.ant-typography {
+  margin: 0 0 var(--jotl-gap, 16px);
+  font-family: inherit;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 24px;
+}
+.jotl-field:has(	> .ant-form-item-row	> .ant-form-item-control	> .ant-form-item-control-input	> .ant-form-item-control-input-content	> .jotl-entry	)	> .ant-form-item-row	> .ant-form-item-label	> label {
+  font-weight: 500;
+}
+.jotl-panel-body	> .jotl-field	> .ant-form-item-row	> .ant-form-item-control	> .ant-form-item-control-input	> .ant-form-item-control-input-content	> .jotl-object	> .jotl-object-title {
+  display: none;
+}
 @property --tw-border-style {
   syntax: "*";
   inherits: false;

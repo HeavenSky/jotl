@@ -519,7 +519,10 @@ function Panel({
 		<details ref={details} className={`jotl-panel ${styles.panel}`} open={open} hidden={hidden}>
 			<summary className={`jotl-panel-header ${styles.panelHeader}`}>
 				{/* 面板标题接替外壳标签, 组件根元素的 aria-labelledby 仍能找到它. */}
-				<span id={labelId(target.id)} className={`jotl-panel-title ${styles.panelTitle}`}>
+				<span
+					id={labelId(target.id)}
+					className={`jotl-panel-title ${isItem ? styles.panelSummary : styles.panelTitle}`}
+				>
 					{isItem ? text : (label ?? COPY.rootLabel)}
 					{target.required && (
 						<span className={`jotl-required ${htmlStyles.required}`} aria-hidden={true}>

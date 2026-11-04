@@ -186,3 +186,37 @@
 		margin-bottom: var(--jotl-gap, 16px);
 	}
 }
+
+/* antd 的 Typography 与 Form.Item 样式不在 layer 中, 对应覆盖同样放在 layer 外. */
+.jotl-form > .jotl-object > .jotl-object-title.ant-typography {
+	margin: 0 0 var(--jotl-gap, 16px);
+	font-family: inherit;
+	font-size: 16px;
+	font-weight: 500;
+	line-height: 24px;
+}
+
+/* 只匹配字段自身的控件, 避免内层入口改变外层字段的标签或隐藏内联对象标题. */
+.jotl-field:has(
+		> .ant-form-item-row
+			> .ant-form-item-control
+			> .ant-form-item-control-input
+			> .ant-form-item-control-input-content
+			> .jotl-entry
+	)
+	> .ant-form-item-row
+	> .ant-form-item-label
+	> label {
+	font-weight: 500;
+}
+
+.jotl-panel-body
+	> .jotl-field
+	> .ant-form-item-row
+	> .ant-form-item-control
+	> .ant-form-item-control-input
+	> .ant-form-item-control-input-content
+	> .jotl-object
+	> .jotl-object-title {
+	display: none;
+}
