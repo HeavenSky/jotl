@@ -2,6 +2,15 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
+## v0.1.0 2026-11-05 统一条件格式
+
+- **破坏性变更：** `root_if` 与 `node_if` 组合条件改用 `{op: 'and', conditions: [...]}`、`{op: 'or', conditions: [...]}` 和 `{op: 'not', condition: ...}`。请替换原来的 `{and: [...]}`、`{or: [...]}` 与 `{not: ...}` 对象；叶子表达式与路径字符串简写保持原有语法（[语法规范](https://github.com/HeavenSky/jotl/blob/HEAD/zh/docs/spec/jotl.md)）。
+- **破坏性变更：** JSON Schema 的 `x-ui.visibleIf` 叶子改用 `left`、`op`、`right`，组合条件改用 `op` 搭配 `conditions` 或 `condition`。请将手写条件更新为新格式；由 `.jotl` 源码生成的 JSON Schema 重新编译即可（[契约](https://github.com/HeavenSky/jotl/blob/HEAD/zh/docs/spec/x-ui.md)）。
+- 预览入口行与折叠面板统一标题和摘要样式，字典行的简单值由键名提供标签。
+- 子 schema 校验保留嵌套 `$id` 与 `$anchor` 的作用域，并正确定位名称中含字面量 `%` 序列的属性。
+- 预览表单换数据时清除上一条记录的联合分支缓存，受控值回显时保留缓存。
+- 库与 Playground 的升级步骤见[仓库更新日志](https://github.com/HeavenSky/jotl/blob/HEAD/zh/CHANGELOG.md)。
+
 ## v0.0.3 2026-10-22 更严格的格式校验
 
 - **破坏性变更：** 表单校验的 `time`、`date-time`、`duration` 改按 RFC 3339：时区偏移必须带分钟（写 `+08:00`，不能写 `+08`），秒为 `:60` 只接受 UTC 23:59 的闰秒。`uuid` 不再接受 `urn:uuid:` 前缀，`hostname` 不再接受末尾的点。请改写数据与默认值中的这类取值；`time`、`date-time`、`uuid`、`hostname` 上不再合法的默认值会在编辑器中报 `JOTL1008`。

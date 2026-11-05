@@ -96,6 +96,7 @@ Jotl emits only JSON Schema 2020-12; if your consumers need draft-07 or older ou
 
 ## Read more
 
+- [Changelog](CHANGELOG.md): release notes and upgrade steps
 - [Documentation index](docs/README.md): which page to read for each task
 - Specifications: [Jotl syntax](docs/spec/jotl.md), [`x-ui`](docs/spec/x-ui.md), [native HTML widgets](docs/spec/html-widgets.md), [keyword mapping](docs/spec/keyword-mapping.md)
 - [Development guide](docs/development.md): build, test and repository layout

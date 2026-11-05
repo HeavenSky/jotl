@@ -2,6 +2,15 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## v0.1.0 2026-11-05 Unified conditions
+
+- **Breaking:** `root_if` and `node_if` groups now use `{op: 'and', conditions: [...]}`, `{op: 'or', conditions: [...]}` and `{op: 'not', condition: ...}`; replace the former `{and: [...]}`, `{or: [...]}` and `{not: ...}` objects. Leaf expressions and path-string shorthand keep their syntax ([syntax](https://github.com/HeavenSky/jotl/blob/HEAD/docs/spec/jotl.md)).
+- **Breaking:** JSON Schema `x-ui.visibleIf` leaves now use `left`, `op` and `right`, and groups use `op` with `conditions` or `condition`. Update hand-written conditions to the new shape; recompile `.jotl` sources to regenerate their JSON Schema ([contract](https://github.com/HeavenSky/jotl/blob/HEAD/docs/spec/x-ui.md)).
+- Preview entry rows and collapsible panels use consistent title and summary styles, and dictionary keys provide the labels for simple values.
+- Subschema validation keeps nested `$id` and `$anchor` scopes and correctly locates property names containing literal `%` sequences.
+- Replacing preview form data clears cached values from the previous record's union branches, while controlled echoes preserve the cache.
+- Library and Playground upgrade steps are in the [repository changelog](https://github.com/HeavenSky/jotl/blob/HEAD/CHANGELOG.md).
+
 ## v0.0.3 2026-10-22 Stricter formats
 
 - **Breaking:** form validation now follows RFC 3339 for `time`, `date-time` and `duration`: a time zone offset needs minutes (`+08:00`, not `+08`), and `:60` seconds is accepted only for a leap second at 23:59 UTC. `uuid` no longer accepts a `urn:uuid:` prefix, and `hostname` no longer accepts a trailing dot. Rewrite such values in your data and defaults; the editor reports `time`, `date-time`, `uuid` and `hostname` defaults that no longer pass with `JOTL1008`.

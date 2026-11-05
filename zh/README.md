@@ -96,6 +96,7 @@ Jotl 只输出 JSON Schema 2020-12；下游需要 draft-07 或更早版本的输
 
 ## 延伸阅读
 
+- [更新日志](CHANGELOG.md)：版本变化与升级步骤
 - [文档索引](docs/README.md)：每类任务该读哪一页
 - 规范：[Jotl 语法](docs/spec/jotl.md)、[`x-ui`](docs/spec/x-ui.md)、[原生 HTML widget](docs/spec/html-widgets.md)、[关键字对照](docs/spec/keyword-mapping.md)
 - [开发指南](docs/development.md)：构建、测试与仓库结构
