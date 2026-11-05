@@ -1,7 +1,7 @@
 // 纯函数: Jotl 源码编译为 JSON Schema 文本, schema 生成 TS 文本, 两者的诊断统一换算成源码行列;
 // fengdie DSL schema 先经 `migrateFengdie` 迁移为 Jotl 再编译, 迁移诊断直接定位在其源码上.
 import { migrateFengdie, fengdieJsonFeature } from "@jotl/convert";
-import { compile, getLocale, type CompileOptions } from "@jotl/core";
+import { compile, getLocale, parse, type CompileOptions } from "@jotl/core";
 import {
 	parentPointer,
 	type Diagnostic,
@@ -75,7 +75,7 @@ function errorDetail(error: unknown): string {
 
 /**
  * fengdie DSL schema 的顶层特征: 注释与空白之后是凤蝶类型关键字, `export` 文档或 `public`, 或 namespace 类型.
- * Jotl 顶层是 `名字:` 起头的源码不会命中, 普通源码不为此多跑一次迁移解析.
+ * 命中后先检查 Jotl 语法, 避免把 Object, String 等同名类型声明当成凤蝶输入.
  */
 const FENGDIE_HEAD_RE =
 	/^(?:\s|\/\/[^\n]*\n|\/\*[\s\S]*?\*\/)*(?:(?:export\s+\w+|public)\s+)?(?:Object|Array|String|Text|RichText|URL|Color|File|Image|Number|Boolean|Date|Enum|Component|Box|Resource|Plugin|Animation|Video|Action|OpenAction|Spm|Module|ModuleArray|Lottery|[A-Z][A-Za-z0-9]*\.[A-Z][A-Za-z0-9]*)\b/;
@@ -89,7 +89,8 @@ function isFengdieInput(source: string): boolean {
 			return false;
 		}
 	}
-	return FENGDIE_HEAD_RE.test(source);
+	if (!FENGDIE_HEAD_RE.test(source)) return false;
+	return parse(source, PLAYGROUND_FILE).diagnostics.some(d => d.severity === "error");
 }
 
 function rangeOf(range: SourceRange): Pick<PlaygroundDiagnostic, "start" | "end"> {

@@ -218,7 +218,7 @@ export function compileSubschema(document: JsonSchema, schema: JsonSchema): Comp
 			typeof document.$id === "string" && document.$id !== ""
 				? document.$id.replace(/#$/, "")
 				: `urn:jotl:data:document:${++documentSeq}`;
-		const ref = `${id}#${pointer}`;
+		const ref = `${id}#${pointer.split("/").map(encodeURIComponent).join("/")}`;
 		try {
 			registerExtensionKeywords(ajv, document);
 			ajv.addSchema(document, id);

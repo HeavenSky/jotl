@@ -204,6 +204,32 @@ describe("migrate 联合分支", () => {
 		expect(validate(choice, { kind: "b" }).value).toEqual({ valid: true });
 	});
 
+	it.each(["oneOf", "anyOf"] as const)("%s 内普通枚举失效时修正字段并保留有效数据", keyword => {
+		const schema: JsonSchema = {
+			type: "object",
+			[keyword]: [
+				{
+					properties: {
+						kind: { const: "a" },
+						payload: { type: "string" },
+						status: { enum: ["ok"], default: "ok" },
+					},
+					required: ["kind"],
+				},
+				{
+					properties: { kind: { const: "b" }, body: { type: "string" } },
+					required: ["kind"],
+				},
+			],
+		};
+		const result = migrate(schema, { kind: "a", payload: "keep", status: "bad" });
+		expect(result.value).toEqual({
+			data: { kind: "a", payload: "keep", status: "ok" },
+			changed: ["/status"],
+		});
+		expect(validate(schema, result.value!.data).value).toEqual({ valid: true });
+	});
+
 	it("联合节点同级的公共字段参与迁移, 不被删除", () => {
 		const withCommon: JsonSchema = {
 			...choice,

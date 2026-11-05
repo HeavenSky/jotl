@@ -131,6 +131,25 @@ describe("凤蝶迁移", () => {
 		expect(compileSource("A: { a: strng }").fengdie).toBeUndefined();
 	});
 
+	it.each([
+		"Object: { a: string }",
+		"String: string",
+		"Image: { a: string }",
+		"/* 注释 */ Object(标题): { a: string }",
+	])("与凤蝶关键字同名的 Jotl 类型正常编译: %s", source => {
+		const report = compileSource(source);
+		expect(report.fengdie).toBeUndefined();
+		expect(report.diagnostics).toEqual([]);
+		expect(report.output).toBeDefined();
+	});
+
+	it("同名 Jotl 类型的语义错误仍报告编译诊断", () => {
+		const report = compileSource("Object: { a: strng }");
+		expect(report.fengdie).toBeUndefined();
+		expect(report.output).toBeUndefined();
+		expect(report.diagnostics[0]).toMatchObject({ stage: "compile", code: "JOTL1004" });
+	});
+
 	it("凤蝶示例编译成功, 表单可见 showKey 摘要与条件显示", () => {
 		const build = buildPlayground(FENGDIE, schemaToTs);
 		const text = build.report.output!.schemaText;

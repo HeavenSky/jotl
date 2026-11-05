@@ -52,6 +52,22 @@ describe("getDefaults 的 at", () => {
 });
 
 describe("validate 的 at", () => {
+	it("指针中的百分号按字面量定位, 不与 URI 解码后的字段混淆", () => {
+		const schema: JsonSchemaObject = {
+			type: "object",
+			properties: {
+				"a%b": { type: "integer" },
+				"a%20b": { type: "integer" },
+				"a b": { type: "string" },
+			},
+		};
+		for (const at of ["/properties/a%b", "/properties/a%20b"]) {
+			expect(validate(schema, 1, { at }).value).toEqual({ valid: true });
+			expect(validate(schema, "text", { at }).value).toEqual({ valid: false });
+		}
+		expect(validate(schema, "text", { at: "/properties/a b" }).value).toEqual({ valid: true });
+	});
+
 	const schema: JsonSchemaObject = {
 		$defs: {
 			Name: { type: "string", minLength: 2 },

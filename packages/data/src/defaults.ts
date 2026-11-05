@@ -183,9 +183,9 @@ export function fillInto(
 }
 
 /**
- * 按值的类型, 区分字段的取值约束与字段重合度为 anyOf/oneOf 选一个分支; 带标签枚举与无组合关键字时为 undefined.
- * 数据字段的值已能落入分支声明的 const/enum 时优先选该分支(discrimriminator 场景);
- * 分支声明的取值不含数据现值时排除该分支; 都无区分字段时退回字段重合度.
+ * 按值的类型, 判别字段的取值约束与字段重合度为 anyOf/oneOf 选一个分支; 带标签枚举与无组合关键字时为 undefined.
+ * 所有分支都以 const/enum 约束且取值两两互斥的字段作为判别字段, 不匹配时排除分支;
+ * 普通枚举字段仍计入字段重合度, 其非法值留给迁移修正; 无判别字段时退回字段重合度.
  */
 export function matchBranch(
 	ctx: ProduceContext,
@@ -194,11 +194,12 @@ export function matchBranch(
 ): JsonSchema | undefined {
 	const branches = unionBranches(nodes);
 	if (branches === undefined) return undefined;
+	const candidates = branches.map(branch => ({ branch, nodes: expandNodes(ctx, branch) }));
+	const discriminators = discriminatorKeys(candidates.map(candidate => candidate.nodes));
 	let best: JsonSchema | undefined;
 	let bestScore = -1;
 	let bestTagged = false;
-	for (const branch of branches) {
-		const branchNodes = expandNodes(ctx, branch);
+	for (const { branch, nodes: branchNodes } of candidates) {
 		if (!acceptsType(schemaTypes(branchNodes), value)) continue;
 		const allowed = allowedValues(branchNodes);
 		if (allowed !== undefined && !allowed.some(v => jsonEqual(v, value))) continue;
@@ -207,7 +208,9 @@ export function matchBranch(
 		let score = 0;
 		if (isPlainObject(value)) {
 			for (const key of Object.keys(value)) {
-				const keyAllowed = keyAllowedValues(branchNodes, key);
+				const keyAllowed = discriminators.has(key)
+					? keyAllowedValues(branchNodes, key)
+					: undefined;
 				if (keyAllowed !== undefined) {
 					if (!keyAllowed.some(v => jsonEqual(v, value[key]))) {
 						mismatch = true;
@@ -227,6 +230,28 @@ export function matchBranch(
 		}
 	}
 	return best;
+}
+
+/** 所有分支均声明离散取值且分支间两两互斥的字段, 才能用于判别分支. */
+function discriminatorKeys(branches: readonly (readonly JsonSchemaObject[])[]): Set<string> {
+	if (branches.length < 2) return new Set();
+	const keys = new Set(branches[0]?.flatMap(node => Object.keys(node.properties ?? {})));
+	for (const key of keys) {
+		const seen: unknown[] = [];
+		for (const nodes of branches) {
+			const allowed = keyAllowedValues(nodes, key);
+			if (
+				allowed === undefined ||
+				allowed.length === 0 ||
+				allowed.some(value => seen.some(previous => jsonEqual(value, previous)))
+			) {
+				keys.delete(key);
+				break;
+			}
+			seen.push(...allowed);
+		}
+	}
+	return keys;
 }
 
 /** 分支对对象字段 key 声明的离散取值(const/enum); 未声明时为 undefined. */

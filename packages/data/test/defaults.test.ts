@@ -417,6 +417,31 @@ describe("fillDefaults", () => {
 		});
 	});
 
+	it("普通枚举失效不阻止互斥 enum 判别字段选中分支并补默认值", () => {
+		const union: JsonSchema = {
+			oneOf: [
+				{
+					properties: {
+						kind: { enum: ["a", "b"] },
+						status: { enum: ["ok"] },
+						name: { type: "string", default: "first" },
+					},
+				},
+				{
+					properties: {
+						kind: { enum: ["c", "d"] },
+						status: { enum: ["ok"] },
+						name: { type: "string", default: "second" },
+					},
+				},
+			],
+		};
+		expect(fillDefaults(union, { kind: "d", status: "bad" }).value).toEqual({
+			data: { kind: "d", status: "bad", name: "second" },
+			filled: ["/name"],
+		});
+	});
+
 	it("字段名为 __proto__ 时写成自有属性", () => {
 		const proto: JsonSchema = {
 			type: "object",
