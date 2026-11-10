@@ -2,10 +2,11 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
-## v0.1.0 2026-11-05 统一条件格式
+## v0.0.4 2026-11-06 统一条件格式
 
 - **破坏性变更：** `root_if` 与 `node_if` 组合条件改用 `{op: 'and', conditions: [...]}`、`{op: 'or', conditions: [...]}` 和 `{op: 'not', condition: ...}`。请替换原来的 `{and: [...]}`、`{or: [...]}` 与 `{not: ...}` 对象；叶子表达式与路径字符串简写保持原有语法（[语法规范](https://github.com/HeavenSky/jotl/blob/HEAD/zh/docs/spec/jotl.md)）。
 - **破坏性变更：** JSON Schema 的 `x-ui.visibleIf` 叶子改用 `left`、`op`、`right`，组合条件改用 `op` 搭配 `conditions` 或 `condition`。请将手写条件更新为新格式；由 `.jotl` 源码生成的 JSON Schema 重新编译即可（[契约](https://github.com/HeavenSky/jotl/blob/HEAD/zh/docs/spec/x-ui.md)）。
+- `npm run check` 现在还检查 `contributes.configuration` 的默认值：每个设置项都声明与实际生效值一致的 `default`，object 型设置声明 `additionalProperties`，嵌套子键与 snippet 写出的默认值与父对象默认值保持一致。运行行为无变化。
 - 预览入口行与折叠面板统一标题和摘要样式，字典行的简单值由键名提供标签。
 - 子 schema 校验保留嵌套 `$id` 与 `$anchor` 的作用域，并正确定位名称中含字面量 `%` 序列的属性。
 - 预览表单换数据时清除上一条记录的联合分支缓存，受控值回显时保留缓存。

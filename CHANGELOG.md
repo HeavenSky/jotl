@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.4] - 2026-11-06
+
+- Reissue the changes from [0.1.0](#010---2026-11-05) on the `0.0.x` release line. When upgrading from `0.0.3`, follow the breaking-change migration steps below.
+
 ## [0.1.0] - 2026-11-05
 
 ### Breaking changes

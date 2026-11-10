@@ -1,6 +1,6 @@
 {
 	"name": "@jotl/language-server",
-	"version": "0.1.0",
+	"version": "0.0.4",
 	"description": "Live diagnostics, completion, hover and preview for Jotl files in any editor with an LSP client.",
 	"license": "MIT",
 	"repository": {

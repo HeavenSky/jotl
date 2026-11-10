@@ -2,10 +2,11 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
-## v0.1.0 2026-11-05 Unified conditions
+## v0.0.4 2026-11-06 Unified conditions
 
 - **Breaking:** `root_if` and `node_if` groups now use `{op: 'and', conditions: [...]}`, `{op: 'or', conditions: [...]}` and `{op: 'not', condition: ...}`; replace the former `{and: [...]}`, `{or: [...]}` and `{not: ...}` objects. Leaf expressions and path-string shorthand keep their syntax ([syntax](https://github.com/HeavenSky/jotl/blob/HEAD/docs/spec/jotl.md)).
 - **Breaking:** JSON Schema `x-ui.visibleIf` leaves now use `left`, `op` and `right`, and groups use `op` with `conditions` or `condition`. Update hand-written conditions to the new shape; recompile `.jotl` sources to regenerate their JSON Schema ([contract](https://github.com/HeavenSky/jotl/blob/HEAD/docs/spec/x-ui.md)).
+- `npm run check` now also verifies the defaults in `contributes.configuration`: every setting declares a `default` that matches what the code applies, object settings declare `additionalProperties`, and nested or snippet copies of defaults stay consistent with the parent default. No runtime behavior changes.
 - Preview entry rows and collapsible panels use consistent title and summary styles, and dictionary keys provide the labels for simple values.
 - Subschema validation keeps nested `$id` and `$anchor` scopes and correctly locates property names containing literal `%` sequences.
 - Replacing preview form data clears cached values from the previous record's union branches, while controlled echoes preserve the cache.

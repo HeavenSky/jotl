@@ -1,7 +1,7 @@
 {
 	"name": "vscode-jotl",
 	"displayName": "Jotl",
-	"version": "0.1.0",
+	"version": "0.0.4",
 	"private": true,
 	"description": "%extension.description%",
 	"categories": [
