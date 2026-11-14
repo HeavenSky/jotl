@@ -3,6 +3,7 @@ import type { ChangeEvent, ReactNode } from "react";
 import { escapePointerToken } from "@jotl/core";
 import type { EntryEditing, RenderMode } from "../../core/index.js";
 import { COPY, useCopy } from "../copy.js";
+import { AddIcon, RemoveIcon } from "../icons.js";
 import { errorId } from "../ids.js";
 import { groupAttributes, type HtmlMapProps } from "../props.js";
 import { useDraft } from "../use-draft.js";
@@ -80,12 +81,13 @@ function MapEntryRow({ props, entry, index }: EntryRowProps) {
 			{props.mode !== "view" && (
 				<button
 					type="button"
-					className={cn("jotl-button jotl-map-remove", styles.button(), styles.flexNone)}
+					className={cn("jotl-link jotl-map-remove", styles.link, styles.mutedLink, styles.flexNone)}
+					title={COPY.removeEntry(entry.name)}
 					aria-label={COPY.removeEntry(entry.name)}
 					disabled={!props.canRemove}
 					onClick={() => props.removeEntry(entry.name)}
 				>
-					{COPY.remove}
+					<RemoveIcon />
 				</button>
 			)}
 		</li>
@@ -105,7 +107,9 @@ export function EntryEditor(props: EntryEditorProps) {
 			{props.mode !== "view" && (
 				<button
 					type="button"
-					className={`jotl-link jotl-map-add ${styles.link}`}
+					className={cn("jotl-link jotl-map-add", styles.link, styles.iconButton)}
+					title={COPY.add}
+					aria-label={COPY.add}
 					disabled={!props.canAdd}
 					onClick={() =>
 						props.addEntry(
@@ -116,7 +120,7 @@ export function EntryEditor(props: EntryEditorProps) {
 						)
 					}
 				>
-					{COPY.add}
+					<AddIcon />
 				</button>
 			)}
 		</>

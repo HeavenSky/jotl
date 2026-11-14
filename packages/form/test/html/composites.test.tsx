@@ -256,7 +256,11 @@ describe("tuple", () => {
 			remove: vi.fn(),
 		};
 		render(<TupleWidget {...tupleProps({ items: [{ dataPath: "/f/0" }], rest })} />);
-		expect(screen.getAllByRole("button").map(b => b.textContent)).toEqual(["新增", "删除"]);
+		// 新增与删除均为图标按钮, 只看可访问名.
+		expect(screen.getAllByRole("button").map(b => b.getAttribute("aria-label"))).toEqual([
+			"新增",
+			"删除第 2 项",
+		]);
 	});
 
 	it("有错误时 aria-invalid 并显示错误", () => {
@@ -270,11 +274,14 @@ describe("tuple", () => {
 describe("tree", () => {
 	const toggle = () => screen.getByRole("button") as HTMLButtonElement;
 
-	it("折叠时不调用 renderContent(), 按钮为展开", () => {
+	it("折叠时不调用 renderContent(), 按钮为展开图标", () => {
 		const props = treeProps();
 		render(<TreeWidget {...props} />);
 		expect(props.renderContent).not.toHaveBeenCalled();
-		expect(toggle().textContent).toBe("展开");
+		// 展开开关为图标按钮, 文案在 title 与 aria-label 上; textContent 为空.
+		expect(toggle().getAttribute("aria-label")).toBe("展开");
+		expect(toggle().title).toBe("展开");
+		expect(toggle().textContent).toBe("");
 		expect(toggle().getAttribute("aria-expanded")).toBe("false");
 		expect(toggle().hasAttribute("aria-controls")).toBe(false);
 	});
@@ -283,7 +290,8 @@ describe("tree", () => {
 		const props = treeProps({ expanded: true });
 		render(<TreeWidget {...props} />);
 		expect(props.renderContent).toHaveBeenCalled();
-		expect(toggle().textContent).toBe("收起");
+		expect(toggle().getAttribute("aria-label")).toBe("收起");
+		expect(toggle().title).toBe("收起");
 		expect(toggle().getAttribute("aria-expanded")).toBe("true");
 		expect(
 			document.getElementById(toggle().getAttribute("aria-controls") ?? "")?.textContent

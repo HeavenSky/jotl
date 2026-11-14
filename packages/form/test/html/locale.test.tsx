@@ -42,8 +42,13 @@ describe("html 文案按表单语言输出", () => {
 			)
 		);
 		expect(screen.getAllByRole("button", { name: "Add" })).toHaveLength(2);
-		expect(screen.getByRole("button", { name: "Remove item 2" }).textContent).toBe("Remove");
-		expect(screen.getByRole("button", { name: "Move item 1 down" }).textContent).toBe("Down");
+		// 列表条目按钮为图标, 文案在 title 与 aria-label 上; textContent 为空.
+		expect(screen.getByRole("button", { name: "Remove item 2" }).getAttribute("title")).toBe(
+			"Remove item 2"
+		);
+		expect(screen.getByRole("button", { name: "Move item 1 down" }).getAttribute("title")).toBe(
+			"Move item 1 down"
+		);
 		expect(screen.getByRole("button", { name: "Expand" })).toBeTruthy();
 		expect(screen.getByRole("button", { name: "Submit" })).toBeTruthy();
 		expect(screen.getByRole("button", { name: "Reset" })).toBeTruthy();

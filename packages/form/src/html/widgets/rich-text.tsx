@@ -1,6 +1,7 @@
 // 富文本组件: 有 adapters.richText 时交给它渲染, 否则退化为多行文本框; RichTextEditor 是可经 adapters.richText 接入的 contenteditable 最小编辑器.
 import { useLayoutEffect, useRef, type ReactNode } from "react";
 import { useCopy } from "../copy.js";
+import { BulletListIcon, LinkIcon, OrderedListIcon } from "../icons.js";
 import { describedBy, nameId } from "../ids.js";
 import type { HtmlFieldProps } from "../props.js";
 import { isSafeUrl, sanitizeHtml } from "../sanitize-html.js";
@@ -13,23 +14,21 @@ export function RichTextWidget(props: HtmlFieldProps<string>) {
 	return <TextareaWidget {...props} />;
 }
 
-/** label 与 text 为文案键; text 为 undefined 时按钮显示固定的 glyph. */
+/** label 为文案键(按钮的可访问名); icon 存在时按钮显示图标, 否则显示固定的 glyph(粗体/斜体字形). */
 const COMMANDS = [
-	{ command: "bold", label: "bold", text: undefined, glyph: "B", className: "jt:font-bold" },
-	{ command: "italic", label: "italic", text: undefined, glyph: "I", className: "jt:italic" },
-	{ command: "createLink", label: "link", text: "link", glyph: "", className: "" },
+	{ command: "bold", label: "bold", glyph: "B", className: "jt:font-bold" },
+	{ command: "italic", label: "italic", glyph: "I", className: "jt:italic" },
+	{ command: "createLink", label: "link", icon: LinkIcon, className: "" },
 	{
 		command: "insertUnorderedList",
 		label: "bulletList",
-		text: "bulletList",
-		glyph: "",
+		icon: BulletListIcon,
 		className: "",
 	},
 	{
 		command: "insertOrderedList",
 		label: "orderedList",
-		text: "orderedList",
-		glyph: "",
+		icon: OrderedListIcon,
 		className: "",
 	},
 ] as const;
@@ -91,13 +90,14 @@ export function RichTextEditor(props: HtmlFieldProps<string>) {
 							styles.richTextButton,
 							item.className
 						)}
+						title={COPY[item.label]}
 						aria-label={COPY[item.label]}
 						disabled={!editable}
 						// 按下时不夺走编辑区的焦点与选区.
 						onMouseDown={e => e.preventDefault()}
 						onClick={() => run(item.command)}
 					>
-						{item.text === undefined ? item.glyph : COPY[item.text]}
+						{"icon" in item ? <item.icon /> : item.glyph}
 					</button>
 				))}
 			</div>

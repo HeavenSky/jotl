@@ -1,5 +1,6 @@
-// 元组组件 tuple: 按位置排列 prefixItems 各项, 第 i 项用 renderChild(String(i)) 渲染, 位置标签由外壳给出; 位置不增删, items 允许的剩余元素在其后列出, 可增删, 在剩余元素之间上移下移, 复制(渲染器提供时).
+// 元组组件 tuple: 按位置排列 prefixItems 各项, 第 i 项用 renderChild(String(i)) 渲染, 位置标签由外壳给出; 位置不增删, items 允许的剩余元素在其后列出, 可增删, 在剩余元素之间上移下移, 复制(渲染器提供时); 剩余元素的操作按钮(含新增)为图标, 可访问名取文案表完整条目文案.
 import { useCopy } from "../copy.js";
+import { AddIcon, DuplicateIcon, MoveDownIcon, MoveUpIcon, RemoveIcon } from "../icons.js";
 import { errorId } from "../ids.js";
 import { groupAttributes, type HtmlTupleProps } from "../props.js";
 import { cn, styles } from "../styles.js";
@@ -28,11 +29,13 @@ export function TupleWidget(props: HtmlTupleProps) {
 						<div className={`jotl-array-header ${styles.arrayHeader}`}>
 							<button
 								type="button"
-								className={`jotl-link jotl-tuple-add ${styles.link}`}
+								className={cn("jotl-link jotl-tuple-add", styles.link, styles.iconButton)}
+								title={COPY.add}
+								aria-label={COPY.add}
 								disabled={!rest.canAdd}
 								onClick={() => rest.add()}
 							>
-								{COPY.add}
+								<AddIcon />
 							</button>
 						</div>
 					)}
@@ -59,13 +62,14 @@ export function TupleWidget(props: HtmlTupleProps) {
 														"jotl-link jotl-tuple-move-up",
 														actionLink
 													)}
+													title={COPY.moveItemUp(item.index)}
 													aria-label={COPY.moveItemUp(item.index)}
 													disabled={!editable || j === 0}
 													onClick={() =>
 														rest.move?.(item.index, item.index - 1)
 													}
 												>
-													{COPY.moveUp}
+													<MoveUpIcon />
 												</button>
 												<button
 													type="button"
@@ -73,13 +77,14 @@ export function TupleWidget(props: HtmlTupleProps) {
 														"jotl-link jotl-tuple-move-down",
 														actionLink
 													)}
+													title={COPY.moveItemDown(item.index)}
 													aria-label={COPY.moveItemDown(item.index)}
 													disabled={!editable || j === last}
 													onClick={() =>
 														rest.move?.(item.index, item.index + 1)
 													}
 												>
-													{COPY.moveDown}
+													<MoveDownIcon />
 												</button>
 											</>
 										)}
@@ -90,11 +95,12 @@ export function TupleWidget(props: HtmlTupleProps) {
 													"jotl-link jotl-tuple-duplicate",
 													actionLink
 												)}
+												title={COPY.duplicateItem(item.index)}
 												aria-label={COPY.duplicateItem(item.index)}
 												disabled={!rest.canAdd}
 												onClick={() => rest.duplicate?.(item.index)}
 											>
-												{COPY.duplicate}
+												<DuplicateIcon />
 											</button>
 										)}
 										<button
@@ -103,11 +109,12 @@ export function TupleWidget(props: HtmlTupleProps) {
 												"jotl-link jotl-tuple-remove",
 												actionLink
 											)}
+											title={COPY.removeItem(item.index)}
 											aria-label={COPY.removeItem(item.index)}
 											disabled={!rest.canRemove}
 											onClick={() => rest.remove(item.index)}
 										>
-											{COPY.remove}
+											<RemoveIcon />
 										</button>
 									</div>
 								)}

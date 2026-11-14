@@ -98,10 +98,6 @@
 		min-width: 1.25rem;
 	}
 
-	:where(.jotl-array-add, .jotl-map-add)::before {
-		content: "+ " / "";
-	}
-
 	/*
 	 * 字典行的简单值字段不显示标签: 键名已由同行的键输入框表达, 标签会把值控件挤到第二行;
 	 * 钻取入口行的标签保留; 隐藏的 label 仍经 for 关联为控件提供无障碍名.
@@ -184,6 +180,43 @@
 		line-height: 24px;
 		padding-inline: 0;
 		margin-bottom: var(--jotl-gap, 16px);
+	}
+}
+
+/*
+ * 数组与元组条目的单行紧凑排布(覆盖工具类的显示方式, 故在 utilities 层):
+ * 条目内的钻取入口行把外壳标签(条目标题)与摘要(类型或填写概况)并成一行, 摘要为灰色小一号的次要文字;
+ * 展开箭头固定在入口行尾的一列, 与内容垂直居中, 操作图标组在其右侧同行.
+ */
+@layer utilities {
+	.jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) {
+		display: flex;
+		align-items: center;
+	}
+
+	.jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-label {
+		flex: none;
+	}
+
+	/* 控件区占剩余宽度, 摘要因此推开行尾的展开箭头. */
+	.jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-field-control {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.jotl-array-item-content .jotl-entry-summary {
+		font-size: 0.875em;
+	}
+
+	/* 展开的面板条目: 操作图标组对齐面板标题行, 不再垂直居中到展开后的整行中部; 偏移取标题行 48px 与图标行 22px 之差的一半. */
+	.jotl-array-item:has(.jotl-panel[open]),
+	.jotl-tuple-rest-item:has(.jotl-panel[open]) {
+		align-items: flex-start;
+	}
+
+	.jotl-array-item:has(.jotl-panel[open]) .jotl-array-item-actions,
+	.jotl-tuple-rest-item:has(.jotl-panel[open]) .jotl-array-item-actions {
+		margin-top: 13px;
 	}
 }
 

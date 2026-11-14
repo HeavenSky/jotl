@@ -110,10 +110,14 @@ export const styles = {
 	array: "jt:grid jt:gap-2",
 	arrayHeader: "jt:flex jt:justify-end",
 	arrayItems: "jt:m-0 jt:p-0 jt:border jt:border-divider jt:list-none jt:empty:hidden",
+	/** 条目行: 单行紧凑排布, 序号与内容同行; 行高按图标与一行文字收紧. */
 	arrayItem:
-		"jt:flex jt:items-center jt:gap-2 jt:min-h-[48px] jt:py-[8px] jt:pr-[16px] jt:pl-[12px] jt:border-divider jt:not-first:border-t",
+		"jt:flex jt:items-center jt:gap-2 jt:min-h-[36px] jt:py-[6px] jt:pr-[16px] jt:pl-[12px] jt:border-divider jt:not-first:border-t",
 	arrayItemContent: "jt:flex-1 jt:min-w-0",
 	arrayItemActions: "jt:flex jt:flex-none jt:gap-3",
+	/** 图标按钮(新增等): 固定方形尺寸让内联图标居中, 可访问名由 title 与 aria-label 提供. */
+	iconButton:
+		"jt:inline-flex jt:flex-none jt:items-center jt:justify-center jt:w-[24px] jt:h-[24px]",
 	link: `jt:p-0 jt:border-0 jt:bg-transparent jt:text-focus ${inheritFont} jt:cursor-pointer jt:enabled:hover:text-focus-hover jt:disabled:text-disabled-text jt:disabled:cursor-not-allowed ${focusRing}`,
 	/** 数组行内的操作链接为次要色, 悬停仍为主色. */
 	mutedLink: "jt:text-muted",
