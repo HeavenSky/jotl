@@ -800,7 +800,7 @@
   .jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-label {
     flex: none;
   }
-  .jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-field-control {
+  .jotl-array-item-content	.jotl-field:has(> .jotl-field-control > .jotl-entry)	> .jotl-field-control {
     flex: 1 1 auto;
     min-width: 0;
   }

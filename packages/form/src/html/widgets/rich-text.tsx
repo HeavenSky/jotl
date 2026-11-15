@@ -19,18 +19,8 @@ const COMMANDS = [
 	{ command: "bold", label: "bold", glyph: "B", className: "jt:font-bold" },
 	{ command: "italic", label: "italic", glyph: "I", className: "jt:italic" },
 	{ command: "createLink", label: "link", icon: LinkIcon, className: "" },
-	{
-		command: "insertUnorderedList",
-		label: "bulletList",
-		icon: BulletListIcon,
-		className: "",
-	},
-	{
-		command: "insertOrderedList",
-		label: "orderedList",
-		icon: OrderedListIcon,
-		className: "",
-	},
+	{ command: "insertUnorderedList", label: "bulletList", icon: BulletListIcon, className: "" },
+	{ command: "insertOrderedList", label: "orderedList", icon: OrderedListIcon, className: "" },
 ] as const;
 
 /** 值为 HTML 字符串; 写入与显示都经白名单清洗, 内容为空时写回 undefined. */

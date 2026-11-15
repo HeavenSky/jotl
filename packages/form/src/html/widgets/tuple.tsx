@@ -29,7 +29,11 @@ export function TupleWidget(props: HtmlTupleProps) {
 						<div className={`jotl-array-header ${styles.arrayHeader}`}>
 							<button
 								type="button"
-								className={cn("jotl-link jotl-tuple-add", styles.link, styles.iconButton)}
+								className={cn(
+									"jotl-link jotl-tuple-add",
+									styles.link,
+									styles.iconButton
+								)}
 								title={COPY.add}
 								aria-label={COPY.add}
 								disabled={!rest.canAdd}

@@ -81,7 +81,12 @@ function MapEntryRow({ props, entry, index }: EntryRowProps) {
 			{props.mode !== "view" && (
 				<button
 					type="button"
-					className={cn("jotl-link jotl-map-remove", styles.link, styles.mutedLink, styles.flexNone)}
+					className={cn(
+						"jotl-link jotl-map-remove",
+						styles.link,
+						styles.mutedLink,
+						styles.flexNone
+					)}
 					title={COPY.removeEntry(entry.name)}
 					aria-label={COPY.removeEntry(entry.name)}
 					disabled={!props.canRemove}

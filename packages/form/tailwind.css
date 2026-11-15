@@ -199,7 +199,9 @@
 	}
 
 	/* 控件区占剩余宽度, 摘要因此推开行尾的展开箭头. */
-	.jotl-array-item-content .jotl-field:has(> .jotl-field-control > .jotl-entry) > .jotl-field-control {
+	.jotl-array-item-content
+		.jotl-field:has(> .jotl-field-control > .jotl-entry)
+		> .jotl-field-control {
 		flex: 1 1 auto;
 		min-width: 0;
 	}
