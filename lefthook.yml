@@ -1,0 +1,18 @@
+# 提交门禁: 只对暂存文件做快速检查(oxlint + oxfmt --check); 完整门禁仍是仓库根的 pnpm check, CI 同链.
+# oxfmt 的 exclude 与 .oxfmtrc.json 的 ignorePatterns 对齐: 生成物与 fixtures 不参与格式检查.
+pre-commit:
+    skip:
+        - merge
+        - rebase
+    commands:
+        oxlint:
+            glob: "*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"
+            run: pnpm exec oxlint --deny-warnings {staged_files}
+        oxfmt:
+            glob: "*.{js,mjs,cjs,ts,mts,cts,jsx,tsx,css,md,json,jsonc,yml,yaml,html,toml}"
+            exclude:
+                - "*.min.*"
+                - "fixtures/**"
+                - "packages/*/test/fixtures/**"
+                - "packages/form/style.css"
+            run: pnpm exec oxfmt --check {staged_files}
