@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.5] - 2026-11-15
+
+- Form operation buttons in the array, map, tree, tuple and rich-text widgets show compact inline icons instead of text, and item rows are more compact. Only `@jotl/form` is republished as [0.0.5](https://github.com/HeavenSky/jotl/blob/HEAD/packages/form/CHANGELOG.md); the other packages are unchanged, and the VS Code extension stays at v0.0.4.
+
 ## [0.0.4] - 2026-11-06
 
 - Reissue the changes from [0.1.0](#010---2026-11-05) on the `0.0.x` release line. When upgrading from `0.0.3`, follow the breaking-change migration steps below.

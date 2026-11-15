@@ -2,6 +2,13 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.5] - 2026-11-15
+
+### Changed
+
+- Operation buttons in the array, map, tree, tuple and rich-text widgets show compact inline icons instead of text; each button keeps its tooltip and accessible name, and bold and italic keep their letter glyphs.
+- Array and tuple item rows are more compact, with icon-sized action buttons.
+
 ## [0.0.4] - 2026-11-06
 
 ### Breaking changes
