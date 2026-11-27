@@ -58,6 +58,8 @@ export const META_KEY_DOCS: Readonly<Record<string, string>> = {
 	closed: "禁止额外字段, 编译为 `additionalProperties: false`.",
 	nullable: "允许为 `null`; 渲染时有置空开关.",
 	multiple: "枚举多选: 值为成员值数组, 自动 `uniqueItems`.",
+	options_from:
+		"从数组读取标量或 {label, value} 选项. 表单显示 label, 写回 value. 路径相对所在对象, `$.` 从数据根起算.",
 	array_item: "数组元素的类型串(`'string'` `'Banner'` `'number|string'`), 或 `'tuple'` 表示元组.",
 	map_item: "map 值的类型串.",
 	union_item: "按 JSON 类型区分的联合的类型串, 至少两个名字.",
@@ -184,6 +186,8 @@ export const META_KEY_DOCS_EN: Readonly<Record<string, string>> = {
 	nullable: "Allow `null`; the form shows a clear toggle.",
 	multiple:
 		"Enum multi-select: the value is an array of member values, `uniqueItems` is implied.",
+	options_from:
+		"Read scalar or {label, value} choices from an array in the containing object. Show label and store value. Prefix the path with `$.` to read from the data root.",
 	array_item:
 		"Type string of array items (`'string'` `'Banner'` `'number|string'`), or `'tuple'` for a tuple.",
 	map_item: "Type string of map values.",

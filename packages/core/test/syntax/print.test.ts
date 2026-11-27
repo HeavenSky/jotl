@@ -88,6 +88,25 @@ function convertField(x: JsonSchemaObject): { line: string; schema: JsonSchemaOb
 }
 
 describe("fixtures 往返", () => {
+	it("动态枚举的单选、多选和命名类型引用都保留来源路径", () => {
+		const source =
+			"Form: { one: Choice many: Choice[multiple: true] local: enum[options_from: 'keys', multiple: true] } Choice: enum[options_from: '$.keys']";
+		const result = compile(source, FILE);
+		expect(result.diagnostics).toEqual([]);
+		expect(roundTrip(result.value!.schema)).toContain("options_from");
+		for (const field of [
+			"enum",
+			"enum[options_from: 'a.']",
+			"enum[options_from: 'a']{ x }",
+			"string[options_from: 'a']",
+		]) {
+			expect(
+				compile(`Form: { field: ${field} }`, FILE).diagnostics.some(
+					d => d.severity === "error"
+				)
+			).toBe(true);
+		}
+	});
 	for (const name of listFixtures()) {
 		const fixture = readFixture(name);
 		if (!fixture.hasSchema) continue;

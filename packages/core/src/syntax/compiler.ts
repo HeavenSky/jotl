@@ -13,6 +13,8 @@ import {
 	type XUi,
 	type XUiWidgetModule,
 	appendPointer,
+	enumSourcePath,
+	ENUM_SOURCE_TYPES,
 	hasErrors,
 	isSchemaObject,
 	isTimestampValueFormat,
@@ -1123,6 +1125,17 @@ class Compiler {
 	}
 
 	private enumMembers(input: TypeInput, pointer: JsonPointer): JsonSchemaObject {
+		const source = input.metas.get("options_from");
+		if (source) {
+			if (input.body) this.invalidValue("enumSourceBody", {}, input.body.span);
+			const path = this.str(input.metas, "options_from", true);
+			if (path === undefined) return {};
+			if (enumSourcePath(path) === undefined) {
+				this.invalidValue("invalidPath", { path }, source.value.span);
+				return {};
+			}
+			return { type: [...ENUM_SOURCE_TYPES], "x-enumFrom": path };
+		}
 		const entries = input.body?.entries ?? [];
 		if (entries.length === 0) {
 			this.error("JOTL1025", {}, input.body?.span ?? input.compSpan);

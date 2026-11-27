@@ -2,6 +2,11 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.5] - 2026-11-27
+
+- Compile and print `enum[options_from: 'choices']` for both single and multiple selection. The compiled schema stores the source path in `x-enumFrom`, on `items` for multiple selection. [Enum syntax](../../docs/spec/jotl.md#enums)
+- If you previously used `x_enum_from` for custom metadata, rename that key before recompiling. The compiler now reserves `x-enumFrom` for the options path.
+
 ## [0.0.4] - 2026-11-06
 
 ### Breaking changes

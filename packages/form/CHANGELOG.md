@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.6] - 2026-11-27
+
+- Selects, radio groups and checkbox groups update as the source array changes. Editing a label preserves the selection. Removing a selected value keeps it in the form until the user chooses again, and validation identifies the stale value. [Dynamic enum example](../../docs/spec/jotl.md#enums)
+
 ## [0.0.5] - 2026-11-15
 
 ### Changed

@@ -4,6 +4,10 @@
 
 Entries follow repository release versions rather than the private application's package version.
 
+## [0.0.6] - 2026-11-27
+
+- Preview data-driven enums by editing their source array in the form. A label change updates the visible option while the submitted value keeps its original type. [Example](../../docs/spec/jotl.md#enums)
+
 ## [0.0.4] - 2026-11-06
 
 ### Breaking changes

@@ -2,6 +2,11 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
+## [0.0.6] - 2026-11-27
+
+- 枚举的单选和多选都可以从表单数组读取选项。`options_from: 'choices'` 读取当前对象的清单，`options_from: '$.choices'` 读取根对象的清单。选项 `{label: 'SMS', value: 2}` 显示「SMS」，保存数字 `2`。[枚举语法](docs/spec/jotl.md#枚举)
+- `@jotl/form` 版本为 `0.0.6`；`@jotl/core`、`@jotl/data`、`@jotl/antd`、`@jotl/language-server` 和 VS Code 扩展版本为 `0.0.5`。
+
 ## [0.0.5] - 2026-11-15
 
 - 表单的数组、映射、树、元组与富文本组件操作按钮改为紧凑内联图标，条目行更紧凑。本次仅发布 `@jotl/form` [0.0.5](https://github.com/HeavenSky/jotl/blob/HEAD/packages/form/zh/CHANGELOG.md)，其余包无变化，VS Code 插件保持 v0.0.4。

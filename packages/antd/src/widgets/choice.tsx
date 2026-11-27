@@ -2,7 +2,13 @@
 import { Checkbox, Radio, Select, Switch } from "antd";
 import { isSchemaObject } from "@jotl/core";
 import { useL10n } from "@jotl/form";
-import { enumOptions, jsonEqual, schemaTypes, type EnumOption } from "@jotl/form/core";
+import {
+	enumOptions,
+	extraEnumValues,
+	jsonEqual,
+	schemaTypes,
+	type EnumOption,
+} from "@jotl/form/core";
 import {
 	ariaAttributes,
 	choiceDisabled,
@@ -24,13 +30,17 @@ function indexOfValue(options: readonly EnumOption[], value: unknown): number {
 	return value === undefined ? -1 : options.findIndex(option => jsonEqual(option.value, value));
 }
 
-/** 多选的当前下标与不在选项中的已有值; 写回按选项顺序排列, 已有的额外值原样保留在末尾. */
-function multiState(options: readonly EnumOption[], value: unknown) {
+/** 多选下标映射回原值, 写回按选项顺序排列. */
+function multiState(
+	schema: AntdFieldProps["schema"],
+	options: readonly EnumOption[],
+	value: unknown
+) {
 	const current = Array.isArray(value) ? value : [];
 	const selected = options.flatMap((option, i) =>
 		current.some(item => jsonEqual(item, option.value)) ? [i] : []
 	);
-	const extras = current.filter(item => !options.some(option => jsonEqual(option.value, item)));
+	const extras = extraEnumValues(schema, options, current);
 	const write = (picked: readonly number[]) => {
 		const set = new Set(picked);
 		return [...options.filter((_, i) => set.has(i)).map(option => option.value), ...extras];
@@ -57,7 +67,7 @@ export function AntdSwitchWidget(props: AntdFieldProps<boolean>) {
 export function AntdCheckboxWidget(props: AntdFieldProps<unknown>) {
 	if (isEnumArray(props.schema)) {
 		const options = itemOptions(props.schema);
-		const { selected, write } = multiState(options, props.value);
+		const { selected, write } = multiState(props.schema, options, props.value);
 		return (
 			<div
 				id={props.id}
@@ -118,7 +128,7 @@ export function AntdSelectWidget(props: AntdFieldProps<unknown>) {
 	};
 	if (isEnumArray(props.schema)) {
 		const options = itemOptions(props.schema);
-		const { selected, write } = multiState(options, props.value);
+		const { selected, write } = multiState(props.schema, options, props.value);
 		return (
 			<Select<number[]>
 				{...common}

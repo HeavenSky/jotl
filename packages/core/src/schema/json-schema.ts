@@ -45,6 +45,7 @@ export interface JsonSchemaObject {
 	type?: JsonSchemaType | JsonSchemaType[];
 	const?: unknown;
 	enum?: unknown[];
+	"x-enumFrom"?: string;
 
 	allOf?: JsonSchema[];
 	anyOf?: JsonSchema[];

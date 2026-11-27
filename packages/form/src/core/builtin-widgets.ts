@@ -1,6 +1,7 @@
 // 内置组件名表(契约 C2), format 到组件名的映射, 以及组件包共用的 schema 读取工具.
 import { isSchemaObject, type JsonSchema, type JsonSchemaObject } from "@jotl/core";
 import type { WidgetLevel } from "./contracts.js";
+import { jsonEqual } from "./condition.js";
 
 export type WidgetPriority = "P0" | "P1" | "P2";
 
@@ -71,6 +72,16 @@ export interface EnumOption {
 	label: string;
 }
 
+/** 手动改选时, 动态清单只写入本次所选项; 静态枚举沿用保留额外值的行为. */
+export function extraEnumValues(
+	schema: JsonSchemaObject,
+	options: readonly EnumOption[],
+	current: unknown[]
+): unknown[] {
+	if (isSchemaObject(schema.items) && schema.items["x-enumFrom"] !== undefined) return [];
+	return current.filter(item => !options.some(option => jsonEqual(option.value, item)));
+}
+
 function labelOf(value: unknown): string {
 	return typeof value === "string" ? value : JSON.stringify(value);
 }
@@ -88,7 +99,7 @@ export function enumOptions(schema: JsonSchema): EnumOption[] | undefined {
 		}
 		return options;
 	}
-	return undefined;
+	return typeof schema["x-enumFrom"] === "string" ? [] : undefined;
 }
 
 /** 节点的 JSON 类型集合; 未声明 type 时返回空数组. */

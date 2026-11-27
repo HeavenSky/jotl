@@ -76,6 +76,15 @@ export {
 } from "./x-ui.js";
 export { xUiMetaSchema } from "./x-ui-meta-schema.js";
 export {
+	ENUM_SOURCE_TYPES,
+	enumSourceOptions,
+	enumSourcePath,
+	enumSourceValues,
+	hasEnumSourceValue,
+	isEnumSourceValue,
+	readEnumSource,
+} from "./enum-source.js";
+export {
 	DEFAULT_DEFAULTS_OPTIONS,
 	type DataApi,
 	type DefaultsOptions,

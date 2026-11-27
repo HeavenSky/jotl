@@ -34,6 +34,114 @@ function input(formId: string, path: string): HTMLInputElement {
 }
 
 describe("Jotl → schema → 表单", () => {
+	it("动态枚举跟随同一对象内的数组变化, 写回原始类型", async () => {
+		const result = compile(
+			`Form: {
+			choices: array[array_item: 'any']
+			selected?: enum[options_from: 'choices']
+			many?: enum[options_from: 'choices', multiple: true]
+		}`,
+			"form.jotl"
+		);
+		expect(result.diagnostics).toEqual([]);
+		const ref = createRef<JotlFormHandle>();
+		render(
+			<JotlForm
+				ref={ref}
+				id="choices"
+				schema={result.value!.schema}
+				defaultValue={{ choices: [false, 1, "1", 1, null] }}
+			/>
+		);
+		const select = screen.getByRole<HTMLSelectElement>("combobox");
+		const labels = () =>
+			Array.from(select.options)
+				.slice(1)
+				.map(o => o.text);
+		expect(labels()).toEqual(["false", "1", "1"]);
+		fireEvent.change(select, { target: { value: select.options[2]!.value } });
+		expect(ref.current!.getValues()).toMatchObject({ selected: 1 });
+		act(() => ref.current!.setValues({ choices: ["new"], selected: 1, many: [false] }));
+		expect(labels()).toEqual(["new"]);
+		await act(async () => {
+			expect((await ref.current!.validate()).valid).toBe(false);
+		});
+		const multi = screen.getByRole<HTMLSelectElement>("listbox");
+		multi.options[0]!.selected = true;
+		fireEvent.change(multi);
+		fireEvent.change(select, { target: { value: select.options[1]!.value } });
+		expect(ref.current!.getValues()).toEqual({
+			choices: ["new"],
+			selected: "new",
+			many: ["new"],
+		});
+		await act(async () => {
+			expect((await ref.current!.validate()).valid).toBe(true);
+		});
+	});
+	it("行内枚举可分别引用当前行和根的带标签选项, 标签变化保留选中值", async () => {
+		const result = compile(
+			`Form: {
+			choices: array[array_item: 'any']
+			rows: array {
+				choices?: array[array_item: 'any']
+				local?: enum[options_from: 'choices']
+				shared?: enum[options_from: '$.choices', multiple: true]
+			}
+		}`,
+			"form.jotl"
+		);
+		expect(result.diagnostics).toEqual([]);
+		const ref = createRef<JotlFormHandle>();
+		const rootChoices = [{ label: "公共", value: false }];
+		const rowChoices = [
+			{ label: "本行", value: 1 },
+			{ label: "重复", value: 1 },
+			"1",
+			{ label: "缺值" },
+			{ value: "缺标签" },
+			{ label: 2, value: "无效" },
+		];
+		render(
+			<JotlForm
+				id="rows"
+				ref={ref}
+				schema={result.value!.schema}
+				nested={false}
+				defaultValue={{ choices: rootChoices, rows: [{ choices: rowChoices }, {}] }}
+			/>
+		);
+		const local = document.getElementById(nodeId("rows", "/rows/0/local")) as HTMLSelectElement;
+		const shared = document.getElementById(
+			nodeId("rows", "/rows/0/shared")
+		) as HTMLSelectElement;
+		const missing = document.getElementById(
+			nodeId("rows", "/rows/1/local")
+		) as HTMLSelectElement;
+		expect(
+			Array.from(local.options)
+				.slice(1)
+				.map(o => o.text)
+		).toEqual(["本行", "1"]);
+		expect(Array.from(shared.options).map(o => o.text)).toEqual(["公共"]);
+		expect(missing.options).toHaveLength(1);
+		fireEvent.change(local, { target: { value: local.options[1]!.value } });
+		shared.options[0]!.selected = true;
+		fireEvent.change(shared);
+		expect(ref.current!.getValues()).toMatchObject({
+			rows: [{ local: 1, shared: [false] }, {}],
+		});
+		act(() =>
+			ref.current!.setValues({
+				choices: rootChoices,
+				rows: [{ choices: [{ label: "改名", value: 1 }], local: 1, shared: [false] }, {}],
+			})
+		);
+		expect(local.selectedOptions[0]!.text).toBe("改名");
+		await act(async () => {
+			expect((await ref.current!.validate()).valid).toBe(true);
+		});
+	});
 	it("006 嵌套对象: 默认值补全, 编辑后取值, 设值后校验通过", async () => {
 		const schema = compileFixture("006-nested-object");
 		const ref = createRef<JotlFormHandle>();

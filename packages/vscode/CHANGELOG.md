@@ -2,6 +2,11 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## v0.0.5 2026-11-27 Data-driven enum options
+
+- Edit `enum[options_from: 'choices']` with completion and syntax highlighting. The form preview reads choices from the current object or data root, displays option labels and validates the stored values.
+- Array and tuple rows in the preview are more compact. Form action buttons use icons and retain their tooltips and accessible names.
+
 ## v0.0.4 2026-11-06 Unified conditions
 
 - **Breaking:** `root_if` and `node_if` groups now use `{op: 'and', conditions: [...]}`, `{op: 'or', conditions: [...]}` and `{op: 'not', condition: ...}`; replace the former `{and: [...]}`, `{or: [...]}` and `{not: ...}` objects. Leaf expressions and path-string shorthand keep their syntax ([syntax](https://github.com/HeavenSky/jotl/blob/HEAD/docs/spec/jotl.md)).

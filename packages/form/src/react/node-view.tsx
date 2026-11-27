@@ -10,7 +10,13 @@ import {
 	type ReactNode,
 } from "react";
 import { labelId, styles as htmlStyles } from "../html/index.js";
-import { tryParsePointer, type Diagnostic } from "@jotl/core";
+import {
+	enumSourceOptions,
+	isSchemaObject,
+	readEnumSource,
+	tryParsePointer,
+	type Diagnostic,
+} from "@jotl/core";
 import {
 	DECORATOR_WIDGET,
 	FALLBACK_WIDGET,
@@ -370,17 +376,38 @@ function NodeViewImpl(props: NodeTarget) {
 		(relativePath: string) => renderTarget(resolveChild(ctx, target, relativePath)),
 		[ctx, target]
 	);
+	const schema = widgetSchema(ctx.document, info);
+	const items = isSchemaObject(schema.items) ? schema.items : undefined;
+	const source = schema["x-enumFrom"] ?? items?.["x-enumFrom"];
+	const list = useStoreValue(store, () =>
+		typeof source === "string" ? readEnumSource(source, store.value, path) : undefined
+	);
+	const choiceSchema = useMemo(() => {
+		if (typeof source !== "string") return schema;
+		const options = enumSourceOptions(list);
+		const members = options.some(option => option.label !== undefined)
+			? {
+					oneOf: options.map(({ value, label }) => ({
+						const: value,
+						title: label ?? String(value),
+					})),
+				}
+			: { enum: options.map(option => option.value) };
+		return schema["x-enumFrom"] !== undefined
+			? { ...schema, ...members }
+			: { ...schema, items: { ...items, ...members } };
+	}, [items, list, schema, source]);
 	const base = useMemo(
 		() => ({
 			id: target.id,
-			schema: widgetSchema(ctx.document, info),
+			schema: choiceSchema,
 			dataPath: path,
 			mode: ctx.mode,
 			props: node.props,
 			adapters: ctx.adapters,
 			renderChild,
 		}),
-		[ctx.adapters, ctx.document, ctx.mode, info, node.props, path, renderChild, target.id]
+		[choiceSchema, ctx.adapters, ctx.mode, node.props, path, renderChild, target.id]
 	);
 
 	if (hidden && Decorator === undefined) return null;

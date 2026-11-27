@@ -2,6 +2,11 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
+## v0.0.5 2026-11-27 动态枚举选项
+
+- 编辑 `enum[options_from: 'choices']` 时支持补全和语法高亮。表单预览可从当前对象或数据根读取选项，显示标签并校验保存的值。
+- 预览里的数组和元组条目布局更紧凑，表单操作按钮改用图标，并保留提示文字和无障碍名称。
+
 ## v0.0.4 2026-11-06 统一条件格式
 
 - **破坏性变更：** `root_if` 与 `node_if` 组合条件改用 `{op: 'and', conditions: [...]}`、`{op: 'or', conditions: [...]}` 和 `{op: 'not', condition: ...}`。请替换原来的 `{and: [...]}`、`{or: [...]}` 与 `{not: ...}` 对象；叶子表达式与路径字符串简写保持原有语法（[语法规范](https://github.com/HeavenSky/jotl/blob/HEAD/zh/docs/spec/jotl.md)）。

@@ -331,6 +331,7 @@ function convertOne(error: ErrorObject): Converted | undefined {
 		case "pattern":
 			return at("JOTL4005", { pattern: String(params["pattern"]) });
 		case "enum":
+		case "x-enumFrom":
 			return at("JOTL4006");
 		case "minItems":
 			return at("JOTL4007", { detail: bound(dataText().atLeast) });

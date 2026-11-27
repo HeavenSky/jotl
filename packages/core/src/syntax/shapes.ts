@@ -148,7 +148,8 @@ function isEnumLike(schema: JsonSchema, resolve: RefResolver | undefined, depth 
 		const target = resolve?.(schema.$ref);
 		return target !== undefined && isEnumLike(target, resolve, depth + 1);
 	}
-	if ("const" in schema || Array.isArray(schema.enum)) return true;
+	if ("const" in schema || Array.isArray(schema.enum) || typeof schema["x-enumFrom"] === "string")
+		return true;
 	return (
 		Array.isArray(schema.oneOf) && schema.oneOf.every(b => isSchemaObject(b) && "const" in b)
 	);

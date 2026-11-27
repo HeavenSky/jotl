@@ -2,6 +2,11 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.6] - 2026-11-27
+
+- Single- and multiple-choice enums can read options from a form array. Use `options_from: 'choices'` for the current object or `options_from: '$.choices'` for the root. An option such as `{label: 'SMS', value: 2}` displays “SMS” and stores the number `2`. [Enum syntax](docs/spec/jotl.md#enums)
+- Package versions are `0.0.6` for `@jotl/form` and `0.0.5` for `@jotl/core`, `@jotl/data`, `@jotl/antd`, `@jotl/language-server` and the VS Code extension.
+
 ## [0.0.5] - 2026-11-15
 
 - Form operation buttons in the array, map, tree, tuple and rich-text widgets show compact inline icons instead of text, and item rows are more compact. Only `@jotl/form` is republished as [0.0.5](https://github.com/HeavenSky/jotl/blob/HEAD/packages/form/CHANGELOG.md); the other packages are unchanged, and the VS Code extension stays at v0.0.4.

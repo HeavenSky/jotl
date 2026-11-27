@@ -180,7 +180,7 @@
 				{ "include": "#comments" },
 				{ "include": "#type-string" },
 				{
-					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:description|default|examples|deprecated|readOnly|writeOnly|errorMessage|comment|minLength|maxLength|pattern|format|minimum|maximum|exclusiveMinimum|exclusiveMaximum|decimals|minItems|maxItems|uniqueItems|minProperties|maxProperties|closed|nullable|multiple|array_item|map_item|union_item|json_item|item_meta|key_meta|discriminator|currency|unit|thousands|value_format|widget|props|decorator|hidden|order|groups|layout|columns|summary|root_if|node_if|variants|rules|id|schema|widgets|x_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
+					"match": "(?<![\\p{ID_Continue}$\\x{200C}\\x{200D}-])(?:description|default|examples|deprecated|readOnly|writeOnly|errorMessage|comment|minLength|maxLength|pattern|format|minimum|maximum|exclusiveMinimum|exclusiveMaximum|decimals|minItems|maxItems|uniqueItems|minProperties|maxProperties|closed|nullable|multiple|options_from|array_item|map_item|union_item|json_item|item_meta|key_meta|discriminator|currency|unit|thousands|value_format|widget|props|decorator|hidden|order|groups|layout|columns|summary|root_if|node_if|variants|rules|id|schema|widgets|x_[a-z][a-z0-9]*(?:_[a-z0-9]+)*)(?![\\p{ID_Continue}$\\x{200C}\\x{200D}]|-[\\p{ID_Continue}$\\x{200C}\\x{200D}])",
 					"name": "entity.other.attribute-name.metadata.jotl"
 				},
 				{ "include": "#json-members" }

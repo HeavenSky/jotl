@@ -154,8 +154,8 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 | `money`                         | 对象，见[数值, 金额与大整数](#数值-金额与大整数)    | `money`                                                                                                                        | 无                            |
 | `bigint`                        | 对象，见[数值, 金额与大整数](#数值-金额与大整数)    | `bigint`                                                                                                                       | 无                            |
 | `boolean`                       | `type: boolean`                                     | `switch` `checkbox`                                                                                                            | 无                            |
-| `enum` 单选                     | `enum` / `oneOf` / 单成员为 `const`                 | `select` `radio`；单成员默认 `output`（只读）                                                                                  | 成员                          |
-| `enum` 多选（`multiple: true`） | `array` + `uniqueItems`                             | `select`（多选下拉） `checkbox`                                                                                                | 成员                          |
+| `enum` 单选                     | `enum` / `oneOf` / 单成员为 `const`                 | `select` `radio`；单个静态成员默认 `output`（只读）                                                                            | 成员或 `options_from`         |
+| `enum` 多选（`multiple: true`） | `array` + `uniqueItems`                             | `select`（多选下拉） `checkbox`                                                                                                | 成员或 `options_from`         |
 | `date` `time` `datetime`        | 由 `value_format` 决定，见[日期与时间](#日期与时间) | 与组件同名                                                                                                                     | 无                            |
 | `url` `email`                   | `string` + `format` `uri` / `email`                 | 与组件同名                                                                                                                     | 无                            |
 | `color`                         | `string` + `format: color`                          | `color`                                                                                                                        | 无                            |
@@ -202,7 +202,7 @@ Body    = "{" { Entry | EnumMember } "}" ;              (* 体的内容由组件
 | `map`      | `map_item: 类型串`    | 无                                                                                                                                                      |
 | `union`    | 有 `discriminator`    | 分支，见 [union](#union)                                                                                                                                |
 | `union`    | `union_item`          | 无                                                                                                                                                      |
-| `enum`     | -                     | 成员，见[枚举](#枚举)                                                                                                                                   |
+| `enum`     | -                     | 成员；使用 `options_from` 时省略体。见[枚举](#枚举)                                                                                                     |
 | `jsontext` | 无 `json_item`        | 解析后对象的字段（可为空体或省略体，省略时内容为任意 JSON）                                                                                             |
 | `jsontext` | `json_item: 类型串`   | 无                                                                                                                                                      |
 | 其他       | -                     | 写体报错                                                                                                                                                |
@@ -222,7 +222,46 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 - 有任一标签或 `description` 时编译为 `oneOf: [{const, title, description}]`，否则编译为 `enum`；单成员编译为 `const`。
 - 共用选项：先声明 `Cities(城市): enum{...}`，字段再写 `city: Cities`；多选写 `cities: Cities[multiple: true]`。
 - 多选：`multiple: true`，值为成员值数组，自动加 `uniqueItems`，默认允许一项都不选；`minItems` `maxItems` 作用于所选个数。
-- 语法层不支持运行时选项源，成员只能写在源码中。渲染层契约中的 `Adapters.loadOptions` 只是预留给自定义 widget 的外部能力，内置 widget 不调用它，见 [x-ui 规范](x-ui.md)。
+
+用 `options_from` 让填表人自己维护候选清单。下面两个选择框都会随 `choices` 的内容更新。
+
+```jotl
+Form: {
+  choices: array[array_item: 'string']
+  selected?: enum[options_from: 'choices']
+  favorites?: enum[options_from: 'choices', multiple: true]
+}
+```
+
+使用 `options_from` 时省略枚举体。路径前缀决定从哪个对象开始查找。以 `rows[2].selected` 字段为例：
+
+| 字段声明                                     | 路径起点                   | 实际读取的数组    |
+| -------------------------------------------- | -------------------------- | ----------------- |
+| `selected?: enum[options_from: 'choices']`   | 当前节点（字段所在的对象） | `rows[2].choices` |
+| `selected?: enum[options_from: '$.choices']` | 表单数据根对象             | 根上的 `choices`  |
+
+两种路径都支持条件路径的点号、方括号和按当前位置匹配的 `[*]`。指定路径缺失或指向非数组时，候选清单为空，即使另一个位置存在同名数组也是如此。字符串、数字和布尔值作为选项时保留各自的 JSON 类型，按来源顺序显示。
+
+要为选项指定显示名称，使用带有 `label` 和 `value` 两个键的对象。下面的表单显示「Email」和「SMS」。单选「SMS」时，`channel` 保存数字 `2`；多选两项时，`channels` 保存 `[1, 2]`。
+
+```jotl
+Form: {
+  choices: array[default: [{label: 'Email', value: 1}, {label: 'SMS', value: 2}]] {
+    label: string
+    value: integer
+  }
+  channel?: enum[options_from: 'choices']
+  channels?: enum[options_from: 'choices', multiple: true]
+}
+```
+
+- `label` 是显示用的字符串。`value` 可以是字符串、数字或布尔值，用于识别选项、保存数据和校验。修改标签会更新显示，已有选择仍然有效。
+- 同一数组可以混用标量和带标签的对象。对象里的额外属性会被忽略。缺少任一键或类型不符的元素不会成为选项。
+- 每个值首次有效出现的位置和标签生效。数字 `1` 和字符串 `"1"` 是两个选项。不同值可以使用相同的标签。
+
+编译器将路径写入 Jotl 扩展关键字 `x-enumFrom`，同一节点的类型为 `type: ["string", "number", "boolean"]`。多选时这两个关键字位于 `items` 中，外层数组带有 `uniqueItems: true`。
+
+编辑来源清单会保留已选值。Jotl 校验会为每个已移出清单的选中值报告 `JOTL4006`，重新选择即可写入新值。通用 JSON Schema 校验器需要支持 `x-enumFrom` 才能检查候选范围。需要从远程服务读取选项时，自定义 widget 可使用 `Adapters.loadOptions`。见 [x-ui 规范](x-ui.md)。
 
 ## union
 
@@ -272,6 +311,7 @@ EnumMember = ( Ident | Number | String | "true" | "false" ) [ Label ] [ Meta ] [
 | `comment`                                                                               | 字符串                                                        | `$comment`                                                                                                                                                                                                                    | 引用类型以外                                                                                                   |
 | `closed`                                                                                | 布尔                                                          | `additionalProperties: false`                                                                                                                                                                                                 | `object`                                                                                                       |
 | `nullable`                                                                              | 布尔                                                          | 字符串类、`number` `integer` `boolean` 以及底层为这些类型的扩展组件在 `type` 中加 `null`；其余包成 `anyOf: [T, {type: "null"}]`                                                                                               | 任意                                                                                                           |
+| `options_from`                                                                          | 数据路径字符串                                                | `x-enumFrom`（多选时写入 `items`），见[枚举](#枚举)                                                                                                                                                                           | `enum`                                                                                                         |
 | `multiple`                                                                              | 布尔                                                          | 见[枚举](#枚举)                                                                                                                                                                                                               | `enum`，指向枚举的引用                                                                                         |
 | `array_item` `map_item` `union_item` `json_item` `item_meta` `key_meta` `discriminator` | 见[体与内部类型](#体与内部类型)、[union](#union)              | -                                                                                                                                                                                                                             | 见[体与内部类型](#体与内部类型)                                                                                |
 | `currency` `unit`                                                                       | 见[数值, 金额与大整数](#数值-金额与大整数)                    | `money` 的属性 schema                                                                                                                                                                                                         | `money`                                                                                                        |
@@ -395,7 +435,7 @@ d?: string[node_if: 'href']
 | error   | JOTL1002 JOTL1003 JOTL1040                            | 语法：此处应为另一种记号；缺右括号；冒号后有内容却省略了冒号                                                                                                                                                                                                                                                                                                                      |
 | error   | JOTL1036 JOTL1037 JOTL1038 JOTL1039 JOTL1015 JOTL1028 | 顶层：顶层名不是大驼峰；顶层写了 `?`；标识写在体内；标识重复；类型名重复；类型名与扩展组件（含根元数据 `widgets` 声明的）重名                                                                                                                                                                                                                                                     |
 | error   | JOTL1004 JOTL1006 JOTL1014 JOTL1041 JOTL1044 JOTL1047 | 组件：未知组件；未声明的类型或未登记的扩展组件；保留字 `import` `export` `from`；不允许体的组件写了体；引用类型带体；写法不完整（如 `union` 既无 `discriminator` 也无 `union_item`，可区分联合没有分支）                                                                                                                                                                          |
-| error   | JOTL1005 JOTL1024 JOTL1025 JOTL1046                   | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举没有成员；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等）                                                                                                                                                                                                                                    |
+| error   | JOTL1005 JOTL1024 JOTL1025 JOTL1046                   | 体与键：同一体或同一元数据内键重复；枚举值重复；枚举既无成员也没有 `options_from`；体中条目不合法（枚举成员写了 `?` `:` 或裸 `null`，元组位置、union 分支的写法等）                                                                                                                                                                                                               |
 | error   | JOTL1011 JOTL1007 JOTL1012 JOTL1020 JOTL1017 JOTL1053 | 元数据：未知键；键不适用于该组件（含时间戳 `value_format` 下的字符串约束）；键不能用在此处（只能写在根、需要 `multiple`、`schema` 写入保留关键字等）；取值不合法；`x-ui` 相关取值不合法（`order` `groups` `layout` `columns` `summary`、条件、`variants` `rules`、空 `widget`）；`value_format` 含无法往返的记号                                                                  |
 | error   | JOTL1042 JOTL1043 JOTL1008 JOTL1029                   | 类型串不合法（含 `null` `enum`，名字重复或为空）；按 JSON 类型区分的联合有同类分支；`default` 不满足约束；嵌套超过上限                                                                                                                                                                                                                                                            |
 | warning | JOTL1045 JOTL1016 JOTL1048 JOTL1049 JOTL1050 JOTL1052 | `widget`（含 `variants` 中的）不接受该数据形态（降级为默认）；`schema` 与生成结果冲突；`format` 覆盖组件自带的格式（如 `image[format: 'email']`，以元数据为准）；`summary` 用在元素不是对象的 `array` / `map` 上；`schema` 写入的 `x-ui` 不符合 x-ui meta-schema 或含根专属字段 `version` `rules` `widgets`（原样写入，不阻断）；字段类型不被非大驼峰 widget 名声明的底层类型接受 |

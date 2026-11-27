@@ -51,7 +51,7 @@ export const MARKERS: readonly string[] = ["<root/>", "<default/>"];
 
 /** 求候选用的代表写法: 不带元数据就能编译; 枚举合并单选与多选. */
 const WIDGET_SAMPLES: Readonly<Record<string, readonly string[]>> = {
-	enum: ["enum{ a b }", "enum[multiple: true]{ a b }"],
+	enum: ["enum{ a b }", "enum[multiple: true]{ a b }", "enum[options_from: 'choices']"],
 	union: ["union[union_item: 'string|number']"],
 };
 /** 任意形态都接受的通用候选, 排在最后. */

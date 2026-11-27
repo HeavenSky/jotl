@@ -16,6 +16,61 @@ function errors(
 }
 
 describe("中文文案与字段标签", () => {
+	it("动态枚举按当前行读取来源, 多选错误指向对应项", () => {
+		const field = { "x-enumFrom": "keys" };
+		const rows: JsonSchema = {
+			type: "array",
+			items: {
+				type: "object",
+				properties: {
+					picked: field,
+					many: { type: "array", items: field },
+					nested: {
+						type: "object",
+						properties: { picked: { "x-enumFrom": "$.[*].keys" } },
+					},
+				},
+			},
+		};
+		const data = [
+			{ keys: [false, 1], picked: false, many: [1], nested: { picked: 1 } },
+			{ keys: ["1"], picked: 1, many: ["1", false], nested: { picked: "1" } },
+		];
+		expect(errors(rows, data).map(e => [e.code, e.pointer])).toEqual([
+			["JOTL4006", "/1/picked"],
+			["JOTL4006", "/1/many/1"],
+		]);
+		expect(errors(rows, [{ picked: "x" }])[0]?.code).toBe("JOTL4006");
+		const multi: JsonSchema = {
+			properties: { picks: { type: "array", items: { "x-enumFrom": "$.lists[*]" } } },
+		};
+		// 多选值自身的下标不是字段所在行的下标.
+		expect(errors(multi, { lists: [["a"]], picks: ["a"] })[0]?.pointer).toBe("/picks/0");
+	});
+	it("带标签的动态选项按原始 value 校验, 当前节点和根各用自己的清单", () => {
+		const schema: JsonSchema = {
+			properties: {
+				row: {
+					properties: {
+						local: { "x-enumFrom": "choices" },
+						shared: { "x-enumFrom": "$.choices" },
+					},
+				},
+			},
+		};
+		const choices = [{ label: "根", value: false, extra: 1 }];
+		const local = { label: "本行", value: 0 };
+		const row = { choices: [local, { label: 2, value: "bad" }], local: 0, shared: false };
+		expect(errors(schema, { choices, row })).toEqual([]);
+		for (const invalid of [local.label, local, "0", "bad", false]) {
+			expect(errors(schema, { choices, row: { ...row, local: invalid } })).toMatchObject([
+				{ code: "JOTL4006", pointer: "/row/local" },
+			]);
+		}
+		expect(errors(schema, { choices, row: { ...row, shared: 0 } })).toMatchObject([
+			{ code: "JOTL4006", pointer: "/row/shared" },
+		]);
+	});
 	const schema: JsonSchema = {
 		type: "object",
 		properties: {

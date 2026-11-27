@@ -37,6 +37,7 @@ export {
 	FORMAT_WIDGETS,
 	ROOT_WIDGET,
 	enumOptions,
+	extraEnumValues,
 	fieldLabel,
 	isBuiltinWidget,
 	requiredKeys,

@@ -4,6 +4,10 @@
 
 Entries follow repository release versions; the specification's own version remains v1.
 
+## [0.0.6] - 2026-11-27
+
+- `enum[options_from: 'choices']` reads scalar or `{label, value}` entries from the containing object. Prefix the path with `$.` to read from the data root. Both forms support `multiple: true`. [Enum contract](jotl.md#enums)
+
 ## [0.0.4] - 2026-11-06
 
 ### Breaking changes

@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.5] - 2026-11-27
+
+- Enum completion suggests `options_from`. Hover help explains how to read local or root arrays and how `{label, value}` entries are displayed and stored. [Enum syntax](../../docs/spec/jotl.md#enums)
+
 ## [0.0.4] - 2026-11-06
 
 ### Breaking changes

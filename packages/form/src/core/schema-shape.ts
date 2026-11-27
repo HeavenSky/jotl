@@ -58,7 +58,7 @@ export type Shape =
 				| "nullable"
 				| DecimalKind;
 	  }
-	| { kind: "enum"; count: number }
+	| { kind: "enum"; count?: number }
 	| { kind: "union"; discriminator?: string }
 	| { kind: "scalar"; type: ScalarType; widget: BuiltinWidgetName };
 
@@ -211,6 +211,7 @@ export function shapeOf(document: JsonSchema, node: ResolvedNode): Shape {
 	if (nonEmptyArray(schema.oneOf) && nonEmptyArray(schema.anyOf))
 		return { kind: "unsupported", feature: "oneOf + anyOf" };
 	if ("const" in schema) return { kind: "const" };
+	if (typeof schema["x-enumFrom"] === "string") return { kind: "enum" };
 	const options = enumOptions(schema);
 	if (options !== undefined) return { kind: "enum", count: options.length };
 	const union = unionKeyword(schema);
@@ -280,7 +281,7 @@ function inferType(schema: JsonSchemaObject): string | undefined {
 export function builtinWidgetOf(shape: Shape): BuiltinWidgetName {
 	switch (shape.kind) {
 		case "enum":
-			return shape.count >= 2 ? "select" : "output";
+			return shape.count === undefined || shape.count >= 2 ? "select" : "output";
 		case "enumArray":
 			return "select";
 		case "scalar":

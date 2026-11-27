@@ -1,6 +1,6 @@
 // 勾选与选项组件: switch, checkbox(布尔单个或枚举数组一组), radio, select(单选或枚举数组多选).
 import type { ChangeEvent } from "react";
-import { enumOptions, schemaTypes, type EnumOption } from "../../core/index.js";
+import { enumOptions, extraEnumValues, schemaTypes, type EnumOption } from "../../core/index.js";
 import { isSchemaObject } from "@jotl/core";
 import { useCopy } from "../copy.js";
 import { deepEqual } from "../deep-equal.js";
@@ -92,7 +92,7 @@ export function RadioWidget(props: HtmlFieldProps<unknown>) {
 
 const EMPTY_OPTION = "";
 
-/** 枚举数组为多选下拉框, 写回按选项顺序排列, 不在选项中的已有值保留在末尾. */
+/** 枚举数组为多选下拉框, 写回按选项顺序排列. */
 function MultiSelect(props: HtmlFieldProps<unknown[]>) {
 	const options = itemOptions(props.schema) ?? [];
 	const current = Array.isArray(props.value) ? props.value : [];
@@ -108,7 +108,7 @@ function MultiSelect(props: HtmlFieldProps<unknown[]>) {
 			value={selected}
 			onChange={(e: ChangeEvent<HTMLSelectElement>) => {
 				const picked = new Set(Array.from(e.target.selectedOptions, o => Number(o.value)));
-				const extras = current.filter(item => !options.some(o => deepEqual(o.value, item)));
+				const extras = extraEnumValues(props.schema, options, current);
 				props.onChange([
 					...options.filter((_, i) => picked.has(i)).map(o => o.value),
 					...extras,
@@ -191,10 +191,7 @@ function CheckboxGroup(props: HtmlFieldProps<unknown[]>) {
 						className={`jotl-checkbox ${styles.checkbox}`}
 						checked={isChecked(option)}
 						onChange={(e: ChangeEvent<HTMLInputElement>) => {
-							// 按选项顺序重建, 保持写回顺序稳定; 不在选项中的已有值原样保留在末尾.
-							const extras = current.filter(
-								item => !options.some(o => deepEqual(o.value, item))
-							);
+							const extras = extraEnumValues(props.schema, options, current);
 							const next = options
 								.filter(o => (o === option ? e.target.checked : isChecked(o)))
 								.map(o => o.value);

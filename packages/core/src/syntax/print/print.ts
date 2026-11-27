@@ -12,6 +12,8 @@ import {
 	TIMESTAMP_VALUE_FORMATS,
 	VALUE_FORMAT_ALIASES,
 	formatPointer,
+	enumSourcePath,
+	ENUM_SOURCE_TYPES,
 	isSchemaObject,
 	valueFormatComponent,
 } from "../../schema/index.js";
@@ -158,6 +160,7 @@ const FORMAT_COMPONENT: Readonly<Record<string, ComponentName>> = {
 };
 /** 打印出的元数据键顺序. */
 const META_ORDER = [
+	"options_from",
 	"multiple",
 	"array_item",
 	"map_item",
@@ -851,6 +854,13 @@ class SchemaPrinter {
 		) {
 			if (this.multiple(s, rest, out)) return true;
 		}
+		if (this.isDynamicEnum(s)) {
+			out.comp = "enum";
+			out.metas.set("options_from", s["x-enumFrom"]);
+			rest.delete("type");
+			rest.delete("x-enumFrom");
+			return true;
+		}
 		const members = this.enumMembers(s);
 		if (members) {
 			out.comp = "enum";
@@ -919,10 +929,14 @@ class SchemaPrinter {
 			if (
 				target === undefined ||
 				!isSchemaObject(target.schema) ||
-				this.enumMembers(target.schema as Raw) === undefined
+				(this.enumMembers(target.schema as Raw) === undefined &&
+					!this.isDynamicEnum(target.schema as Raw))
 			)
 				return false;
 			out.comp = target.name;
+		} else if (Object.keys(it).length === 2 && this.isDynamicEnum(it)) {
+			out.comp = "enum";
+			out.metas.set("options_from", it["x-enumFrom"]);
 		} else {
 			const members = this.enumMembers(it);
 			if (members === undefined || Object.keys(it).length !== 2) return false;
@@ -948,6 +962,15 @@ class SchemaPrinter {
 			out.metas.set("maxItems", s.maxItems);
 			rest.delete("maxItems");
 		}
+	}
+
+	private isDynamicEnum(s: Raw): boolean {
+		const source = s["x-enumFrom"];
+		return (
+			typeof source === "string" &&
+			enumSourcePath(source) !== undefined &&
+			deepEqual(s.type, ENUM_SOURCE_TYPES)
+		);
 	}
 
 	/** 节点为单选枚举时的成员; 与编译器的枚举形态一致. */

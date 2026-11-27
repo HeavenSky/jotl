@@ -2,6 +2,10 @@
 
 **English** · [简体中文](./zh/CHANGELOG.md)
 
+## [0.0.5] - 2026-11-27
+
+- Validate `x-enumFrom` selections against the current source array. Validation compares typed values, including the `value` of labeled options, and reports `JOTL4006` at the field or failing array item. [Enum validation](../../docs/spec/jotl.md#enums)
+
 ## [0.0.4] - 2026-11-06
 
 ### Fixed

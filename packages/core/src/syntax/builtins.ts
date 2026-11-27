@@ -134,6 +134,7 @@ export const META_KEYS: Readonly<Record<string, MetaKeyRule>> = {
 	closed: { targets: ["object"] },
 	nullable: { targets: "any" },
 	multiple: { targets: ["enum", "ref"] },
+	options_from: { targets: ["enum"] },
 	array_item: { targets: ["array"] },
 	map_item: { targets: ["map"] },
 	union_item: { targets: ["union"] },
@@ -195,6 +196,7 @@ export function customMetaKey(keyword: string): string | undefined {
 
 /** 编译器自己生成的扩展关键字, `x_*` 不能写入. */
 export const GENERATED_EXTENSION_KEYWORDS: ReadonlySet<string> = new Set([
+	"x-enumFrom",
 	"x-ui",
 	"x-deprecatedReason",
 	"x-decimals",
@@ -231,6 +233,7 @@ export const CONDITION_OPS: readonly string[] = [
 
 /** `errorMessage: {...}` 可用的键: `@jotl/data` 按这些关键字名报告错误并查找对应文案. */
 export const ERROR_MESSAGE_KEYWORDS: ReadonlySet<string> = new Set([
+	"x-enumFrom",
 	"type",
 	"required",
 	"dependentRequired",

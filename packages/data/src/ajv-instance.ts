@@ -1,7 +1,8 @@
 // 创建与缓存校验用的 Ajv 实例: 2020-12 方言, ajv-formats(部分 format 按规范收紧), 自定义 color 格式与 Jotl 扩展关键字.
 import { Ajv2020, _, type KeywordCxt, type Options, type ValidateFunction } from "ajv/dist/2020.js";
 import addFormatsModule from "ajv-formats";
-import { formatPointer, type JsonSchema } from "@jotl/core";
+import { formatPointer, hasEnumSourceValue, readEnumSource, type JsonSchema } from "@jotl/core";
+import type { DataValidationCxt } from "ajv/dist/types/index.js";
 import { isValueFormatAlias } from "@jotl/core";
 import { countDecimals, rangeViolation } from "./decimal.js";
 import { addStrictFormats } from "./formats.js";
@@ -40,6 +41,16 @@ export function createAjv(overrides: Options = {}): Ajv2020 {
 	// $ref 又指回本资源(如 $id: "child.json" 旁的 $ref: "#/$defs/x")时无限递归, 编译栈溢出. 给 $id 一个空定义, 资源根不再被当作纯引用.
 	ajv.removeKeyword("$id");
 	ajv.addKeyword({ keyword: "$id", schemaType: "string" });
+	ajv.addKeyword({
+		keyword: "x-enumFrom",
+		schemaType: "string",
+		errors: false,
+		validate: (source: string, value: unknown, _schema: unknown, ctx?: DataValidationCxt) => {
+			if (!ctx) return false;
+			const list = readEnumSource(source, ctx.rootData, ctx.instancePath);
+			return hasEnumSourceValue(list, value);
+		},
+	});
 	// 违反时 Ajv 只给出关键字, 违反的边界与位数由错误转换阶段按 error.schema 与 error.data 重新计算.
 	ajv.addKeyword({
 		keyword: "x-decimals",

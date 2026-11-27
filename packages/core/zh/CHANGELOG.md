@@ -2,6 +2,11 @@
 
 [English](../CHANGELOG.md) · **简体中文**
 
+## [0.0.5] - 2026-11-27
+
+- 编译和反向打印均支持 `enum[options_from: 'choices']` 的单选和多选。编译后的 schema 用 `x-enumFrom` 保存来源路径，多选时该关键字位于 `items`。[枚举语法](../../../zh/docs/spec/jotl.md#枚举)
+- 如果已有源码将 `x_enum_from` 用作自定义元数据，请先改名再编译。编译器现已将 `x-enumFrom` 保留给选项来源路径。
+
 ## [0.0.4] - 2026-11-06
 
 ### 破坏性变更
